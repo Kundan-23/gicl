@@ -7,6 +7,10 @@ import Step2_BasicRegistration from './pages/PlayerOnboarding/Step2_BasicRegistr
 import Step3_Payment from './pages/PlayerOnboarding/Step3_Payment';
 import Step4_PlayerProfile from './pages/PlayerOnboarding/Step4_PlayerProfile';
 import Step5_MediaTutorials from './pages/PlayerOnboarding/Step5_MediaTutorials';
+import DashboardLayout from './components/layout/DashboardLayout';
+import PlayerDashboard from './pages/Dashboard/PlayerDashboard';
+import MatchesCalendar from './pages/Dashboard/MatchesCalendar';
+import ReferralSystem from './pages/Dashboard/ReferralSystem';
 
 function App() {
   return (
@@ -19,8 +23,15 @@ function App() {
           <Route path="onboarding/payment" element={<Step3_Payment />} />
           <Route path="onboarding/step4" element={<Step4_PlayerProfile />} />
           <Route path="onboarding/step5" element={<Step5_MediaTutorials />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
+        
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<PlayerDashboard />} />
+          <Route path="matches" element={<MatchesCalendar />} />
+          <Route path="referral" element={<ReferralSystem />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

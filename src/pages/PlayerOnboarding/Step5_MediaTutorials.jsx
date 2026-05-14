@@ -35,8 +35,7 @@ const Step5_MediaTutorials = () => {
 
   const handleComplete = () => {
     alert("Registration Complete!");
-    resetForm();
-    navigate('/');
+    navigate('/dashboard');
   };
 
   return (

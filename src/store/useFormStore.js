@@ -50,6 +50,29 @@ export const useFormStore = create(
       },
       updateMedia: (data) => set((state) => ({ media: { ...state.media, ...data } })),
 
+      // Dashboard State
+      dashboardState: {
+        profilePhotoUrl: '',
+        referralPoints: 0,
+        myReferralCode: 'GICL-' + Math.floor(1000 + Math.random() * 9000),
+        referrals: [], // { name, status, pointsEarned }
+        upcomingMatches: [
+          { id: 1, date: '2026-06-01T10:00:00Z', opponent: 'Mumbai Strikers', location: 'Oval Maidan', type: 'League Match' },
+          { id: 2, date: '2026-06-15T14:30:00Z', opponent: 'Pune Royals', location: 'DY Patil Stadium', type: 'Quarter Final' }
+        ]
+      },
+      updateDashboard: (data) => set((state) => ({ dashboardState: { ...state.dashboardState, ...data } })),
+      simulateFriendRegistration: () => set((state) => {
+        const newReferral = { name: `Player ${state.dashboardState.referrals.length + 1}`, status: 'Completed', pointsEarned: 0.5 };
+        return {
+          dashboardState: {
+            ...state.dashboardState,
+            referralPoints: state.dashboardState.referralPoints + 0.5,
+            referrals: [...state.dashboardState.referrals, newReferral]
+          }
+        };
+      }),
+
       // Global actions
       resetForm: () => set({
         basicInfo: {
