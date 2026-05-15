@@ -42,24 +42,25 @@ const Landing = () => {
         </button>
 
         <button 
-          onClick={() => alert('Coach onboarding coming soon!')}
+          onClick={() => navigate('/coach-onboarding')}
           style={{
             backgroundColor: 'var(--bg-surface)',
-            border: '2px solid var(--bg-surface-elevated)',
+            border: '2px solid var(--brand-accent)',
             borderRadius: 'var(--radius-lg)',
             padding: '2rem 1rem',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: '1rem',
-            color: 'var(--text-secondary)',
+            color: '#fff',
             cursor: 'pointer',
             transition: 'all 0.2s',
           }}
+          onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'}
+          onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-surface)'}
         >
-          <ShieldAlert size={48} color="var(--text-secondary)" />
+          <ShieldAlert size={48} color="var(--brand-accent)" />
           <span className="heading-2">I am a Coach</span>
-          <span className="text-small">(Coming Soon)</span>
         </button>
       </div>
     </motion.div>

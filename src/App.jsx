@@ -12,6 +12,15 @@ import PlayerDashboard from './pages/Dashboard/PlayerDashboard';
 import MatchesCalendar from './pages/Dashboard/MatchesCalendar';
 import ReferralSystem from './pages/Dashboard/ReferralSystem';
 
+// Coach Imports
+import CoachRegistrationFlow from './pages/CoachOnboarding/CoachRegistrationFlow';
+import CoachDashboardLayout from './components/layout/CoachDashboardLayout';
+import SquadOverview from './pages/CoachDashboard/SquadOverview';
+import VideoScrutiny from './pages/CoachDashboard/VideoScrutiny';
+import TeamBuilder from './pages/CoachDashboard/TeamBuilder';
+import CoachMatchesCalendar from './pages/CoachDashboard/CoachMatchesCalendar';
+import CoachReferralSystem from './pages/CoachDashboard/CoachReferralSystem';
+
 function App() {
   return (
     <BrowserRouter>
@@ -25,10 +34,27 @@ function App() {
           <Route path="onboarding/step5" element={<Step5_MediaTutorials />} />
         </Route>
         
+        {/* Coach Onboarding Route */}
+        <Route path="/coach-onboarding" element={
+          <div style={{ backgroundColor: 'var(--bg-color)', minHeight: '100vh', color: 'var(--text-primary)' }}>
+            <CoachRegistrationFlow />
+          </div>
+        } />
+        
+        {/* Player Dashboard Routes */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<PlayerDashboard />} />
           <Route path="matches" element={<MatchesCalendar />} />
           <Route path="referral" element={<ReferralSystem />} />
+        </Route>
+
+        {/* Coach Dashboard Routes */}
+        <Route path="/coach-dashboard" element={<CoachDashboardLayout />}>
+          <Route index element={<SquadOverview />} />
+          <Route path="scrutiny" element={<VideoScrutiny />} />
+          <Route path="teams" element={<TeamBuilder />} />
+          <Route path="matches" element={<CoachMatchesCalendar />} />
+          <Route path="referral" element={<CoachReferralSystem />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
