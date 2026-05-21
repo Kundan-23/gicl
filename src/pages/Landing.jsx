@@ -20,7 +20,7 @@ const Landing = () => {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <button 
-          onClick={() => navigate('/onboarding/step1')}
+          onClick={() => navigate('/login')}
           style={{
             backgroundColor: 'var(--bg-surface)',
             border: '2px solid var(--brand-primary)',

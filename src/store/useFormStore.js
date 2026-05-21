@@ -26,19 +26,17 @@ export const useFormStore = create(
 
       // Step 4: Player Profile
       playerProfile: {
-        cricketType: '', // tennis, synthetic, season, soft leather
-        battingHand: '', // leftie, rightie
         height: '',
-        bowlTypePlayed: '',
-        bowlingHand: '', // leftie, rightie
-        bowlingType: '', // fast, spin, pace
-        wicketkeeping: '', // yes, no
-        fieldPosition: '',
-        matchesPlayed: '',
-        levelPlayed: '', // taluka, district, state, national, international
-        clubAssociated: '', // yes, no
-        clubDetails: '',
-        playOutsideClub: '', // yes, no
+        weight: '',
+        age: '', // Auto-calculated
+        instagramLink: '',
+        ballsSelected: [], // Red, White, Pink, Tennis, None
+        battingStyle: '', // RHB, LHB, None
+        bowlingStyle: '', // Right-Arm Fast, etc.
+        fieldPositions: [], // Selected field positions
+        cricketHistory: [{ level: 'International', matches: 0 }, { level: 'National', matches: 0 }, { level: 'State', matches: 0 }, { level: 'District', matches: 0 }, { level: 'Taluka', matches: 0 }],
+        clubAssociated: 'no',
+        clubName: '',
       },
       updatePlayerProfile: (data) => set((state) => ({ playerProfile: { ...state.playerProfile, ...data } })),
 
@@ -52,22 +50,30 @@ export const useFormStore = create(
 
       // Dashboard State
       dashboardState: {
+        isDashboardUnlocked: false, // Locked to tutorials initially
         profilePhotoUrl: '',
-        referralPoints: 0,
+        referralBalance: 0, // INR balance
         myReferralCode: 'GICL-' + Math.floor(1000 + Math.random() * 9000),
-        referrals: [], // { name, status, pointsEarned }
+        referrals: [], // { name, status, amountEarned }
         upcomingMatches: [
           { id: 1, date: '2026-06-01T10:00:00Z', opponent: 'Mumbai Strikers', location: 'Oval Maidan', type: 'League Match' },
           { id: 2, date: '2026-06-15T14:30:00Z', opponent: 'Pune Royals', location: 'DY Patil Stadium', type: 'Quarter Final' }
         ]
       },
       updateDashboard: (data) => set((state) => ({ dashboardState: { ...state.dashboardState, ...data } })),
+      unlockDashboard: () => set((state) => ({ dashboardState: { ...state.dashboardState, isDashboardUnlocked: true } })),
       simulateFriendRegistration: () => set((state) => {
-        const newReferral = { name: `Player ${state.dashboardState.referrals.length + 1}`, status: 'Completed', pointsEarned: 0.5 };
+        const referralCount = state.dashboardState.referrals.length;
+        let amountEarned = 0;
+        if (referralCount === 0) amountEarned = 50;
+        else if (referralCount === 1) amountEarned = 20;
+        else amountEarned = 10;
+
+        const newReferral = { name: `Player ${referralCount + 1}`, status: 'Completed', amountEarned };
         return {
           dashboardState: {
             ...state.dashboardState,
-            referralPoints: state.dashboardState.referralPoints + 0.5,
+            referralBalance: state.dashboardState.referralBalance + amountEarned,
             referrals: [...state.dashboardState.referrals, newReferral]
           }
         };
@@ -93,7 +99,7 @@ export const useFormStore = create(
           acceptedTerms: false,
         },
         playerProfile: {
-          cricketType: '', battingHand: '', height: '', bowlTypePlayed: '', bowlingHand: '', bowlingType: '', wicketkeeping: '', fieldPosition: '', matchesPlayed: '', levelPlayed: '', clubAssociated: '', clubDetails: '', playOutsideClub: ''
+          height: '', weight: '', age: '', instagramLink: '', ballsSelected: [], battingStyle: '', bowlingStyle: '', fieldPositions: [], cricketHistory: [{ level: 'International', matches: 0 }, { level: 'National', matches: 0 }, { level: 'State', matches: 0 }, { level: 'District', matches: 0 }, { level: 'Taluka', matches: 0 }], clubAssociated: 'no', clubName: ''
         },
         media: { videoLink: '', instagramMediaApproved: false, galleryUrls: [] }
       })

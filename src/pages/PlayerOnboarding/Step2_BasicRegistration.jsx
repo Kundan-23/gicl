@@ -7,31 +7,16 @@ import { useFormStore } from '../../store/useFormStore';
 const Step2_BasicRegistration = () => {
   const navigate = useNavigate();
   const { basicInfo, updateBasicInfo } = useFormStore();
-  const [showInstagramModal, setShowInstagramModal] = useState(false);
 
   const { control, handleSubmit, watch, formState: { errors } } = useForm({
     defaultValues: basicInfo,
     mode: 'onBlur'
   });
 
-  const instagramLink = watch('instagramLink');
-
   const onSubmit = (data) => {
-    // If user filled Instagram but didn't approve the modal yet, show modal
-    if (data.instagramLink && !data.instagramApproved) {
-      setShowInstagramModal(true);
-      return;
-    }
-
     updateBasicInfo(data);
     // Proceed to Payment Mock
     navigate('/onboarding/payment');
-  };
-
-  const handleInstagramApprove = () => {
-    updateBasicInfo({ instagramApproved: true });
-    setShowInstagramModal(false);
-    handleSubmit(onSubmit)(); // Re-trigger submit now that it's approved
   };
 
   return (
@@ -150,7 +135,18 @@ const Step2_BasicRegistration = () => {
             render={({ field }) => (
               <div className="form-group">
                 <label className="form-label">Date Of Birth *</label>
-                <input type="date" {...field} className="form-input" />
+                <div style={{ position: 'relative' }}>
+                  <input 
+                    type="date" 
+                    {...field} 
+                    className="form-input" 
+                    style={{ 
+                      colorScheme: 'dark', 
+                      paddingRight: '2rem', 
+                      cursor: 'pointer' 
+                    }} 
+                  />
+                </div>
                 {errors.dob && <span className="form-error">{errors.dob.message}</span>}
               </div>
             )}
@@ -250,66 +246,14 @@ const Step2_BasicRegistration = () => {
           </div>
         </div>
 
-        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-lg)' }}>
-          <h3 className="heading-3" style={{ marginBottom: '1rem', fontSize: '1rem' }}>Social Media</h3>
-          
-          <Controller
-            name="instagramLink"
-            control={control}
-            render={({ field }) => (
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Instagram ID / Link (Optional)</label>
-                <input {...field} className="form-input" placeholder="https://instagram.com/yourid" />
-                <span className="text-small" style={{ marginTop: '0.25rem', opacity: 0.7 }}>
-                  Required for featured player gallery
-                </span>
-              </div>
-            )}
-          />
-        </div>
+
 
         <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>
           Proceed to Payment
         </button>
       </form>
 
-      {/* Instagram Approval Modal */}
-      <AnimatePresence>
-        {showInstagramModal && (
-          <motion.div 
-            className="modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div 
-              className="modal-content"
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-            >
-              <h3 className="heading-2" style={{ color: 'var(--brand-accent)', marginBottom: '1rem' }}>Collaboration Required</h3>
-              <p className="text-body" style={{ marginBottom: '2rem' }}>
-                Every activity under GICL should be tagged and collaborated on Instagram. Do you agree to these terms?
-              </p>
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button 
-                  className="btn-secondary" 
-                  onClick={() => setShowInstagramModal(false)}
-                >
-                  Cancel
-                </button>
-                <button 
-                  className="btn-primary" 
-                  onClick={handleInstagramApprove}
-                >
-                  Approve
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </motion.div>
   );
 };

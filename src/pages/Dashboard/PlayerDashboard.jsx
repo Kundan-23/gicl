@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
+import { Navigate } from 'react-router-dom';
 import { useFormStore } from '../../store/useFormStore';
 import { User, Award, Activity, Star } from 'lucide-react';
 
@@ -17,6 +18,10 @@ const PlayerDashboard = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  if (!dashboardState.isDashboardUnlocked) {
+    return <Navigate to="/dashboard/tutorials" replace />;
+  }
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
