@@ -24,6 +24,13 @@ import CoachMatchesCalendar from './pages/CoachDashboard/CoachMatchesCalendar';
 import CoachReferralSystem from './pages/CoachDashboard/CoachReferralSystem';
 import CoachUploads from './pages/CoachDashboard/CoachUploads';
 
+// Admin Imports
+import AdminLogin from './pages/Admin/AdminLogin';
+import AdminDashboardLayout from './components/layout/AdminDashboardLayout';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import AppConfig from './pages/Admin/AppConfig';
+import UserManagement from './pages/Admin/UserManagement';
+
 function App() {
   return (
     <BrowserRouter>
@@ -61,6 +68,14 @@ function App() {
           <Route path="teams" element={<TeamBuilder />} />
           <Route path="matches" element={<CoachMatchesCalendar />} />
           <Route path="referral" element={<CoachReferralSystem />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminDashboardLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="config" element={<AppConfig />} />
+          <Route path="users" element={<UserManagement />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

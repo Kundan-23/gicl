@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCoachStore, ageGroups } from '../../store/useCoachStore';
+import { useCoachStore } from '../../store/useCoachStore';
+import { useConfigStore } from '../../store/useConfigStore';
 import { Users, X, User, Video, Plus, ChevronDown, ChevronRight, PlaySquare } from 'lucide-react';
 
 const SquadOverview = () => {
   const { dashboardData = {}, onboardingData = {}, addUpload } = useCoachStore();
   const { allocatedPlayers = [], myUploads = [] } = dashboardData;
+  const { ageGroups } = useConfigStore();
   
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All');
@@ -109,23 +111,25 @@ const SquadOverview = () => {
 
       {/* Grid of Players */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-        {displayedPlayers.map((player) => (
+        {displayedPlayers.map((player) => {
+          const liveColor = ageGroups.find(ag => ag.sub === player.subCategory)?.color || player.color;
+          return (
           <div 
             key={player.id} 
-            onClick={() => setSelectedPlayer(player)}
+            onClick={() => setSelectedPlayer({ ...player, color: liveColor })}
             style={{ 
               backgroundColor: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-lg)', 
               border: '1px solid var(--bg-surface-elevated)', display: 'flex', gap: '1rem', alignItems: 'center',
               cursor: 'pointer', transition: 'all 0.2s'
             }}
-            onMouseOver={(e) => e.currentTarget.style.borderColor = player.color}
+            onMouseOver={(e) => e.currentTarget.style.borderColor = liveColor}
             onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--bg-surface-elevated)'}
           >
-            <img src={player.profilePic} alt={player.name} style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${player.color}` }} />
+            <img src={player.profilePic} alt={player.name} style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${liveColor}` }} />
             <div style={{ flex: 1 }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 {player.name}
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: player.color }}></div>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: liveColor }}></div>
               </h3>
               <p className="text-small text-secondary" style={{ marginBottom: '0.5rem' }}>{player.subCategory} | Age: {player.age}</p>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -138,7 +142,7 @@ const SquadOverview = () => {
               </div>
             </div>
           </div>
-        ))}
+        )})}
       </div>
 
       {/* Detailed Player Modal */}

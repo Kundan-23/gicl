@@ -1,22 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useConfigStore } from './useConfigStore';
 
 const generateMockPlayers = () => {
   const players = [];
   const styles = ['Right-hand Bat', 'Left-hand Bat'];
   const bowls = ['Right-arm Fast', 'Right-arm Off Spin', 'Left-arm Orthodox', 'Right-arm Leg Spin', 'None'];
   
-export const ageGroups = [
-  { cat: 'Juniors', sub: 'Boys U-13', color: '#3b82f6' },
-  { cat: 'Juniors', sub: 'Boys U-15', color: '#3b82f6' },
-    { cat: 'Juniors', sub: 'Girls U-17', color: '#3b82f6' },
-    { cat: 'Juniors', sub: 'Boys U-22', color: '#3b82f6' },
-    { cat: 'Open', sub: 'Men', color: '#10b981' },
-    { cat: 'Open', sub: 'Women', color: '#10b981' },
-    { cat: 'Masters', sub: '35+', color: '#a855f7' },
-    { cat: 'Masters', sub: '40+', color: '#a855f7' },
-    { cat: 'Masters', sub: '50+', color: '#a855f7' }
-  ];
+  const ageGroups = useConfigStore.getState().ageGroups;
 
   for (let i = 1; i <= 16; i++) {
     const ag = ageGroups[Math.floor(Math.random() * ageGroups.length)];
@@ -143,7 +134,7 @@ export const useCoachStore = create(
     }),
     {
       name: 'gicl-coach-storage',
-      version: 2,
+      version: 3,
     }
   )
 );

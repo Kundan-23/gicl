@@ -2,8 +2,9 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, CheckCircle2, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import { useConfigStore } from '../../store/useConfigStore';
 
-const pricingTiers = [
+const basePricingTiers = [
   {
     id: 'basic',
     price: 299,
@@ -30,10 +31,18 @@ const pricingTiers = [
 
 const Step3_Payment = () => {
   const navigate = useNavigate();
+  const { pricing } = useConfigStore();
   const [selectedPack, setSelectedPack] = useState(null);
   const [expandedPack, setExpandedPack] = useState(null);
   const [tcScrolled, setTcScrolled] = useState(false);
   const tcRef = useRef(null);
+
+  // Dynamically update prices from config store
+  const pricingTiers = basePricingTiers.map(tier => {
+    if (tier.id === 'basic') return { ...tier, price: pricing.basic, tc: tier.tc.replace(/299/g, pricing.basic) };
+    if (tier.id === 'elite') return { ...tier, price: pricing.elite, tc: tier.tc.replace(/699/g, pricing.elite) };
+    return tier; // Pro pack remains static or could be added to store later
+  });
 
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;

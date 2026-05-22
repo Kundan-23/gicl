@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCoachStore } from '../../store/useCoachStore';
+import { useConfigStore } from '../../store/useConfigStore';
 import { ShieldPlus, CheckCircle, Trash2, Users, Plus, X } from 'lucide-react';
 
 const TeamBuilder = () => {
   const { dashboardData, createTeam } = useCoachStore();
   const { allocatedPlayers, teams } = dashboardData;
+  const { ageGroups } = useConfigStore();
   
   const [teamName, setTeamName] = useState('');
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
   const [filterAgeGroup, setFilterAgeGroup] = useState('All');
+
+  const handleDragStart = (e, player) => {
+    e.dataTransfer.setData('playerId', player.id);
+  };
 
   // Generate exact 11 slots
   const slots = Array.from({ length: 11 }, (_, i) => {
@@ -101,47 +107,50 @@ const TeamBuilder = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
               <AnimatePresence>
-                {slots.map((slot) => (
-                  <motion.div 
-                    key={slot.index}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    style={{ 
-                      aspectRatio: '1', 
-                      backgroundColor: slot.player ? 'var(--bg-color)' : 'rgba(255,255,255,0.02)', 
-                      border: `1px ${slot.player ? 'solid' : 'dashed'} ${slot.player ? 'var(--brand-primary)' : 'var(--bg-surface-elevated)'}`,
-                      borderRadius: 'var(--radius-lg)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      padding: '1rem',
-                      textAlign: 'center'
-                    }}
-                  >
-                    {slot.player ? (
-                      <>
-                        <button 
-                          onClick={() => removePlayer(slot.player.id)}
-                          style={{ position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.5)', borderRadius: '50%', padding: '0.2rem', color: '#fff' }}
-                        >
-                          <X size={14} />
-                        </button>
-                        <img src={slot.player.profilePic} alt="" style={{ width: '48px', height: '48px', borderRadius: '50%', marginBottom: '0.5rem', border: '2px solid var(--brand-accent)' }} />
-                        <span style={{ fontSize: '0.8rem', fontWeight: 600, lineHeight: 1.2 }}>{slot.player.name}</span>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{slot.player.battingStyle}</span>
-                      </>
-                    ) : (
-                      <>
-                        <span style={{ fontSize: '2rem', color: 'var(--bg-surface-elevated)', fontWeight: 800 }}>{slot.index + 1}</span>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Empty Slot</span>
-                      </>
-                    )}
-                  </motion.div>
-                ))}
+                {slots.map((slot) => {
+                  const liveColor = slot.player ? (ageGroups.find(ag => ag.sub === slot.player.subCategory)?.color || slot.player.color) : 'var(--bg-surface-elevated)';
+                  return (
+                    <motion.div 
+                      key={slot.index}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      style={{ 
+                        aspectRatio: '1', 
+                        backgroundColor: slot.player ? 'var(--bg-color)' : 'rgba(255,255,255,0.02)', 
+                        border: `1px ${slot.player ? 'solid' : 'dashed'} ${slot.player ? liveColor : 'var(--bg-surface-elevated)'}`,
+                        borderRadius: 'var(--radius-lg)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        padding: '1rem',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {slot.player ? (
+                        <>
+                          <button 
+                            onClick={() => removePlayer(slot.player.id)}
+                            style={{ position: 'absolute', top: 5, right: 5, background: 'rgba(0,0,0,0.5)', borderRadius: '50%', padding: '0.2rem', color: '#fff' }}
+                          >
+                            <X size={14} />
+                          </button>
+                          <img src={slot.player.profilePic} alt="" style={{ width: '48px', height: '48px', borderRadius: '50%', marginBottom: '0.5rem', border: `2px solid ${liveColor}` }} />
+                          <span style={{ fontSize: '0.8rem', fontWeight: 600, lineHeight: 1.2 }}>{slot.player.name}</span>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{slot.player.battingStyle}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span style={{ fontSize: '2rem', color: 'var(--bg-surface-elevated)', fontWeight: 800 }}>{slot.index + 1}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Empty Slot</span>
+                        </>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </AnimatePresence>
             </div>
           </div>
@@ -186,31 +195,36 @@ const TeamBuilder = () => {
           
           <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingRight: '0.5rem' }}>
             {availablePlayers.length > 0 ? (
-              availablePlayers.map(player => (
-                <div 
-                  key={player.id} 
-                  onClick={() => addPlayer(player.id)}
-                  style={{ 
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', 
-                    borderRadius: 'var(--radius-md)', cursor: 'pointer', transition: 'all 0.2s',
-                    backgroundColor: 'var(--bg-color)', border: '1px solid var(--bg-surface-elevated)'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--brand-accent)'}
-                  onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--bg-surface-elevated)'}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <img src={player.profilePic} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${player.color}` }} />
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: 500, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        {player.name}
-                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: player.color }}></div>
-                      </span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{player.subCategory} | {player.battingStyle}</span>
+              availablePlayers.map((player) => {
+                const liveColor = ageGroups.find(ag => ag.sub === player.subCategory)?.color || player.color;
+                return (
+                  <div 
+                    key={player.id} 
+                    onClick={() => addPlayer(player.id)}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, player)}
+                    style={{ 
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', 
+                      borderRadius: 'var(--radius-md)', cursor: 'pointer', transition: 'all 0.2s',
+                      backgroundColor: 'var(--bg-color)', border: '1px solid var(--bg-surface-elevated)'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--brand-accent)'}
+                    onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--bg-surface-elevated)'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <img src={player.profilePic} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${liveColor}` }} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: 500, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {player.name}
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: liveColor }}></div>
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{player.subCategory} | {player.battingStyle}</span>
+                      </div>
                     </div>
+                    <Plus size={16} color="var(--brand-accent)" />
                   </div>
-                  <Plus size={16} color="var(--brand-accent)" />
-                </div>
-              ))
+                );
+              })
             ) : (
               <p className="text-small text-secondary text-center" style={{ padding: '2rem 0' }}>All 11 slots are filled!</p>
             )}
