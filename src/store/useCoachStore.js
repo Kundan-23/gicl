@@ -1,22 +1,37 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// Helper to generate 22 mock players
 const generateMockPlayers = () => {
   const players = [];
   const styles = ['Right-hand Bat', 'Left-hand Bat'];
   const bowls = ['Right-arm Fast', 'Right-arm Off Spin', 'Left-arm Orthodox', 'Right-arm Leg Spin', 'None'];
   
-  for (let i = 1; i <= 22; i++) {
+export const ageGroups = [
+  { cat: 'Juniors', sub: 'Boys U-13', color: '#3b82f6' },
+  { cat: 'Juniors', sub: 'Boys U-15', color: '#3b82f6' },
+    { cat: 'Juniors', sub: 'Girls U-17', color: '#3b82f6' },
+    { cat: 'Juniors', sub: 'Boys U-22', color: '#3b82f6' },
+    { cat: 'Open', sub: 'Men', color: '#10b981' },
+    { cat: 'Open', sub: 'Women', color: '#10b981' },
+    { cat: 'Masters', sub: '35+', color: '#a855f7' },
+    { cat: 'Masters', sub: '40+', color: '#a855f7' },
+    { cat: 'Masters', sub: '50+', color: '#a855f7' }
+  ];
+
+  for (let i = 1; i <= 16; i++) {
+    const ag = ageGroups[Math.floor(Math.random() * ageGroups.length)];
     players.push({
       id: `P${i}`,
       name: `Player ${i}`,
-      age: Math.floor(Math.random() * 10) + 16, // 16 to 25
-      height: Math.floor(Math.random() * 30) + 160, // 160 to 190 cm
+      age: Math.floor(Math.random() * 30) + 12,
+      height: Math.floor(Math.random() * 30) + 160,
       battingStyle: styles[Math.floor(Math.random() * styles.length)],
       bowlingStyle: bowls[Math.floor(Math.random() * bowls.length)],
       matchesPlayed: Math.floor(Math.random() * 50),
-      profilePic: `https://ui-avatars.com/api/?name=Player+${i}&background=0f172a&color=ffc72c`
+      profilePic: `https://ui-avatars.com/api/?name=Player+${i}&background=0f172a&color=ffc72c`,
+      category: ag.cat,
+      subCategory: ag.sub,
+      color: ag.color
     });
   }
   return players;
@@ -37,6 +52,7 @@ const generateMockVideos = (players) => {
       videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
       status: 'Pending', // Pending, Reviewed
       reviewComment: '',
+      reviewFlag: null, // 'green', 'yellow', 'red'
       dateUploaded: new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toISOString()
     });
   }
@@ -64,6 +80,9 @@ export const useCoachStore = create(
         allocatedPlayers: initialPlayers,
         videos: initialVideos,
         teams: [], // Array of { id, name, playerIds: [] }
+        myUploads: [
+          { id: 'U1', title: 'Basic Batting Stance Drill', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', date: new Date().toISOString() }
+        ],
         notifications: initialVideos.map(v => ({
           id: `N${Math.random()}`,
           message: `${v.playerName} uploaded a new video for scrutiny.`,
@@ -80,9 +99,15 @@ export const useCoachStore = create(
       },
       
       // Dashboard Actions
-      submitVideoReview: (videoId, comment) => set((state) => {
+      addUpload: (title, url) => set((state) => {
+        const newUpload = { id: `U${Date.now()}`, title, url, date: new Date().toISOString() };
+        const currentUploads = state.dashboardData.myUploads || [];
+        return { dashboardData: { ...state.dashboardData, myUploads: [newUpload, ...currentUploads] } };
+      }),
+
+      submitVideoReview: (videoId, comment, flag) => set((state) => {
         const updatedVideos = state.dashboardData.videos.map(v => 
-          v.id === videoId ? { ...v, status: 'Reviewed', reviewComment: comment } : v
+          v.id === videoId ? { ...v, status: 'Reviewed', reviewComment: comment, reviewFlag: flag } : v
         );
         return { dashboardData: { ...state.dashboardData, videos: updatedVideos } };
       }),
@@ -118,7 +143,7 @@ export const useCoachStore = create(
     }),
     {
       name: 'gicl-coach-storage',
-      version: 1,
+      version: 2,
     }
   )
 );

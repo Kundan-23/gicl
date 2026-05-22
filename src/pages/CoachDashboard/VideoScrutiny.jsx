@@ -8,15 +8,20 @@ const VideoScrutiny = () => {
   const { videos } = dashboardData;
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [reviewText, setReviewText] = useState('');
+  const [reviewFlag, setReviewFlag] = useState(''); // 'red', 'yellow', 'green'
 
   const pendingVideos = videos.filter(v => v.status === 'Pending');
   const reviewedVideos = videos.filter(v => v.status === 'Reviewed');
 
   const handleReviewSubmit = () => {
-    if (!reviewText.trim()) return;
-    submitVideoReview(selectedVideo.id, reviewText);
+    if (!reviewText.trim() || !reviewFlag) {
+      alert("Please enter feedback and select a flag.");
+      return;
+    }
+    submitVideoReview(selectedVideo.id, reviewText, reviewFlag);
     setSelectedVideo(null);
     setReviewText('');
+    setReviewFlag('');
   };
 
   return (
@@ -60,10 +65,15 @@ const VideoScrutiny = () => {
               <div key={video.id} style={{ backgroundColor: 'var(--bg-surface)', padding: '1rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--bg-surface-elevated)' }}>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <img src={video.thumbnail} alt="thumbnail" style={{ width: '100px', height: '60px', objectFit: 'cover', borderRadius: 'var(--radius-sm)', opacity: 0.5 }} />
-                  <div>
-                    <p style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.25rem' }}>{video.playerName}</p>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <p style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.25rem' }}>{video.playerName}</p>
+                      {video.reviewFlag && (
+                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: video.reviewFlag === 'red' ? '#ef4444' : video.reviewFlag === 'yellow' ? '#eab308' : '#10b981' }} />
+                      )}
+                    </div>
                     <p className="text-small" style={{ opacity: 0.8 }}>{video.title}</p>
-                    <div style={{ marginTop: '0.5rem', backgroundColor: 'var(--bg-color)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', fontStyle: 'italic' }}>
+                    <div style={{ marginTop: '0.5rem', backgroundColor: 'var(--bg-color)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', fontSize: '0.75rem', fontStyle: 'italic', borderLeft: `3px solid ${video.reviewFlag === 'red' ? '#ef4444' : video.reviewFlag === 'yellow' ? '#eab308' : '#10b981'}` }}>
                       "{video.reviewComment}"
                     </div>
                   </div>
@@ -111,7 +121,16 @@ const VideoScrutiny = () => {
                 />
               </div>
 
-              <button className="btn-primary" style={{ width: '100%', marginTop: '1rem' }} onClick={handleReviewSubmit} disabled={!reviewText.trim()}>
+              <div className="form-group" style={{ marginTop: '1rem' }}>
+                <label className="form-label">Video Tag / Flag</label>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button onClick={() => setReviewFlag('red')} style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: `2px solid ${reviewFlag === 'red' ? '#ef4444' : 'transparent'}`, backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontWeight: 600, transition: 'all 0.2s' }}>Needs Work</button>
+                  <button onClick={() => setReviewFlag('yellow')} style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: `2px solid ${reviewFlag === 'yellow' ? '#eab308' : 'transparent'}`, backgroundColor: 'rgba(234, 179, 8, 0.1)', color: '#eab308', fontWeight: 600, transition: 'all 0.2s' }}>Good, Improve</button>
+                  <button onClick={() => setReviewFlag('green')} style={{ flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-md)', border: `2px solid ${reviewFlag === 'green' ? '#10b981' : 'transparent'}`, backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontWeight: 600, transition: 'all 0.2s' }}>Excellent</button>
+                </div>
+              </div>
+
+              <button className="btn-primary" style={{ width: '100%', marginTop: '1.5rem' }} onClick={handleReviewSubmit} disabled={!reviewText.trim() || !reviewFlag}>
                 Submit Review
               </button>
             </motion.div>

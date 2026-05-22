@@ -17,10 +17,23 @@ const mockClubs = [
 ];
 
 const ballTypes = [
-  { id: 'red', name: 'Red Leather', color: '#dc2626' },
-  { id: 'white', name: 'White Leather', color: '#f8fafc' },
-  { id: 'pink', name: 'Pink Leather', color: '#f472b6' },
-  { id: 'tennis', name: 'Tennis Ball', color: '#bef264' }
+  { id: 'red', name: 'Red Leather', image: '/images/balls/red.png' },
+  { id: 'white', name: 'White Leather', image: '/images/balls/white.png' },
+  { id: 'pink', name: 'Pink Leather', image: '/images/balls/pink.png' },
+  { id: 'tennis', name: 'Tennis Ball', image: '/images/balls/tennis.png' }
+];
+
+const fieldPositionsList = [
+  { id: 'slip', label: 'Slip' },
+  { id: 'gully', label: 'Gully' },
+  { id: 'point', label: 'Point' },
+  { id: 'cover', label: 'Cover' },
+  { id: 'mid-off', label: 'Mid Off' },
+  { id: 'mid-on', label: 'Mid On' },
+  { id: 'mid-wicket', label: 'Mid Wicket' },
+  { id: 'square-leg', label: 'Square Leg' },
+  { id: 'fine-leg', label: 'Fine Leg' },
+  { id: 'third-man', label: 'Third Man' },
 ];
 
 const Step4_PlayerProfile = () => {
@@ -53,6 +66,7 @@ const Step4_PlayerProfile = () => {
       bowlingStyle: playerProfile.bowlingStyle || '',
       clubAssociated: playerProfile.clubAssociated || 'no',
       clubName: playerProfile.clubName || '',
+      allowedOutsideClub: playerProfile.allowedOutsideClub || 'yes',
       ballsSelected: playerProfile.ballsSelected || [],
       fieldPositions: playerProfile.fieldPositions || [],
       cricketHistory: playerProfile.cricketHistory || [
@@ -126,11 +140,11 @@ const Step4_PlayerProfile = () => {
             )}
           />
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div className="form-group">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', alignItems: 'start' }}>
+            <div className="form-group" style={{ justifyContent: 'flex-start' }}>
               <label className="form-label">Age</label>
               <input type="text" className="form-input" value={`${calculatedAge} Years`} disabled style={{ opacity: 0.7, backgroundColor: 'var(--bg-color)' }} />
-              <span className="text-small" style={{ marginTop: '0.25rem', opacity: 0.5 }}>Auto-calculated from DOB</span>
+              <span className="text-small" style={{ marginTop: '0.25rem', opacity: 0.5 }}>Auto-calculated</span>
             </div>
             
             <Controller
@@ -138,7 +152,7 @@ const Step4_PlayerProfile = () => {
               control={control}
               rules={{ required: 'Required' }}
               render={({ field }) => (
-                <div className="form-group">
+                <div className="form-group" style={{ justifyContent: 'flex-start' }}>
                   <label className="form-label">Height (cm) *</label>
                   <input type="number" {...field} className="form-input" placeholder="e.g. 175" />
                   {errors.height && <span className="form-error">{errors.height.message}</span>}
@@ -151,7 +165,7 @@ const Step4_PlayerProfile = () => {
               control={control}
               rules={{ required: 'Required' }}
               render={({ field }) => (
-                <div className="form-group">
+                <div className="form-group" style={{ justifyContent: 'flex-start' }}>
                   <label className="form-label">Weight (kg) *</label>
                   <input type="number" {...field} className="form-input" placeholder="e.g. 70" />
                   {errors.weight && <span className="form-error">{errors.weight.message}</span>}
@@ -237,7 +251,7 @@ const Step4_PlayerProfile = () => {
                     position: 'relative'
                   }}
                 >
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: ball.color, boxShadow: 'inset -5px -5px 10px rgba(0,0,0,0.2)' }}></div>
+                  <img src={ball.image} alt={ball.name} style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
                   <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{ball.name}</span>
                   {isSelected && <CheckCircle2 size={16} color="var(--brand-primary)" style={{ position: 'absolute', top: 5, right: 5 }} />}
                 </div>
@@ -271,34 +285,45 @@ const Step4_PlayerProfile = () => {
           <h3 className="heading-3" style={{ marginBottom: '1.5rem', fontSize: '1rem', borderBottom: '1px solid var(--bg-surface-elevated)', paddingBottom: '0.5rem' }}>Preferred Fielding Positions</h3>
           
           <div style={{ backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--bg-surface-elevated)', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-            {/* Placeholder for actual image */}
-            <div style={{ width: '100%', maxWidth: '300px', aspectRatio: '1', backgroundColor: '#2f855a', borderRadius: '50%', border: '4px solid #fff', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ width: '40px', height: '100px', backgroundColor: '#d4d4d8', position: 'absolute' }}></div>
-              <span style={{ backgroundColor: 'rgba(0,0,0,0.7)', padding: '0.5rem', borderRadius: '0.5rem', fontSize: '0.8rem', zIndex: 10 }}>[Field Map Placeholder]</span>
-            </div>
+            <img 
+              src="/images/field-map.png" 
+              alt="Cricket Field Positions" 
+              style={{ width: '100%', maxWidth: '350px', borderRadius: '50%', display: 'block' }} 
+            />
             <p className="text-small" style={{ color: 'var(--text-secondary)' }}>Click on the zones to select your preferred fielding positions.</p>
             
             <Controller
               name="fieldPositions"
               control={control}
               render={({ field }) => (
-                <select 
-                  multiple 
-                  className="form-input" 
-                  style={{ height: '100px', backgroundColor: 'var(--bg-surface)' }}
-                  onChange={(e) => field.onChange(Array.from(e.target.selectedOptions, option => option.value))}
-                >
-                  <option value="slip">Slip</option>
-                  <option value="gully">Gully</option>
-                  <option value="point">Point</option>
-                  <option value="cover">Cover</option>
-                  <option value="mid-off">Mid Off</option>
-                  <option value="mid-on">Mid On</option>
-                  <option value="mid-wicket">Mid Wicket</option>
-                  <option value="square-leg">Square Leg</option>
-                  <option value="fine-leg">Fine Leg</option>
-                  <option value="third-man">Third Man</option>
-                </select>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', marginTop: '1rem' }}>
+                  {fieldPositionsList.map(pos => {
+                    const isSelected = (field.value || []).includes(pos.id);
+                    return (
+                      <div 
+                        key={pos.id}
+                        onClick={() => {
+                          const newValue = isSelected 
+                            ? (field.value || []).filter(v => v !== pos.id) 
+                            : [...(field.value || []), pos.id];
+                          field.onChange(newValue);
+                        }}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          borderRadius: 'var(--radius-full)',
+                          border: `1px solid ${isSelected ? 'var(--brand-primary)' : 'var(--bg-surface-elevated)'}`,
+                          backgroundColor: isSelected ? 'rgba(255,199,44,0.1)' : 'var(--bg-color)',
+                          color: isSelected ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                          cursor: 'pointer',
+                          fontSize: '0.875rem',
+                          fontWeight: isSelected ? 600 : 400
+                        }}
+                      >
+                        {pos.label}
+                      </div>
+                    )
+                  })}
+                </div>
               )}
             />
           </div>
@@ -379,6 +404,24 @@ const Step4_PlayerProfile = () => {
                         ))}
                       </select>
                       {errors.clubName && <span className="form-error">{errors.clubName.message}</span>}
+                    </div>
+                  )}
+                />
+
+                <Controller
+                  name="allowedOutsideClub"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="form-group" style={{ marginTop: '1.5rem' }}>
+                      <label className="form-label">Are you allowed to play outside the club?</label>
+                      <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <input type="radio" value="yes" checked={field.value === 'yes'} onChange={(e) => field.onChange(e.target.value)} /> Yes
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <input type="radio" value="no" checked={field.value === 'no'} onChange={(e) => field.onChange(e.target.value)} /> No
+                        </label>
+                      </div>
                     </div>
                   )}
                 />

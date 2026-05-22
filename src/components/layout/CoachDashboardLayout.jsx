@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Users, Video, ShieldPlus, CalendarDays, LogOut, Bell } from 'lucide-react';
+import { Menu, X, Users, Video, ShieldPlus, CalendarDays, LogOut, Bell, PlaySquare } from 'lucide-react';
 import { useCoachStore } from '../../store/useCoachStore';
 
 const CoachDashboardLayout = () => {
@@ -18,6 +18,7 @@ const CoachDashboardLayout = () => {
   };
 
   const navLinks = [
+    { name: 'My Uploads', path: '/coach-dashboard/uploads', icon: <PlaySquare size={20} /> },
     { name: 'My Squad', path: '/coach-dashboard', icon: <Users size={20} />, end: true },
     { name: 'Video Scrutiny', path: '/coach-dashboard/scrutiny', icon: <Video size={20} /> },
     { name: 'Team Builder', path: '/coach-dashboard/teams', icon: <ShieldPlus size={20} /> },

@@ -74,7 +74,7 @@ const Step5_MyGameplay = () => {
                 />
               </div>
             </div>
-            <button className="btn-secondary" onClick={handleAddLink} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button className="btn-secondary" onClick={handleAddLink} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: 'auto', padding: '0 2rem' }}>
               <Plus size={18} /> Add
             </button>
           </div>
@@ -87,10 +87,18 @@ const Step5_MyGameplay = () => {
                 {links.map((link, idx) => (
                   <div key={idx} style={{ backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', border: '1px solid var(--bg-surface-elevated)', overflow: 'hidden', position: 'relative' }}>
                     
-                    {/* Mock Instagram Embed Preview */}
-                    <div style={{ aspectRatio: '4/5', backgroundColor: '#18181b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem', textAlign: 'center' }}>
-                      <Camera size={32} color="var(--text-secondary)" style={{ marginBottom: '0.5rem' }} />
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', wordBreak: 'break-all' }}>{link.substring(0, 30)}...</span>
+                    {/* Actual Instagram Embed Preview */}
+                    <div style={{ aspectRatio: '4/5', backgroundColor: '#18181b', position: 'relative', overflow: 'hidden' }}>
+                      <iframe 
+                        src={`${link.split('?')[0].replace(/\/?$/, '')}/embed`} 
+                        width="100%" 
+                        height="100%" 
+                        frameBorder="0" 
+                        scrolling="no" 
+                        allowTransparency="true"
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                        title="Instagram Preview"
+                      ></iframe>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', borderTop: '1px solid var(--bg-surface-elevated)' }}>

@@ -22,6 +22,7 @@ import VideoScrutiny from './pages/CoachDashboard/VideoScrutiny';
 import TeamBuilder from './pages/CoachDashboard/TeamBuilder';
 import CoachMatchesCalendar from './pages/CoachDashboard/CoachMatchesCalendar';
 import CoachReferralSystem from './pages/CoachDashboard/CoachReferralSystem';
+import CoachUploads from './pages/CoachDashboard/CoachUploads';
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
         {/* Coach Dashboard Routes */}
         <Route path="/coach-dashboard" element={<CoachDashboardLayout />}>
           <Route index element={<SquadOverview />} />
+          <Route path="uploads" element={<CoachUploads />} />
           <Route path="scrutiny" element={<VideoScrutiny />} />
           <Route path="teams" element={<TeamBuilder />} />
           <Route path="matches" element={<CoachMatchesCalendar />} />

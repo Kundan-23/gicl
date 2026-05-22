@@ -9,6 +9,7 @@ const TeamBuilder = () => {
   
   const [teamName, setTeamName] = useState('');
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
+  const [filterAgeGroup, setFilterAgeGroup] = useState('All');
 
   // Generate exact 11 slots
   const slots = Array.from({ length: 11 }, (_, i) => {
@@ -19,7 +20,12 @@ const TeamBuilder = () => {
     };
   });
 
-  const availablePlayers = allocatedPlayers.filter(p => !selectedPlayerIds.includes(p.id));
+  const allSubCats = Array.from(new Set(allocatedPlayers.map(p => p.subCategory)));
+
+  const availablePlayers = allocatedPlayers.filter(p => 
+    !selectedPlayerIds.includes(p.id) && 
+    (filterAgeGroup === 'All' || p.subCategory === filterAgeGroup)
+  );
 
   const addPlayer = (id) => {
     if (selectedPlayerIds.length < 11) {
@@ -160,8 +166,23 @@ const TeamBuilder = () => {
 
         {/* Right Column: Available Squad Sidebar */}
         <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)', display: 'flex', flexDirection: 'column', height: 'fit-content', maxHeight: 'calc(100vh - 100px)' }}>
-          <h3 className="heading-3" style={{ marginBottom: '1rem' }}>Available Squad</h3>
-          <p className="text-small" style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>Click to add players to your lineup.</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div>
+              <h3 className="heading-3">Available Squad</h3>
+              <p className="text-small" style={{ color: 'var(--text-secondary)' }}>Click to add players.</p>
+            </div>
+            <select 
+              className="form-input" 
+              style={{ width: 'auto', padding: '0.25rem 0.5rem', fontSize: '0.875rem' }}
+              value={filterAgeGroup}
+              onChange={(e) => setFilterAgeGroup(e.target.value)}
+            >
+              <option value="All">All Age Groups</option>
+              {allSubCats.map(sc => (
+                <option key={sc} value={sc}>{sc}</option>
+              ))}
+            </select>
+          </div>
           
           <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingRight: '0.5rem' }}>
             {availablePlayers.length > 0 ? (
@@ -178,10 +199,13 @@ const TeamBuilder = () => {
                   onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--bg-surface-elevated)'}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <img src={player.profilePic} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                    <img src={player.profilePic} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${player.color}` }} />
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: 500, fontSize: '0.875rem' }}>{player.name}</span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{player.battingStyle}</span>
+                      <span style={{ fontWeight: 500, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {player.name}
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: player.color }}></div>
+                      </span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{player.subCategory} | {player.battingStyle}</span>
                     </div>
                   </div>
                   <Plus size={16} color="var(--brand-accent)" />

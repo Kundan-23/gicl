@@ -42,7 +42,7 @@ const Landing = () => {
         </button>
 
         <button 
-          onClick={() => navigate('/coach-onboarding')}
+          onClick={() => navigate('/login', { state: { role: 'coach' } })}
           style={{
             backgroundColor: 'var(--bg-surface)',
             border: '2px solid var(--brand-accent)',

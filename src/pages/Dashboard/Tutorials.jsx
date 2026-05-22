@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useFormStore } from '../../store/useFormStore';
-import { PlayCircle, CheckCircle, Upload, Lock } from 'lucide-react';
+import { useCoachStore } from '../../store/useCoachStore';
+import { PlayCircle, CheckCircle, Upload, Lock, Video } from 'lucide-react';
 
 const mockTutorials = [
   { id: 1, title: 'Basic Stance & Grip', duration: '5:20', watched: false },
@@ -11,13 +12,22 @@ const mockTutorials = [
 
 const Tutorials = () => {
   const { dashboardState, unlockDashboard } = useFormStore();
-  const [tutorials, setTutorials] = useState(mockTutorials);
+  const coachUploads = useCoachStore(state => state.dashboardData?.myUploads || []);
+  
+  const [watchedIds, setWatchedIds] = useState([]);
   const [attemptLink, setAttemptLink] = useState('');
 
-  const allWatched = tutorials.every(t => t.watched);
+  const allTutorials = [
+    ...coachUploads.map(u => ({ id: u.id, title: u.title, duration: 'Coach Upload', isCoach: true })),
+    ...mockTutorials
+  ];
+
+  const allWatched = allTutorials.every(t => watchedIds.includes(t.id));
 
   const markWatched = (id) => {
-    setTutorials(tutorials.map(t => t.id === id ? { ...t, watched: true } : t));
+    if (!watchedIds.includes(id)) {
+      setWatchedIds([...watchedIds, id]);
+    }
   };
 
   const handleUploadAttempt = () => {
@@ -52,24 +62,32 @@ const Tutorials = () => {
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-        {tutorials.map(tutorial => (
-          <div key={tutorial.id} style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--bg-surface-elevated)' }}>
-            <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
-              <PlayCircle size={48} color="var(--brand-accent)" opacity={0.8} />
+        {allTutorials.map(tutorial => {
+          const isWatched = watchedIds.includes(tutorial.id);
+          return (
+            <div key={tutorial.id} style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: `1px solid ${tutorial.isCoach ? 'var(--brand-primary)' : 'var(--bg-surface-elevated)'}` }}>
+              <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', position: 'relative' }}>
+                <PlayCircle size={48} color={tutorial.isCoach ? 'var(--brand-primary)' : 'var(--brand-accent)'} opacity={0.8} />
+                {tutorial.isCoach && (
+                  <span style={{ position: 'absolute', top: 10, left: 10, backgroundColor: 'var(--brand-primary)', color: 'var(--bg-color)', fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <Video size={12} /> Coach Video
+                  </span>
+                )}
+              </div>
+              <h3 className="heading-3" style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{tutorial.title}</h3>
+              <p className="text-small" style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Duration: {tutorial.duration}</p>
+              
+              <button 
+                className={isWatched ? "btn-secondary" : "btn-primary"} 
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                onClick={() => markWatched(tutorial.id)}
+                disabled={isWatched}
+              >
+                {isWatched ? <><CheckCircle size={18} color="var(--success)" /> Watched</> : "Mark as Watched"}
+              </button>
             </div>
-            <h3 className="heading-3" style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{tutorial.title}</h3>
-            <p className="text-small" style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Duration: {tutorial.duration}</p>
-            
-            <button 
-              className={tutorial.watched ? "btn-secondary" : "btn-primary"} 
-              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-              onClick={() => markWatched(tutorial.id)}
-              disabled={tutorial.watched}
-            >
-              {tutorial.watched ? <><CheckCircle size={18} color="var(--success)" /> Watched</> : "Mark as Watched"}
-            </button>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {!dashboardState.isDashboardUnlocked && (
