@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, LayoutDashboard, Settings, Users, LogOut, ShieldCheck } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Settings, Users, LogOut, ShieldCheck, UserPlus, Video } from 'lucide-react';
 
 const AdminDashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -14,7 +14,11 @@ const AdminDashboardLayout = () => {
   const navLinks = [
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} />, end: true },
     { name: 'App Config', path: '/admin/config', icon: <Settings size={20} /> },
-    { name: 'User Management', path: '/admin/users', icon: <Users size={20} /> },
+    { name: 'Player Config', path: '/admin/player-config', icon: <Settings size={20} /> },
+    { name: 'Player Mgmt', path: '/admin/players', icon: <Users size={20} /> },
+    { name: 'Coach Mgmt', path: '/admin/coaches', icon: <UserPlus size={20} /> },
+    { name: 'Player Allotment', path: '/admin/allotment', icon: <UserPlus size={20} /> },
+    { name: 'Video Scrutiny', path: '/admin/scrutiny', icon: <Video size={20} /> },
   ];
 
   return (
@@ -45,7 +49,7 @@ const AdminDashboardLayout = () => {
           height: '100vh',
           width: '260px',
           backgroundColor: 'var(--bg-surface)',
-          borderRight: '1px solid var(--brand-accent)',
+          borderRight: '1px solid var(--border-subtle)',
           zIndex: 50,
           display: 'flex',
           flexDirection: 'column',

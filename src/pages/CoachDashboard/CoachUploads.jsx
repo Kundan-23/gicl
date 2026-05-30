@@ -42,17 +42,39 @@ const CoachUploads = () => {
       <h3 className="heading-3" style={{ marginBottom: '1rem' }}>Previously Uploaded</h3>
       {myUploads.length > 0 ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
-          {myUploads.map(upload => (
-            <div key={upload.id} style={{ backgroundColor: 'var(--bg-color)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--bg-surface-elevated)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Video size={20} color="var(--brand-primary)" />
+          {myUploads.map(upload => {
+            const statusColors = {
+              'pending': { bg: 'rgba(255, 199, 44, 0.1)', color: 'var(--brand-primary)' },
+              'approved': { bg: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' },
+              'rejected': { bg: 'rgba(239, 68, 68, 0.1)', color: 'var(--error)' }
+            };
+            const currentStatus = upload.status || 'pending';
+            const colors = statusColors[currentStatus];
+
+            return (
+              <div key={upload.id} style={{ backgroundColor: 'var(--bg-color)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--bg-surface-elevated)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: colors.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Video size={20} color={colors.color} />
+                    </div>
+                    <p style={{ fontWeight: 600, fontSize: '1.1rem' }}>{upload.title}</p>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', backgroundColor: colors.bg, color: colors.color, padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                    {currentStatus}
+                  </span>
                 </div>
-                <p style={{ fontWeight: 600, fontSize: '1.1rem' }}>{upload.title}</p>
+                <p className="text-small text-secondary" style={{ wordBreak: 'break-all' }}>{upload.url}</p>
+                
+                {currentStatus === 'rejected' && upload.rejectReason && (
+                  <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: 'var(--radius-md)' }}>
+                    <p className="text-small" style={{ color: 'var(--error)', fontWeight: 600 }}>Rejection Reason:</p>
+                    <p className="text-small text-secondary" style={{ marginTop: '0.25rem' }}>{upload.rejectReason}</p>
+                  </div>
+                )}
               </div>
-              <p className="text-small text-secondary" style={{ wordBreak: 'break-all' }}>{upload.url}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <p className="text-secondary text-small">No videos uploaded yet.</p>

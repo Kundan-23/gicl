@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useCoachStore } from '../../store/useCoachStore';
-import { Calendar as CalendarIcon, MapPin, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin, Clock, Share2 } from 'lucide-react';
 
 const CoachMatchesCalendar = () => {
   const { dashboardData } = useCoachStore();
@@ -52,20 +52,40 @@ const CoachMatchesCalendar = () => {
                 </div>
 
                 {/* Match Details */}
-                <div style={{ flex: 1 }}>
-                  <p style={{ color: 'var(--brand-accent)', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>{match.type}</p>
-                  <h3 className="heading-3" style={{ marginBottom: '0.75rem' }}>vs {match.opponent}</h3>
-                  
-                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                      <Clock size={16} />
-                      {matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                      <MapPin size={16} />
-                      {match.location}
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div>
+                    <p style={{ color: 'var(--brand-accent)', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>{match.type}</p>
+                    <h3 className="heading-3" style={{ marginBottom: '0.75rem' }}>vs {match.opponent}</h3>
+                    
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                        <Clock size={16} />
+                        {matchDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                        <MapPin size={16} />
+                        {match.location}
+                      </div>
                     </div>
                   </div>
+
+                  <button 
+                    className="btn-secondary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: `GICL Match: vs ${match.opponent}`,
+                          text: `Join us for the ${match.type} match against ${match.opponent} on ${matchDate.toLocaleString()} at ${match.location}!`,
+                          url: window.location.href,
+                        }).catch(console.error);
+                      } else {
+                        alert("Sharing is not supported on this device/browser.");
+                      }
+                    }}
+                  >
+                    <Share2 size={16} /> Share
+                  </button>
                 </div>
               </div>
             );

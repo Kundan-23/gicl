@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Home, CalendarDays, Users, User, LogOut, Video } from 'lucide-react';
+import { Menu, X, Home, Calendar, CalendarDays, Users, User, LogOut, Video, PlaySquare } from 'lucide-react';
 import { useFormStore } from '../../store/useFormStore';
+import { useConfigStore } from '../../store/useConfigStore';
 
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -10,6 +11,7 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const { resetForm, dashboardState } = useFormStore();
   const { isDashboardUnlocked } = dashboardState;
+  const { banners } = useConfigStore();
 
   const handleLogout = () => {
     resetForm();
@@ -19,28 +21,24 @@ const DashboardLayout = () => {
   const navLinks = isDashboardUnlocked 
     ? [
         { name: 'Dashboard', path: '/dashboard', icon: <Home size={20} />, end: true },
-        { name: 'Matches', path: '/dashboard/matches', icon: <CalendarDays size={20} /> },
-        { name: 'Tutorials', path: '/dashboard/tutorials', icon: <Video size={20} /> },
-        { name: 'Refer a Friend', path: '/dashboard/referral', icon: <Users size={20} /> },
+        { name: 'Training Tutorials', path: '/dashboard/tutorials', icon: <PlaySquare size={20} /> },
+        { name: 'Upcoming Matches', path: '/dashboard/matches', icon: <Calendar size={20} /> },
+        { name: 'Refer GICL Sports', path: '/dashboard/referral', icon: <Users size={20} /> },
         { name: 'Profile', path: '/dashboard/profile', icon: <User size={20} /> },
       ]
     : [
         { name: 'Tutorials', path: '/dashboard/tutorials', icon: <Video size={20} />, end: false },
       ];
 
-  const banners = [
-    { id: 1, text: "GICL Mega Tournament Registration Open!", color: "linear-gradient(135deg, #1e3a8a, #3b82f6)" },
-    { id: 2, text: "Refer a Friend & Earn ₹50 Cash!", color: "linear-gradient(135deg, #b45309, #f59e0b)" },
-    { id: 3, text: "New Training Videos Uploaded", color: "linear-gradient(135deg, #064e3b, #10b981)" }
-  ];
-
   // Auto-scroll banners
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % banners.length);
+      if (banners && banners.length > 0) {
+        setCurrentBanner((prev) => (prev + 1) % banners.length);
+      }
     }, 5000);
     return () => clearInterval(timer);
-  }, [banners.length]);
+  }, [banners]);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)' }}>
@@ -148,7 +146,7 @@ const DashboardLayout = () => {
         <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto' }}>
           
           {/* Web Banners Carousel */}
-          {isDashboardUnlocked && (
+          {isDashboardUnlocked && banners && banners.length > 0 && (
             <div style={{ marginBottom: '2rem', position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-xl)', height: '120px' }}>
               <AnimatePresence initial={false}>
                 <motion.div
@@ -160,7 +158,7 @@ const DashboardLayout = () => {
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    background: banners[currentBanner].color,
+                    background: banners[currentBanner]?.image ? `url(${banners[currentBanner].image}) center/cover` : (banners[currentBanner]?.color || '#000'),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -168,9 +166,11 @@ const DashboardLayout = () => {
                     textAlign: 'center'
                   }}
                 >
-                  <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
-                    {banners[currentBanner].text}
-                  </h2>
+                  {!banners[currentBanner]?.image && (
+                    <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
+                      {banners[currentBanner]?.text}
+                    </h2>
+                  )}
                 </motion.div>
               </AnimatePresence>
               

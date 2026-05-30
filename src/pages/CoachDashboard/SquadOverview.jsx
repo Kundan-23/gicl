@@ -7,7 +7,7 @@ import { Users, X, User, Video, Plus, ChevronDown, ChevronRight, PlaySquare } fr
 const SquadOverview = () => {
   const { dashboardData = {}, onboardingData = {}, addUpload } = useCoachStore();
   const { allocatedPlayers = [], myUploads = [] } = dashboardData;
-  const { ageGroups } = useConfigStore();
+  const { ageGroups, maxSquadSize = 20 } = useConfigStore();
   
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All');
@@ -41,7 +41,7 @@ const SquadOverview = () => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--brand-primary)', color: 'var(--bg-surface)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)', fontWeight: 600 }}>
           <Users size={18} />
-          {allocatedPlayers.length} / 16 Players
+          {allocatedPlayers.length} / {maxSquadSize} Players
         </div>
       </div>
 

@@ -5,16 +5,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useFormStore } from '../../store/useFormStore';
 import { Camera, CheckCircle2 } from 'lucide-react';
 
-const mockClubs = [
-  "Mumbai Strikers - Andheri",
-  "Delhi Royals - Rohini",
-  "Pune Peshwas - Kothrud",
-  "Bangalore Blasters - Indiranagar",
-  "Chennai Super Kings Academy - Chepauk",
-  "Kolkata Knight Riders Academy - Eden Gardens",
-  "GICL Official Training Center - Mumbai",
-  "None / Independent"
-];
+import { useConfigStore } from '../../store/useConfigStore';
 
 const ballTypes = [
   { id: 'red', name: 'Red Leather', image: '/images/balls/red.png' },
@@ -39,6 +30,9 @@ const fieldPositionsList = [
 const Step4_PlayerProfile = () => {
   const navigate = useNavigate();
   const { basicInfo, playerProfile, updatePlayerProfile } = useFormStore();
+  const { battingStyles, bowlingStyles, clubs: mockClubs } = useConfigStore();
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [customPosition, setCustomPosition] = useState('');
   
   // Calculate age from dob
   const [calculatedAge, setCalculatedAge] = useState('');
@@ -65,8 +59,7 @@ const Step4_PlayerProfile = () => {
       battingStyle: playerProfile.battingStyle || '',
       bowlingStyle: playerProfile.bowlingStyle || '',
       clubAssociated: playerProfile.clubAssociated || 'no',
-      clubName: playerProfile.clubName || '',
-      allowedOutsideClub: playerProfile.allowedOutsideClub || 'yes',
+      clubsDetails: Array.isArray(playerProfile.clubsDetails) ? playerProfile.clubsDetails : [],
       ballsSelected: playerProfile.ballsSelected || [],
       fieldPositions: playerProfile.fieldPositions || [],
       cricketHistory: playerProfile.cricketHistory || [
@@ -95,6 +88,32 @@ const Step4_PlayerProfile = () => {
       newSelected.push(id);
     }
     setValue('ballsSelected', newSelected);
+  };
+
+  const handleAddCustomPosition = (e) => {
+    e.preventDefault();
+    if (customPosition.trim() !== '') {
+      const current = watch('fieldPositions') || [];
+      if (!current.includes(customPosition.trim())) {
+        setValue('fieldPositions', [...current, customPosition.trim()]);
+      }
+      setCustomPosition('');
+    }
+  };
+
+  const toggleClub = (club) => {
+    const current = watch('clubsDetails') || [];
+    const exists = current.find(c => c.name === club);
+    if (exists) {
+      setValue('clubsDetails', current.filter(c => c.name !== club));
+    } else {
+      setValue('clubsDetails', [...current, { name: club, allowedOutside: 'yes' }]);
+    }
+  };
+
+  const updateClubPermission = (club, permission) => {
+    const current = watch('clubsDetails') || [];
+    setValue('clubsDetails', current.map(c => c.name === club ? { ...c, allowedOutside: permission } : c));
   };
 
   const onSubmit = (data) => {
@@ -188,9 +207,9 @@ const Step4_PlayerProfile = () => {
                 <label className="form-label">Batting Style *</label>
                 <select {...field} className="form-input">
                   <option value="">--Select--</option>
-                  <option value="RHB">Right-Handed Batter (RHB)</option>
-                  <option value="LHB">Left-Handed Batter (LHB)</option>
-                  <option value="None">None / Bowler Only</option>
+                  {battingStyles.map(style => (
+                    <option key={style} value={style}>{style}</option>
+                  ))}
                 </select>
                 {errors.battingStyle && <span className="form-error">{errors.battingStyle.message}</span>}
               </div>
@@ -206,19 +225,9 @@ const Step4_PlayerProfile = () => {
                 <label className="form-label">Bowling Style *</label>
                 <select {...field} className="form-input">
                   <option value="">--Select--</option>
-                  <optgroup label="Pace / Fast">
-                    <option value="Right-Arm Fast">Right-Arm Fast</option>
-                    <option value="Right-Arm Medium">Right-Arm Medium</option>
-                    <option value="Left-Arm Fast">Left-Arm Fast</option>
-                    <option value="Left-Arm Medium">Left-Arm Medium</option>
-                  </optgroup>
-                  <optgroup label="Spin">
-                    <option value="Right-Arm Off Spin">Right-Arm Off Spin</option>
-                    <option value="Right-Arm Leg Spin">Right-Arm Leg Spin</option>
-                    <option value="Left-Arm Orthodox">Left-Arm Orthodox</option>
-                    <option value="Left-Arm Unorthodox">Left-Arm Unorthodox (Chinaman)</option>
-                  </optgroup>
-                  <option value="None">None / Batter Only</option>
+                  {bowlingStyles.map(style => (
+                    <option key={style} value={style}>{style}</option>
+                  ))}
                 </select>
                 {errors.bowlingStyle && <span className="form-error">{errors.bowlingStyle.message}</span>}
               </div>
@@ -284,19 +293,44 @@ const Step4_PlayerProfile = () => {
         <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
           <h3 className="heading-3" style={{ marginBottom: '1.5rem', fontSize: '1rem', borderBottom: '1px solid var(--bg-surface-elevated)', paddingBottom: '0.5rem' }}>Preferred Fielding Positions</h3>
           
-          <div style={{ backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--bg-surface-elevated)', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-            <img 
-              src="/images/field-map.png" 
-              alt="Cricket Field Positions" 
-              style={{ width: '100%', maxWidth: '350px', borderRadius: '50%', display: 'block' }} 
-            />
+          <div style={{ backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--bg-surface-elevated)', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', overflow: 'hidden' }}>
+            <div style={{ width: '100%', maxWidth: '350px', position: 'relative', overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
+              <img 
+                src="/images/field-map.png" 
+                alt="Cricket Field Positions" 
+                style={{ 
+                  width: '100%', 
+                  borderRadius: '50%', 
+                  display: 'block',
+                  transform: `scale(${zoomLevel})`,
+                  transformOrigin: 'center center',
+                  transition: 'transform 0.2s ease-out'
+                }} 
+              />
+            </div>
+            
+            {/* Zoom Slider */}
+            <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1rem' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Zoom</span>
+              <input 
+                type="range" 
+                min="1" 
+                max="2.5" 
+                step="0.1" 
+                value={zoomLevel} 
+                onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
+                style={{ flex: 1 }}
+              />
+            </div>
+
             <p className="text-small" style={{ color: 'var(--text-secondary)' }}>Click on the zones to select your preferred fielding positions.</p>
             
             <Controller
               name="fieldPositions"
               control={control}
               render={({ field }) => (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', marginTop: '1rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center', marginTop: '1rem', width: '100%' }}>
+                  {/* Predefined Positions */}
                   {fieldPositionsList.map(pos => {
                     const isSelected = (field.value || []).includes(pos.id);
                     return (
@@ -323,9 +357,51 @@ const Step4_PlayerProfile = () => {
                       </div>
                     )
                   })}
+                  
+                  {/* Custom Added Positions */}
+                  {(field.value || []).filter(v => !fieldPositionsList.find(p => p.id === v)).map(custom => (
+                    <div 
+                      key={custom}
+                      onClick={() => {
+                        field.onChange((field.value || []).filter(v => v !== custom));
+                      }}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        borderRadius: 'var(--radius-full)',
+                        border: `1px solid var(--brand-primary)`,
+                        backgroundColor: 'rgba(255,199,44,0.1)',
+                        color: 'var(--brand-primary)',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: 600
+                      }}
+                    >
+                      {custom} (x)
+                    </div>
+                  ))}
                 </div>
               )}
             />
+
+            {/* Add Custom Position Input */}
+            <div style={{ display: 'flex', width: '100%', marginTop: '0.5rem', gap: '0.5rem' }}>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="E.g. Deep Extra Cover" 
+                value={customPosition}
+                onChange={(e) => setCustomPosition(e.target.value)}
+                style={{ flex: 1 }}
+              />
+              <button 
+                type="button" 
+                className="btn-secondary" 
+                style={{ width: 'auto' }}
+                onClick={handleAddCustomPosition}
+              >
+                Add
+              </button>
+            </div>
           </div>
         </div>
 
@@ -374,13 +450,16 @@ const Step4_PlayerProfile = () => {
             control={control}
             render={({ field }) => (
               <div className="form-group">
-                <label className="form-label">Are you associated with a club?</label>
+                <label className="form-label">Are you associated with any club(s)?</label>
                 <div style={{ display: 'flex', gap: '1.5rem' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <input type="radio" value="yes" checked={field.value === 'yes'} onChange={(e) => field.onChange(e.target.value)} /> Yes
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <input type="radio" value="no" checked={field.value === 'no'} onChange={(e) => field.onChange(e.target.value)} /> No
+                    <input type="radio" value="no" checked={field.value === 'no'} onChange={(e) => {
+                      field.onChange(e.target.value);
+                      setValue('clubsDetails', []); // Clear clubs if no
+                    }} /> No
                   </label>
                 </div>
               </div>
@@ -390,47 +469,64 @@ const Step4_PlayerProfile = () => {
           {watchClubAssociated === 'yes' && (
             <AnimatePresence>
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden' }}>
-                <Controller
-                  name="clubName"
-                  control={control}
-                  rules={{ required: 'Please select a club' }}
-                  render={({ field }) => (
-                    <div className="form-group" style={{ marginTop: '1rem' }}>
-                      <label className="form-label">Select Club *</label>
-                      <select {...field} className="form-input">
-                        <option value="">-- Select from predefined list --</option>
-                        {mockClubs.map(club => (
-                          <option key={club} value={club}>{club}</option>
-                        ))}
-                      </select>
-                      {errors.clubName && <span className="form-error">{errors.clubName.message}</span>}
-                    </div>
-                  )}
-                />
+                
+                <div className="form-group" style={{ marginTop: '1rem' }}>
+                  <label className="form-label">Select Club(s) & Permissions *</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '300px', overflowY: 'auto', backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                    {mockClubs.map(club => {
+                      const currentClubs = watch('clubsDetails') || [];
+                      const existingClub = currentClubs.find(c => c.name === club);
+                      const isSelected = !!existingClub;
+                      
+                      return (
+                        <div key={club} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--bg-surface-elevated)' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                            <input 
+                              type="checkbox" 
+                              checked={isSelected} 
+                              onChange={() => toggleClub(club)} 
+                              style={{ accentColor: 'var(--brand-primary)' }}
+                            />
+                            <span style={{ fontSize: '0.875rem', fontWeight: isSelected ? 600 : 400 }}>{club}</span>
+                          </label>
 
-                <Controller
-                  name="allowedOutsideClub"
-                  control={control}
-                  render={({ field }) => (
-                    <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                      <label className="form-label">Are you allowed to play outside the club?</label>
-                      <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <input type="radio" value="yes" checked={field.value === 'yes'} onChange={(e) => field.onChange(e.target.value)} /> Yes
-                        </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <input type="radio" value="no" checked={field.value === 'no'} onChange={(e) => field.onChange(e.target.value)} /> No
-                        </label>
-                      </div>
-                    </div>
-                  )}
-                />
+                          {isSelected && (
+                            <div style={{ paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                              <span className="text-small" style={{ color: 'var(--text-secondary)' }}>Are you allowed to play outside this club?</span>
+                              <div style={{ display: 'flex', gap: '1rem' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                                  <input 
+                                    type="radio" 
+                                    name={`outside-${club}`} 
+                                    checked={existingClub.allowedOutside === 'yes'} 
+                                    onChange={() => updateClubPermission(club, 'yes')} 
+                                    style={{ accentColor: 'var(--brand-primary)' }}
+                                  /> Yes
+                                </label>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                                  <input 
+                                    type="radio" 
+                                    name={`outside-${club}`} 
+                                    checked={existingClub.allowedOutside === 'no'} 
+                                    onChange={() => updateClubPermission(club, 'no')} 
+                                    style={{ accentColor: 'var(--brand-primary)' }}
+                                  /> No
+                                </label>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {(watch('clubsDetails') || []).length === 0 && <span className="form-error" style={{ marginTop: '0.5rem', display: 'block' }}>Please select at least one club.</span>}
+                </div>
               </motion.div>
             </AnimatePresence>
           )}
         </div>
 
-        <button type="submit" className="btn-primary" disabled={watchBallsSelected.length === 0}>
+        <button type="submit" className="btn-primary" disabled={watchBallsSelected.length === 0 || (watchClubAssociated === 'yes' && (watch('clubsDetails') || []).length === 0)}>
           Continue to Gameplay Upload
         </button>
       </form>

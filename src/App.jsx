@@ -17,6 +17,7 @@ import Tutorials from './pages/Dashboard/Tutorials';
 // Coach Imports
 import CoachRegistrationFlow from './pages/CoachOnboarding/CoachRegistrationFlow';
 import CoachDashboardLayout from './components/layout/CoachDashboardLayout';
+import CoachDashboardHome from './pages/CoachDashboard/CoachDashboardHome';
 import SquadOverview from './pages/CoachDashboard/SquadOverview';
 import VideoScrutiny from './pages/CoachDashboard/VideoScrutiny';
 import TeamBuilder from './pages/CoachDashboard/TeamBuilder';
@@ -29,7 +30,11 @@ import AdminLogin from './pages/Admin/AdminLogin';
 import AdminDashboardLayout from './components/layout/AdminDashboardLayout';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import AppConfig from './pages/Admin/AppConfig';
-import UserManagement from './pages/Admin/UserManagement';
+import PlayerConfig from './pages/Admin/PlayerConfig';
+import PlayerManagement from './pages/Admin/PlayerManagement';
+import CoachManagement from './pages/Admin/CoachManagement';
+import PlayerAllotment from './pages/Admin/PlayerAllotment';
+import AdminVideoScrutiny from './pages/Admin/VideoScrutiny';
 
 function App() {
   return (
@@ -62,7 +67,8 @@ function App() {
 
         {/* Coach Dashboard Routes */}
         <Route path="/coach-dashboard" element={<CoachDashboardLayout />}>
-          <Route index element={<SquadOverview />} />
+          <Route index element={<CoachDashboardHome />} />
+          <Route path="squad" element={<SquadOverview />} />
           <Route path="uploads" element={<CoachUploads />} />
           <Route path="scrutiny" element={<VideoScrutiny />} />
           <Route path="teams" element={<TeamBuilder />} />
@@ -75,7 +81,11 @@ function App() {
         <Route path="/admin" element={<AdminDashboardLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="config" element={<AppConfig />} />
-          <Route path="users" element={<UserManagement />} />
+          <Route path="player-config" element={<PlayerConfig />} />
+          <Route path="players" element={<PlayerManagement />} />
+          <Route path="coaches" element={<CoachManagement />} />
+          <Route path="allotment" element={<PlayerAllotment />} />
+          <Route path="scrutiny" element={<AdminVideoScrutiny />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

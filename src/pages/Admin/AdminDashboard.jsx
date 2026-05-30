@@ -4,7 +4,9 @@ import { Users, TrendingUp, DollarSign } from 'lucide-react';
 import { useConfigStore } from '../../store/useConfigStore';
 
 const AdminDashboard = () => {
-  const { pricing } = useConfigStore();
+  const { plans } = useConfigStore();
+  const basicPlan = plans.find(p => p.id === 'p1') || plans[0];
+  const elitePlan = plans.find(p => p.id === 'p2') || plans[1] || plans[0];
   
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
@@ -45,12 +47,12 @@ const AdminDashboard = () => {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span className="text-secondary">Basic Pack:</span>
-              <span style={{ fontWeight: 600 }}>₹{pricing.basic}</span>
+              <span className="text-secondary">{basicPlan.name}:</span>
+              <span style={{ fontWeight: 600 }}>₹{basicPlan.price}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span className="text-secondary">Elite Pack:</span>
-              <span style={{ fontWeight: 600 }}>₹{pricing.elite}</span>
+              <span className="text-secondary">{elitePlan.name}:</span>
+              <span style={{ fontWeight: 600 }}>₹{elitePlan.price}</span>
             </div>
           </div>
         </div>

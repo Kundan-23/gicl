@@ -6,9 +6,11 @@ export const useFormStore = create(
     (set) => ({
       // Step 2: Basic Registration Data
       basicInfo: {
-        referralPhone: '',
-        referralFirstName: '',
-        referralLastName: '',
+        referralCodeUsed: '',
+        referralFirstName: '', // Auto-filled if code is used
+        referralLastName: '',  // Auto-filled if code is used
+        password: '',
+        profilePhotoUrl: '',
         firstName: '',
         lastName: '',
         dob: '',
@@ -36,13 +38,18 @@ export const useFormStore = create(
         fieldPositions: [], // Selected field positions
         cricketHistory: [{ level: 'International', matches: 0 }, { level: 'National', matches: 0 }, { level: 'State', matches: 0 }, { level: 'District', matches: 0 }, { level: 'Taluka', matches: 0 }],
         clubAssociated: 'no',
-        clubName: '',
+        clubsDetails: [], // Array of { name: 'Club 1', allowedOutside: 'yes' }
       },
       updatePlayerProfile: (data) => set((state) => ({ playerProfile: { ...state.playerProfile, ...data } })),
 
       // Step 5: Media & Tutorials
       media: {
-        videoLink: '',
+        gameplayLinks: {
+          batting: [],
+          bowling: [],
+          fielding: [],
+          wk: []
+        },
         instagramMediaApproved: false,
         galleryUrls: [],
       },
@@ -99,14 +106,14 @@ export const useFormStore = create(
           acceptedTerms: false,
         },
         playerProfile: {
-          height: '', weight: '', age: '', instagramLink: '', ballsSelected: [], battingStyle: '', bowlingStyle: '', fieldPositions: [], cricketHistory: [{ level: 'International', matches: 0 }, { level: 'National', matches: 0 }, { level: 'State', matches: 0 }, { level: 'District', matches: 0 }, { level: 'Taluka', matches: 0 }], clubAssociated: 'no', clubName: ''
+          height: '', weight: '', age: '', instagramLink: '', ballsSelected: [], battingStyle: '', bowlingStyle: '', fieldPositions: [], cricketHistory: [{ level: 'International', matches: 0 }, { level: 'National', matches: 0 }, { level: 'State', matches: 0 }, { level: 'District', matches: 0 }, { level: 'Taluka', matches: 0 }], clubAssociated: 'no', clubsDetails: []
         },
         media: { videoLink: '', instagramMediaApproved: false, galleryUrls: [] }
       })
     }),
     {
       name: 'gicl-registration-storage',
-      version: 1, // Incremented to clear old cached defaults
+      version: 2, // Incremented to clear old cached defaults
     }
   )
 );

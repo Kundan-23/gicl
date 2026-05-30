@@ -1,0 +1,127 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { useCoachStore } from '../../store/useCoachStore';
+import { useConfigStore } from '../../store/useConfigStore';
+import { Users, Calendar, Video, ArrowRight, Activity, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+const CoachDashboardHome = () => {
+  const { dashboardData } = useCoachStore();
+  const maxSquadSize = useConfigStore(state => state.maxSquadSize || 20);
+  const navigate = useNavigate();
+
+  const squadSize = dashboardData.allocatedPlayers?.length || 0;
+  const upcomingMatchesCount = dashboardData.upcomingMatches?.length || 0;
+  
+  // Scrutiny stats for my uploads
+  const myUploads = dashboardData.myUploads || [];
+  const pendingCount = myUploads.filter(u => u.status === 'pending' || !u.status).length;
+  const rejectedCount = myUploads.filter(u => u.status === 'rejected').length;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+      
+      <div style={{ marginBottom: '2rem' }}>
+        <h1 className="heading-1">Welcome back, Coach!</h1>
+        <p className="text-secondary" style={{ marginTop: '0.5rem' }}>Here is what's happening with your squad today.</p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        {/* Squad Status */}
+        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', padding: '0.75rem', borderRadius: '50%' }}>
+              <Users size={24} color="#3b82f6" />
+            </div>
+            <h3 className="text-small text-secondary">My Squad</h3>
+          </div>
+          <p style={{ fontSize: '2rem', fontWeight: 800 }}>{squadSize} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>/ {maxSquadSize}</span></p>
+          {squadSize >= maxSquadSize && <p className="text-small" style={{ color: 'var(--brand-primary)', marginTop: '0.5rem' }}>Squad Full</p>}
+        </div>
+
+        {/* Matches Status */}
+        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '0.75rem', borderRadius: '50%' }}>
+              <Calendar size={24} color="#10b981" />
+            </div>
+            <h3 className="text-small text-secondary">Upcoming Matches</h3>
+          </div>
+          <p style={{ fontSize: '2rem', fontWeight: 800 }}>{upcomingMatchesCount}</p>
+        </div>
+
+        {/* Video Scrutiny Status */}
+        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ backgroundColor: 'rgba(255, 199, 44, 0.1)', padding: '0.75rem', borderRadius: '50%' }}>
+              <Video size={24} color="var(--brand-primary)" />
+            </div>
+            <h3 className="text-small text-secondary">My Uploads</h3>
+          </div>
+          <div style={{ display: 'flex', gap: '1.5rem' }}>
+            <div>
+              <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{pendingCount}</p>
+              <p className="text-small text-secondary">Pending</p>
+            </div>
+            {rejectedCount > 0 && (
+              <div>
+                <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--error)' }}>{rejectedCount}</p>
+                <p className="text-small" style={{ color: 'var(--error)' }}>Rejected</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <h2 className="heading-2" style={{ marginBottom: '1rem' }}>Quick Actions</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        
+        <div 
+          onClick={() => navigate('/coach-dashboard/teams')}
+          style={{ cursor: 'pointer', backgroundColor: 'var(--bg-color)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)', transition: 'all 0.2s' }}
+          onMouseOver={e => e.currentTarget.style.borderColor = 'var(--brand-primary)'}
+          onMouseOut={e => e.currentTarget.style.borderColor = 'var(--bg-surface-elevated)'}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <ShieldCheck size={28} color="var(--brand-primary)" />
+            <ArrowRight size={20} color="var(--text-secondary)" />
+          </div>
+          <h3 className="heading-3" style={{ marginBottom: '0.5rem' }}>Team Builder</h3>
+          <p className="text-small text-secondary">Create and manage your playing 11 for upcoming matches.</p>
+        </div>
+
+        <div 
+          onClick={() => navigate('/coach-dashboard')}
+          style={{ cursor: 'pointer', backgroundColor: 'var(--bg-color)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)', transition: 'all 0.2s' }}
+          onMouseOver={e => e.currentTarget.style.borderColor = 'var(--brand-primary)'}
+          onMouseOut={e => e.currentTarget.style.borderColor = 'var(--bg-surface-elevated)'}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <Users size={28} color="#3b82f6" />
+            <ArrowRight size={20} color="var(--text-secondary)" />
+          </div>
+          <h3 className="heading-3" style={{ marginBottom: '0.5rem' }}>Squad Overview</h3>
+          <p className="text-small text-secondary">View player profiles, skill levels, and analyze squad strength.</p>
+        </div>
+
+        <div 
+          onClick={() => navigate('/coach-dashboard/uploads')}
+          style={{ cursor: 'pointer', backgroundColor: 'var(--bg-color)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)', transition: 'all 0.2s' }}
+          onMouseOver={e => e.currentTarget.style.borderColor = 'var(--brand-primary)'}
+          onMouseOut={e => e.currentTarget.style.borderColor = 'var(--bg-surface-elevated)'}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <Activity size={28} color="#10b981" />
+            <ArrowRight size={20} color="var(--text-secondary)" />
+          </div>
+          <h3 className="heading-3" style={{ marginBottom: '0.5rem' }}>Upload Tutorials</h3>
+          <p className="text-small text-secondary">Upload drill videos for your players. Admin approval required.</p>
+        </div>
+
+      </div>
+
+    </motion.div>
+  );
+};
+
+export default CoachDashboardHome;

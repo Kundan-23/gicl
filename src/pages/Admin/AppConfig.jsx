@@ -4,13 +4,13 @@ import { useConfigStore } from '../../store/useConfigStore';
 import { Save, AlertCircle } from 'lucide-react';
 
 const AppConfig = () => {
-  const { ageGroups, pricing, referralPoints, updateAgeGroups, updatePricing, updateReferralPoints } = useConfigStore();
+  const { ageGroups, referralPoints, maxSquadSize, matchTeamSize, updateAgeGroups, updateReferralPoints, updateMaxSquadSize, updateMatchTeamSize } = useConfigStore();
   
   // Local state for editing
   const [localAgeGroups, setLocalAgeGroups] = useState([...ageGroups]);
-  const [basicPrice, setBasicPrice] = useState(pricing.basic);
-  const [elitePrice, setElitePrice] = useState(pricing.elite);
   const [refPoints, setRefPoints] = useState(referralPoints.perUser);
+  const [squadSize, setSquadSize] = useState(maxSquadSize || 20);
+  const [teamSize, setTeamSize] = useState(matchTeamSize || 11);
   
   const [savedMsg, setSavedMsg] = useState('');
 
@@ -20,8 +20,9 @@ const AppConfig = () => {
 
   const handleSave = () => {
     updateAgeGroups(localAgeGroups);
-    updatePricing(basicPrice, elitePrice);
     updateReferralPoints(refPoints);
+    updateMaxSquadSize(squadSize);
+    updateMatchTeamSize(teamSize);
     
     setSavedMsg('Global configuration updated successfully!');
     setTimeout(() => setSavedMsg(''), 3000);
@@ -73,43 +74,44 @@ const AppConfig = () => {
           </div>
         </section>
 
-        {/* Pricing */}
+
+
+        {/* Referrals & Squad Limits */}
         <section style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)' }}>
-          <h2 className="heading-3" style={{ marginBottom: '1.5rem' }}>Monetization Plans</h2>
+          <h2 className="heading-3" style={{ marginBottom: '1.5rem' }}>System Variables</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
             <div className="form-group">
-              <label className="form-label">Basic Pack Price (₹)</label>
+              <label className="form-label">Points Per Successful Referral</label>
               <input 
                 type="number" 
+                step="0.1"
                 className="form-input" 
-                value={basicPrice} 
-                onChange={(e) => setBasicPrice(Number(e.target.value))} 
+                value={refPoints} 
+                onChange={(e) => setRefPoints(Number(e.target.value))} 
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Elite Pack Price (₹)</label>
+              <label className="form-label">Max Squad Size (Coach)</label>
               <input 
                 type="number" 
                 className="form-input" 
-                value={elitePrice} 
-                onChange={(e) => setElitePrice(Number(e.target.value))} 
+                value={squadSize} 
+                onChange={(e) => setSquadSize(Number(e.target.value))} 
+                min="11"
+                max="50"
               />
             </div>
-          </div>
-        </section>
-
-        {/* Referrals */}
-        <section style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)' }}>
-          <h2 className="heading-3" style={{ marginBottom: '1.5rem' }}>Referral System</h2>
-          <div className="form-group" style={{ maxWidth: '300px' }}>
-            <label className="form-label">Points Per Successful Referral</label>
-            <input 
-              type="number" 
-              step="0.1"
-              className="form-input" 
-              value={refPoints} 
-              onChange={(e) => setRefPoints(Number(e.target.value))} 
-            />
+            <div className="form-group">
+              <label className="form-label">Match Team Size</label>
+              <input 
+                type="number" 
+                className="form-input" 
+                value={teamSize} 
+                onChange={(e) => setTeamSize(Number(e.target.value))} 
+                min="5"
+                max="15"
+              />
+            </div>
           </div>
         </section>
 

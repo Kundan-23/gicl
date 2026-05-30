@@ -1,27 +1,22 @@
 :root {
-  /* Colors */
-  --bg-color: #020817;
-  /* Midnight Blue */
-  --bg-surface: #293C8F;
-  /* Slate 900 */
-  --bg-surface-elevated: #1e293b;
-  /* Slate 800 */
-  --text-primary: #f8fafc;
-  /* Slate 50 */
-  --text-secondary: #94a3b8;
-  /* Slate 400 */
+  /* Premium Brand Theme */
+  --bg-color: #121A3F; /* Deep Dark Navy */
+  --bg-surface: #293C8F; /* Brand Blue */
+  --bg-surface-elevated: #36499E; /* Lighter Blue */
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
 
-  --brand-primary: #ffc72c;
-  /* Logo Gold/Yellow */
-  --brand-primary-hover: #eab308;
-  /* Darker Gold */
-  --brand-accent: #3b82f6;
-  /* Blue 500 */
+  --brand-primary: #F9CB1A; /* Brand Yellow */
+  --brand-primary-hover: #E0B513;
+  --brand-accent: #60a5fa; /* Soft Light Blue */
+  --brand-accent-hover: #93c5fd;
+  
   --error: #ef4444;
   --success: #10b981;
+  --border-subtle: rgba(255, 255, 255, 0.12);
 
   /* Typography */
-  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
 
   /* Spacing & Radii */
   --radius-md: 0.5rem;
@@ -29,10 +24,11 @@
   --radius-xl: 1rem;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  /* Premium Soft Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.4), 0 8px 16px -8px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 20px rgba(249, 203, 26, 0.3);
 }
 
 * {
@@ -43,11 +39,32 @@
 
 body {
   font-family: var(--font-family);
-  background-color: var(--bg-color);
+  background: radial-gradient(circle at top left, #1B2861, var(--bg-color) 80%);
+  background-attachment: fixed;
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+}
+
+/* Custom Sleek Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
 }
 
 a {
@@ -116,18 +133,20 @@ textarea {
 /* Common UI */
 .btn-primary {
   background-color: var(--brand-primary);
-  color: #0f172a;
-  /* Dark text on yellow button */
+  color: #121A3F;
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 700;
+  font-size: 0.95rem;
   width: 100%;
-  transition: background-color 0.2s, transform 0.1s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .btn-primary:hover {
   background-color: var(--brand-primary-hover);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
 }
 
 .btn-primary:active {
@@ -141,20 +160,21 @@ textarea {
 }
 
 .btn-secondary {
-  background-color: transparent;
-  color: var(--brand-primary);
-  border: 1px solid var(--brand-primary);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
   padding: 0.75rem 1.5rem;
   border-radius: var(--radius-md);
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
   width: 100%;
   transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary:hover {
-  background-color: rgba(255, 199, 44, 0.1);
-  /* Gold alpha */
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Form Styles */
@@ -174,20 +194,22 @@ textarea {
 }
 
 .form-input {
-  background-color: var(--bg-surface);
+  background-color: rgba(0, 0, 0, 0.2);
   color: var(--text-primary);
-  border: 1px solid var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
   padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
-  font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
   width: 100%;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .form-input:focus {
   outline: none;
   border-color: var(--brand-primary);
-  box-shadow: 0 0 0 2px rgba(255, 199, 44, 0.2);
+  box-shadow: 0 0 0 3px rgba(249, 203, 26, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .form-error {
@@ -216,7 +238,7 @@ select.form-input {
 
 .selection-card {
   background-color: var(--bg-surface);
-  border: 2px solid var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 1.5rem 1rem;
   display: flex;
@@ -227,16 +249,18 @@ select.form-input {
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
+  box-shadow: var(--shadow-sm);
 }
 
 .selection-card:hover {
-  border-color: var(--brand-primary);
-  background-color: rgba(255, 199, 44, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .selection-card.active {
   border-color: var(--brand-primary);
-  background-color: rgba(255, 199, 44, 0.1);
+  background-color: rgba(249, 203, 26, 0.1);
   color: var(--brand-primary);
 }
 
@@ -255,25 +279,25 @@ select.form-input {
   transition: width 0.3s ease;
 }
 
-/* Modal Overlay */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 50;
+  z-index: 1000;
   padding: 1rem;
 }
 
 .modal-content {
   background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
-  padding: 2rem;
+  padding: 2.5rem;
   width: 100%;
-  max-width: 400px;
-  box-shadow: var(--shadow-lg);
+  max-width: 480px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
 }

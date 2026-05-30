@@ -4,45 +4,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, CheckCircle2, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import { useConfigStore } from '../../store/useConfigStore';
 
-const basePricingTiers = [
-  {
-    id: 'basic',
-    price: 299,
-    title: 'Basic Pack',
-    features: ['Professional Training', '1 Guaranteed Match'],
-    tc: `Terms & Conditions for Basic Pack (299):\n\n1. This pack includes professional training sessions as scheduled by the club.\n2. You are guaranteed exactly one match.\n3. The amount of ₹299 is non-refundable under any circumstances.\n4. Players must arrange their own transport.\n5. Any disciplinary issues will result in immediate termination of the pack without refund.\n6. By clicking accept, you agree to adhere to all GICL basic guidelines and respect the coaches.\n7. Valid for the current season only. Please ensure you attend all scheduled sessions. Missing a session does not guarantee a makeup session.\n8. Scroll to the bottom to enable payment.`
-  },
-  {
-    id: 'pro',
-    price: 499,
-    title: 'Pro Pack',
-    features: ['GICL Membership', 'Official Goodies', 'Multiple Matches'],
-    tc: `Terms & Conditions for Pro Pack (499):\n\n1. Includes official GICL Membership.\n2. Goodies include a jersey and cap (sizes subject to availability).\n3. Players will get to play in multiple matches based on form and fitness.\n4. The amount of ₹499 is non-refundable.\n5. Members are expected to maintain the decorum of the club.\n6. Transport to away matches may be provided, subject to availability.\n7. Membership can be revoked if the player violates the code of conduct.\n8. Scroll to the bottom to enable payment.`
-  },
-  {
-    id: 'elite',
-    price: 699,
-    title: 'Elite Pack',
-    best: true,
-    features: ['GICL Membership', 'Premium Goodies', 'Multiple Matches', '1-on-1 Mentorship', 'Fitness Tracking'],
-    tc: `Terms & Conditions for Elite Pack (699):\n\n1. Includes premium GICL Membership with VIP access.\n2. Premium goodies include personalized jersey, cap, and kit bag.\n3. Priority selection for matches and tournaments.\n4. Includes 1-on-1 mentorship with head coaches.\n5. Fitness and diet tracking provided by club physios.\n6. The amount of ₹699 is non-refundable.\n7. Highest standard of discipline is expected. Elite members represent the core of GICL.\n8. Scroll completely to the bottom of this text box to enable the payment button.`
-  }
-];
+
 
 const Step3_Payment = () => {
   const navigate = useNavigate();
-  const { pricing } = useConfigStore();
+  const { plans } = useConfigStore();
   const [selectedPack, setSelectedPack] = useState(null);
   const [expandedPack, setExpandedPack] = useState(null);
   const [tcScrolled, setTcScrolled] = useState(false);
   const tcRef = useRef(null);
 
-  // Dynamically update prices from config store
-  const pricingTiers = basePricingTiers.map(tier => {
-    if (tier.id === 'basic') return { ...tier, price: pricing.basic, tc: tier.tc.replace(/299/g, pricing.basic) };
-    if (tier.id === 'elite') return { ...tier, price: pricing.elite, tc: tier.tc.replace(/699/g, pricing.elite) };
-    return tier; // Pro pack remains static or could be added to store later
-  });
+  // Map plans to UI format
+  const pricingTiers = plans.map(tier => ({
+    ...tier,
+    title: tier.name,
+    tc: tier.terms,
+    best: tier.id === 'elite'
+  }));
 
   const handleScroll = (e) => {
     const { scrollTop, scrollHeight, clientHeight } = e.target;

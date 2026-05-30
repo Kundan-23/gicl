@@ -72,7 +72,7 @@ export const useCoachStore = create(
         videos: initialVideos,
         teams: [], // Array of { id, name, playerIds: [] }
         myUploads: [
-          { id: 'U1', title: 'Basic Batting Stance Drill', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', date: new Date().toISOString() }
+          { id: 'U1', title: 'Basic Batting Stance Drill', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', date: new Date().toISOString(), status: 'approved', rejectReason: '' }
         ],
         notifications: initialVideos.map(v => ({
           id: `N${Math.random()}`,
@@ -91,9 +91,16 @@ export const useCoachStore = create(
       
       // Dashboard Actions
       addUpload: (title, url) => set((state) => {
-        const newUpload = { id: `U${Date.now()}`, title, url, date: new Date().toISOString() };
+        const newUpload = { id: `U${Date.now()}`, title, url, date: new Date().toISOString(), status: 'pending', rejectReason: '' };
         const currentUploads = state.dashboardData.myUploads || [];
         return { dashboardData: { ...state.dashboardData, myUploads: [newUpload, ...currentUploads] } };
+      }),
+      
+      updateUploadStatus: (id, status, reason = '') => set((state) => {
+        const updatedUploads = state.dashboardData.myUploads.map(u => 
+          u.id === id ? { ...u, status, rejectReason: reason } : u
+        );
+        return { dashboardData: { ...state.dashboardData, myUploads: updatedUploads } };
       }),
 
       submitVideoReview: (videoId, comment, flag) => set((state) => {
@@ -124,6 +131,33 @@ export const useCoachStore = create(
             ...state.dashboardData,
             referralPoints: state.dashboardData.referralPoints + 0.5,
             referrals: [...state.dashboardData.referrals, newReferral]
+          }
+        };
+      }),
+
+      simulateAdminAllotment: () => set((state) => {
+        const styles = ['Right-hand Bat', 'Left-hand Bat'];
+        const bowls = ['Right-arm Fast', 'Right-arm Off Spin', 'Left-arm Orthodox', 'Right-arm Leg Spin', 'None'];
+        const ageGroups = useConfigStore.getState().ageGroups;
+        const ag = ageGroups[Math.floor(Math.random() * ageGroups.length)];
+        const newId = state.dashboardData.allocatedPlayers.length + 1;
+        const newPlayer = {
+          id: `P${newId + Date.now()}`,
+          name: `Mock Player ${newId}`,
+          age: Math.floor(Math.random() * 30) + 12,
+          height: Math.floor(Math.random() * 30) + 160,
+          battingStyle: styles[Math.floor(Math.random() * styles.length)],
+          bowlingStyle: bowls[Math.floor(Math.random() * bowls.length)],
+          matchesPlayed: Math.floor(Math.random() * 50),
+          profilePic: `https://ui-avatars.com/api/?name=Mock+${newId}&background=0f172a&color=ffc72c`,
+          category: ag.cat,
+          subCategory: ag.sub,
+          color: ag.color
+        };
+        return {
+          dashboardData: {
+            ...state.dashboardData,
+            allocatedPlayers: [...state.dashboardData.allocatedPlayers, newPlayer]
           }
         };
       }),

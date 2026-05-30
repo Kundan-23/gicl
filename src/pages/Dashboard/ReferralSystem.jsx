@@ -31,8 +31,8 @@ const ReferralSystem = () => {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
       
       <div style={{ marginBottom: '2rem' }}>
-        <h1 className="heading-1">Refer & Earn Cash</h1>
-        <p className="text-secondary" style={{ marginTop: '0.5rem' }}>Invite your friends to GICL using your unique static code and earn real cash rewards!</p>
+        <h1 className="heading-1">Refer GICL Sports</h1>
+        <p className="text-secondary" style={{ marginTop: '0.5rem' }}>Invite your friends to join GICL and earn rewards when they successfully register.</p>
       </div>
 
       {/* Rewards Structure Banner */}

@@ -18,12 +18,13 @@ const CoachDashboardLayout = () => {
   };
 
   const navLinks = [
+    { name: 'Dashboard', path: '/coach-dashboard', icon: <ShieldPlus size={20} />, end: true },
+    { name: 'My Squad', path: '/coach-dashboard/squad', icon: <Users size={20} /> },
+    { name: 'Team Builder', path: '/coach-dashboard/teams', icon: <Users size={20} /> },
     { name: 'My Uploads', path: '/coach-dashboard/uploads', icon: <PlaySquare size={20} /> },
-    { name: 'My Squad', path: '/coach-dashboard', icon: <Users size={20} />, end: true },
-    { name: 'Video Scrutiny', path: '/coach-dashboard/scrutiny', icon: <Video size={20} /> },
-    { name: 'Team Builder', path: '/coach-dashboard/teams', icon: <ShieldPlus size={20} /> },
+    { name: 'Player Videos', path: '/coach-dashboard/scrutiny', icon: <Video size={20} /> },
     { name: 'Upcoming Matches', path: '/coach-dashboard/matches', icon: <CalendarDays size={20} /> },
-    { name: 'Refer a Coach', path: '/coach-dashboard/referral', icon: <Users size={20} /> },
+    { name: 'Refer GICL Sports', path: '/coach-dashboard/referral', icon: <Users size={20} /> },
   ];
 
   const handleNotifClick = () => {

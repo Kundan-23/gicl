@@ -14,7 +14,7 @@ const Landing = () => {
       style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center' }}
     >
       <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 className="heading-1" style={{ marginBottom: '0.5rem' }}>Welcome to GICL</h1>
+        <h1 className="heading-1" style={{ marginBottom: '0.5rem' }}>Welcome to GICL Sports</h1>
         <p className="text-body">Select your role to continue onboarding.</p>
       </div>
 
