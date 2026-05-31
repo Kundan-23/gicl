@@ -115,20 +115,20 @@ const PlayerConfig = () => {
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}>
                   <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.25rem' }}>Plan Name</label>
-                  <input type="text" value={newPlan.name} onChange={e => setNewPlan({...newPlan, name: e.target.value})} className="input-field" style={{ width: '100%', padding: '0.75rem' }} />
+                  <input type="text" value={newPlan.name} onChange={e => setNewPlan({...newPlan, name: e.target.value})} className="form-input" style={{ width: '100%', padding: '0.75rem' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.25rem' }}>Price (₹)</label>
-                  <input type="number" value={newPlan.price} onChange={e => setNewPlan({...newPlan, price: e.target.value})} className="input-field" style={{ width: '100%', padding: '0.75rem' }} />
+                  <input type="number" value={newPlan.price} onChange={e => setNewPlan({...newPlan, price: e.target.value})} className="form-input" style={{ width: '100%', padding: '0.75rem' }} />
                 </div>
               </div>
               <div>
                 <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.25rem' }}>Features (comma separated)</label>
-                <input type="text" value={newPlan.features} onChange={e => setNewPlan({...newPlan, features: e.target.value})} className="input-field" style={{ width: '100%', padding: '0.75rem' }} />
+                <input type="text" value={newPlan.features} onChange={e => setNewPlan({...newPlan, features: e.target.value})} className="form-input" style={{ width: '100%', padding: '0.75rem' }} />
               </div>
               <div>
                 <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.25rem' }}>Payment Terms & Conditions</label>
-                <textarea value={newPlan.terms} onChange={e => setNewPlan({...newPlan, terms: e.target.value})} className="input-field" style={{ width: '100%', padding: '0.75rem', height: '80px' }} />
+                <textarea value={newPlan.terms} onChange={e => setNewPlan({...newPlan, terms: e.target.value})} className="form-input" style={{ width: '100%', padding: '0.75rem', height: '80px' }} />
               </div>
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
                 <button className="btn-secondary" onClick={() => setShowPlanForm(false)}>Cancel</button>

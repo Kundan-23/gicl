@@ -19,7 +19,7 @@ export const useConfigStore = create(
         { id: 11, cat: 'Masters', sub: '55+', color: '#d946ef' },
         { id: 12, cat: 'Masters', sub: '60+', color: '#8b5cf6' }
       ],
-      jerseySizes: ['S', 'M', 'L', 'XL', 'XXL'],
+      jerseySizes: ['Kid-S', 'Kid-M', 'Kid-L', 'S', 'M', 'L', 'XL', 'XXL'],
       battingStyles: ['Right-hand Bat', 'Left-hand Bat'],
       bowlingStyles: ['Right-arm Fast', 'Right-arm Off Spin', 'Left-arm Orthodox', 'Right-arm Leg Spin', 'None'],
       clubs: ['Mumbai Strikers', 'Delhi Capitals Academy', 'Chennai Super Kings Academy', 'Royal Challengers Academy'],

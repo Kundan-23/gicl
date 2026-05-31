@@ -212,6 +212,12 @@ textarea {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
+/* Fix for unreadable native dropdown options */
+select.form-input option {
+  background-color: #121A3F; /* Deep Dark Navy */
+  color: #ffffff;
+}
+
 .form-error {
   font-size: 0.75rem;
   color: var(--error);

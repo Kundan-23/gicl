@@ -49,6 +49,24 @@ const Step2_BasicRegistration = () => {
   const currentAge = parseInt(playerProfile.age || '0', 10);
   const isKidSize = currentAge > 0 && currentAge < 16;
 
+  // Myntra-styled kid age groups with measurements
+  const kidSizeData = [
+    { size: '6-7Y', chest: '31.0', length: '20.0', shoulder: '13.0' },
+    { size: '8-9Y', chest: '33.0', length: '21.0', shoulder: '13.0' },
+    { size: '9-10Y', chest: '35.0', length: '22.0', shoulder: '14.0' },
+    { size: '10-11Y', chest: '37.0', length: '24.0', shoulder: '14.0' },
+    { size: '11-12Y', chest: '39.0', length: '25.0', shoulder: '15.0' },
+    { size: '13-14Y', chest: '41.0', length: '26.0', shoulder: '16.0' },
+    { size: '15-16Y', chest: '43.0', length: '27.0', shoulder: '16.0' },
+  ];
+  
+  const kidSizes = kidSizeData.map(k => k.size);
+  
+  // If kid, use the hardcoded kid sizes. If adult, use the admin config sizes.
+  const displaySizes = currentAge > 0 
+    ? (isKidSize ? kidSizes : jerseySizes.filter(size => !size.toLowerCase().includes('kid')))
+    : [];
+
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -241,17 +259,34 @@ const Step2_BasicRegistration = () => {
             rules={{ required: 'Required' }}
             render={({ field }) => (
               <div className="form-group">
-                <label className="form-label">Jersey / T-Shirt Size *</label>
-                <select {...field} className="form-input">
-                  <option value="">--Select--</option>
-                  {jerseySizes.map(size => (
-                    <option key={size} value={size}>{size}</option>
-                  ))}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="form-label">
+                    {currentAge > 0 && isKidSize ? "SELECT SIZE (Age Group) *" : "Jersey / T-Shirt Size *"}
+                  </label>
+                  {currentAge > 0 && isKidSize && (
+                    <button type="button" onClick={() => setShowMeasureModal(true)} style={{ background: 'none', color: 'var(--brand-accent)', fontSize: '0.875rem', fontWeight: 600 }}>
+                      Size Chart
+                    </button>
+                  )}
+                </div>
+                <select {...field} className="form-input" disabled={currentAge === 0}>
+                  <option value="">
+                    {currentAge === 0 ? "--Select Date Of Birth First--" : "--Select Size--"}
+                  </option>
+                  {currentAge > 0 && displaySizes.map(size => {
+                    if (isKidSize) {
+                      const match = kidSizeData.find(k => k.size === size);
+                      return <option key={size} value={size}>{size} (Chest: {match?.chest}")</option>;
+                    }
+                    return <option key={size} value={size}>{size}</option>;
+                  })}
                 </select>
                 {errors.jerseySize && <span className="form-error">{errors.jerseySize.message}</span>}
-                <button type="button" onClick={() => setShowMeasureModal(true)} style={{ background: 'none', color: 'var(--brand-accent)', textAlign: 'left', fontSize: '0.875rem', marginTop: '0.25rem', textDecoration: 'underline' }}>
-                  How to measure yourself?
-                </button>
+                {(!currentAge || !isKidSize) && (
+                  <button type="button" onClick={() => setShowMeasureModal(true)} style={{ background: 'none', color: 'var(--brand-accent)', textAlign: 'left', fontSize: '0.875rem', marginTop: '0.25rem', textDecoration: 'underline' }}>
+                    How to measure yourself?
+                  </button>
+                )}
               </div>
             )}
           />
@@ -322,15 +357,46 @@ const Step2_BasicRegistration = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               className="modal-content"
+              style={{ maxWidth: isKidSize ? '600px' : '400px', padding: '0', overflow: 'hidden' }}
               onClick={e => e.stopPropagation()}
             >
-              <h2 className="heading-2" style={{ marginBottom: '1rem' }}>How to Measure</h2>
-              <div style={{ backgroundColor: 'var(--bg-color)', padding: '2rem', borderRadius: 'var(--radius-md)', textAlign: 'center', marginBottom: '1rem', border: '1px dashed var(--brand-primary)' }}>
-                <span style={{ fontSize: '3rem' }}>📏</span>
-                <p style={{ marginTop: '1rem' }}>Placeholder Image: Measurement Guide</p>
-                <p className="text-small" style={{ marginTop: '0.5rem' }}>Measure around the fullest part of your chest, keeping the tape horizontal.</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-surface)' }}>
+                <h2 className="heading-3">{isKidSize ? "Size Chart" : "How to Measure"}</h2>
+                <button onClick={() => setShowMeasureModal(false)} style={{ background: 'none', color: 'var(--text-secondary)', fontSize: '1.25rem', cursor: 'pointer' }}>✕</button>
               </div>
-              <button className="btn-primary" onClick={() => setShowMeasureModal(false)}>Got it</button>
+              
+              <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-color)' }}>
+                {isKidSize ? (
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '0.875rem' }}>
+                      <thead>
+                        <tr style={{ color: 'var(--text-secondary)', borderBottom: '1px solid var(--border-subtle)' }}>
+                          <th style={{ padding: '1rem', fontWeight: 600 }}>Size</th>
+                          <th style={{ padding: '1rem', fontWeight: 600 }}>Chest (in)</th>
+                          <th style={{ padding: '1rem', fontWeight: 600 }}>Front Length (in)</th>
+                          <th style={{ padding: '1rem', fontWeight: 600 }}>Across Shoulder (in)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {kidSizeData.map((row) => (
+                          <tr key={row.size} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <td style={{ padding: '1rem', fontWeight: 600, color: 'var(--brand-primary)' }}>{row.size}</td>
+                            <td style={{ padding: '1rem' }}>{row.chest}</td>
+                            <td style={{ padding: '1rem' }}>{row.length}</td>
+                            <td style={{ padding: '1rem' }}>{row.shoulder}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center' }}>
+                    <span style={{ fontSize: '3rem' }}>📏</span>
+                    <p style={{ marginTop: '1rem', fontWeight: 600 }}>Measurement Guide</p>
+                    <p className="text-small" style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Measure around the fullest part of your chest, keeping the tape horizontal.</p>
+                  </div>
+                )}
+              </div>
             </motion.div>
           </motion.div>
         )}
