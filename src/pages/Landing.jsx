@@ -3,64 +3,103 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, ShieldAlert } from 'lucide-react';
 
+/* Glassmorphism button styles */
+const glassBtn = {
+  base: {
+    width: '100%',
+    background: 'rgba(255, 255, 255, 0.07)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    borderRadius: '16px',
+    padding: '1.75rem 1rem',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.875rem',
+    color: '#fff',
+    cursor: 'pointer',
+    transition: 'all 0.25s ease',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1)',
+  },
+  player: {
+    border: '1.5px solid rgba(249, 203, 26, 0.6)',
+  },
+  coach: {
+    border: '1.5px solid rgba(147, 168, 255, 0.45)',
+  },
+  playerHover: {
+    background: 'rgba(249, 203, 26, 0.18)',
+    boxShadow: '0 4px 32px rgba(249, 203, 26, 0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
+    transform: 'translateY(-2px)',
+  },
+  coachHover: {
+    background: 'rgba(147, 168, 255, 0.18)',
+    boxShadow: '0 4px 32px rgba(147, 168, 255, 0.25), inset 0 1px 0 rgba(255,255,255,0.15)',
+    transform: 'translateY(-2px)',
+  },
+};
+
 const Landing = () => {
   const navigate = useNavigate();
+  const [playerHover, setPlayerHover] = React.useState(false);
+  const [coachHover, setCoachHover]   = React.useState(false);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center' }}
+      exit={{ opacity: 0, y: -16 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+      style={{ display: 'flex', flexDirection: 'column', flex: 1 }}
     >
-      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h1 className="heading-1" style={{ marginBottom: '0.5rem' }}>Welcome to GICL Sports</h1>
-        <p className="text-body">Select your role to continue onboarding.</p>
+      {/* Logo + headline */}
+      <div style={{ textAlign: 'center', marginBottom: '2.5rem', paddingTop: '0.5rem' }}>
+        <motion.img
+          src="/logo/logo.png"
+          alt="GICL Sports Logo"
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.45, ease: 'easeOut' }}
+          style={{ height: '72px', objectFit: 'contain', marginBottom: '1.5rem', filter: 'drop-shadow(0 4px 16px rgba(249,203,26,0.35))' }}
+        />
+        <h1 style={{
+          fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em',
+          color: '#fff', marginBottom: '0.4rem',
+          textShadow: '0 2px 12px rgba(0,0,0,0.6)',
+        }}>
+          Welcome to GICL Sports
+        </h1>
+        <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', fontWeight: 400 }}>
+          Select your role to continue onboarding.
+        </p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <button 
+      {/* Role buttons */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
+        <button
           onClick={() => navigate('/login')}
-          style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '2px solid var(--brand-primary)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '2rem 1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '1rem',
-            color: '#fff',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.1)'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-surface)'}
+          onMouseEnter={() => setPlayerHover(true)}
+          onMouseLeave={() => setPlayerHover(false)}
+          style={{ ...glassBtn.base, ...glassBtn.player, ...(playerHover ? glassBtn.playerHover : {}) }}
         >
-          <User size={48} color="var(--brand-primary)" />
-          <span className="heading-2">I am a Player</span>
+          <User size={44} color={playerHover ? '#F9CB1A' : 'rgba(249,203,26,0.85)'} strokeWidth={1.5} />
+          <div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.01em' }}>I am a Player</div>
+            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.2rem' }}>Register & manage your cricket journey</div>
+          </div>
         </button>
 
-        <button 
+        <button
           onClick={() => navigate('/login', { state: { role: 'coach' } })}
-          style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '2px solid var(--brand-accent)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '2rem 1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '1rem',
-            color: '#fff',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-          }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-surface)'}
+          onMouseEnter={() => setCoachHover(true)}
+          onMouseLeave={() => setCoachHover(false)}
+          style={{ ...glassBtn.base, ...glassBtn.coach, ...(coachHover ? glassBtn.coachHover : {}) }}
         >
-          <ShieldAlert size={48} color="var(--brand-accent)" />
-          <span className="heading-2">I am a Coach</span>
+          <ShieldAlert size={44} color={coachHover ? '#a3b4ff' : 'rgba(163,180,255,0.85)'} strokeWidth={1.5} />
+          <div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.01em' }}>I am a Coach</div>
+            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.2rem' }}>Access squad management & analytics</div>
+          </div>
         </button>
       </div>
     </motion.div>

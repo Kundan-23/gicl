@@ -1,26 +1,69 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Outlet, useLocation } from 'react-router-dom';
 
 const MobileLayout = () => {
+  const location = useLocation();
+  const isLanding = location.pathname === '/';
+
+  if (isLanding) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundImage: `url('/images/landingpagebgimage/bg-image.jpeg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        /* Edge vignette to frame the background */
+        boxShadow: 'inset 0 0 120px 40px rgba(10, 15, 40, 0.85)',
+        position: 'relative',
+      }}>
+        {/* Dark radial vignette overlay */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at center, transparent 30%, rgba(8, 12, 35, 0.75) 100%)',
+          pointerEvents: 'none',
+        }} />
+
+        {/* Centered glassmorphism card */}
+        <div style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '420px',
+          margin: '1.5rem',
+          background: 'rgba(18, 26, 63, 0.55)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderRadius: '24px',
+          border: '1px solid rgba(255,255,255,0.12)',
+          boxShadow: '0 8px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+          padding: '2.5rem 2rem',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          <Outlet />
+          <footer style={{ textAlign: 'center', fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', marginTop: '2rem' }}>
+            © {new Date().getFullYear()} GICL Sports Enterprise
+          </footer>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-color)' }}>
-      {/* Header/Nav - Full Width */}
-      <header style={{ width: '100%', padding: '1rem', textAlign: 'center', borderBottom: '1px solid var(--bg-surface-elevated)', display: 'flex', justifyContent: 'center', backgroundColor: 'var(--bg-surface)', position: 'sticky', top: 0, zIndex: 10 }}>
-        <img 
-          src="/logo/logo.png" 
-          alt="GICL Sports Logo" 
-          style={{ height: '48px', objectFit: 'contain' }}
-        />
+      {/* Header/Nav */}
+      <header style={{ width: '100%', padding: '1rem', textAlign: 'center', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'center', backgroundColor: 'var(--bg-surface)', position: 'sticky', top: 0, zIndex: 10 }}>
+        <img src="/logo/logo.png" alt="GICL Sports Logo" style={{ height: '48px', objectFit: 'contain' }} />
       </header>
 
-      {/* Main App Container - Constrained Width for Mobile Feel */}
+      {/* Main App Container */}
       <div className="app-container" style={{ minHeight: 'auto', flex: 1, boxShadow: 'none' }}>
         <main style={{ flex: 1, padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
           <Outlet />
         </main>
-        
-        {/* Footer Area */}
         <footer style={{ padding: '1rem', textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
           © {new Date().getFullYear()} GICL Sports Enterprise
         </footer>
