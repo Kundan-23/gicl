@@ -36,8 +36,20 @@ export const useConfigStore = create(
       
       // Pricing & Plans
       plans: [
-        { id: 'p1', name: 'Basic Pack', price: 299, features: ['2 Matches Guaranteed', 'Standard Jersey', 'Basic Training Videos'], terms: 'Non-refundable.' },
-        { id: 'p2', name: 'Elite Pack', price: 699, features: ['5 Matches Guaranteed', 'Premium Jersey', 'Advance Training Videos', 'One-on-One Coaching Session'], terms: 'Refundable within 7 days.' }
+        { 
+          id: 'p1', 
+          name: 'Basic Pack', 
+          price: 299, 
+          features: ['2 Matches Guaranteed', 'Standard Jersey', 'Basic Training Videos'], 
+          terms: `GICL Elite Membership – Terms & Conditions\n\n1. The GICL Elite Membership is priced at ₹499 and is valid for a limited period as determined by GICL Sports LLP.\n\n2. The membership fee is strictly non-refundable and non-transferable under any circumstances.\n\n3. Registrations are accepted on a first come, first serve basis. GICL reserves the right to close registrations once capacity is reached.\n\n4. This membership includes access to *paid professional training sessions* and *paid official trials*. It also provides eligibility for district and state championships, and franchise leagues. Participation in higher-level competitions is subject to performance, selection criteria, and availability of slots.\n\n5. Selection for trials, district, state, or franchise leagues is not guaranteed and will be based purely on merit, performance, and management discretion.\n\n6. Training schedules, trial dates, match fixtures, venues, and formats are subject to change due to operational requirements, weather conditions, or unforeseen circumstances. Final decisions will rest with GICL management.\n\n7. Players must maintain discipline, fitness, and sportsmanship at all times. Any misconduct or violation of rules may lead to suspension or cancellation of membership without refund.\n\n8. GICL Sports LLP is not responsible for any injuries, accidents, or loss/damage of personal belongings during training sessions, trials, matches, or related activities. Players participate at their own risk.\n\n9. Players must report on time for all training sessions, trials, and matches. Failure to do so may result in exclusion without compensation.\n\n10. GICL reserves the right to modify, update, or revise these terms and conditions at any time without prior notice.\n\n11. By registering for GICL Elite Membership, the player agrees to abide by all the above terms and conditions.\n\n12. Additional 18% GST Applicable.\n\nYou agree to share information entered on this page with GICL Sports (owner of this page) and Razorpay, adhering to applicable laws.`
+        },
+        { 
+          id: 'p2', 
+          name: 'Elite Pack', 
+          price: 699, 
+          features: ['5 Matches Guaranteed', 'Premium Jersey', 'Advance Training Videos', 'One-on-One Coaching Session'], 
+          terms: `GICL Elite Membership – Terms & Conditions\n\n1. The GICL Elite Membership is priced at ₹499 and is valid for a limited period as determined by GICL Sports LLP.\n\n2. The membership fee is strictly non-refundable and non-transferable under any circumstances.\n\n3. Registrations are accepted on a first come, first serve basis. GICL reserves the right to close registrations once capacity is reached.\n\n4. This membership includes access to *paid professional training sessions* and *paid official trials*. It also provides eligibility for district and state championships, and franchise leagues. Participation in higher-level competitions is subject to performance, selection criteria, and availability of slots.\n\n5. Selection for trials, district, state, or franchise leagues is not guaranteed and will be based purely on merit, performance, and management discretion.\n\n6. Training schedules, trial dates, match fixtures, venues, and formats are subject to change due to operational requirements, weather conditions, or unforeseen circumstances. Final decisions will rest with GICL management.\n\n7. Players must maintain discipline, fitness, and sportsmanship at all times. Any misconduct or violation of rules may lead to suspension or cancellation of membership without refund.\n\n8. GICL Sports LLP is not responsible for any injuries, accidents, or loss/damage of personal belongings during training sessions, trials, matches, or related activities. Players participate at their own risk.\n\n9. Players must report on time for all training sessions, trials, and matches. Failure to do so may result in exclusion without compensation.\n\n10. GICL reserves the right to modify, update, or revise these terms and conditions at any time without prior notice.\n\n11. By registering for GICL Elite Membership, the player agrees to abide by all the above terms and conditions.\n\n12. Additional 18% GST Applicable.\n\nYou agree to share information entered on this page with GICL Sports (owner of this page) and Razorpay, adhering to applicable laws.`
+        }
       ],
       
       // Points & Limits
@@ -75,7 +87,7 @@ export const useConfigStore = create(
     }),
     {
       name: 'gicl-admin-config',
-      version: 2,
+      version: 3,
     }
   )
 );
