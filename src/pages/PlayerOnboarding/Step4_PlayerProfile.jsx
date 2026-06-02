@@ -289,17 +289,18 @@ const Step4_PlayerProfile = () => {
           <h3 className="heading-3" style={{ marginBottom: '1.5rem', fontSize: '1rem', borderBottom: '1px solid var(--bg-surface-elevated)', paddingBottom: '0.5rem' }}>Preferred Fielding Positions</h3>
           
           <div style={{ backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--bg-surface-elevated)', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', overflow: 'hidden' }}>
-            <div style={{ width: '100%', maxWidth: '350px', position: 'relative', overflow: 'hidden', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '100%', maxWidth: '350px', maxHeight: '350px', position: 'relative', overflow: 'auto', display: 'flex', borderRadius: '8px' }}>
               <img 
                 src="/images/field-map.png" 
                 alt="Cricket Field Positions" 
                 style={{ 
-                  width: '100%', 
+                  width: `${zoomLevel * 100}%`, 
+                  minWidth: '100%',
+                  height: 'auto',
                   borderRadius: '50%', 
                   display: 'block',
-                  transform: `scale(${zoomLevel})`,
-                  transformOrigin: 'center center',
-                  transition: 'transform 0.2s ease-out'
+                  margin: 'auto',
+                  transition: 'width 0.2s ease-out'
                 }} 
               />
             </div>
