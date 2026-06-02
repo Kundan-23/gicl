@@ -59,10 +59,10 @@ export const useAdminStore = create(
         return { coaches: [...state.coaches, ...newCoaches] };
       }),
 
-      togglePlayerStatus: (playerId) => set((state) => ({
+      togglePlayerStatus: (playerId, disableReason = '') => set((state) => ({
         players: state.players.map(p => 
           p.id === playerId 
-            ? { ...p, status: p.status === 'Active' ? 'Disabled' : 'Active' } 
+            ? { ...p, status: p.status === 'Active' ? 'Disabled' : 'Active', disableReason: p.status === 'Active' ? disableReason : '' } 
             : p
         )
       })),

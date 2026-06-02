@@ -2,11 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useFormStore } from '../store/useFormStore';
+import { useAdminStore } from '../store/useAdminStore';
+import Swal from 'sweetalert2';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { updateBasicInfo } = useFormStore();
+  const { players } = useAdminStore();
   
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
@@ -23,8 +26,22 @@ const Login = () => {
   const handlePhoneSubmit = (e) => {
     e.preventDefault();
     if (phone.length >= 10) {
-      // Mock Check: If phone starts with '99', treat as Returning User. Else, New User.
-      if (phone.startsWith('99')) {
+      const existingPlayer = players.find(p => p.phone === phone);
+      
+      if (existingPlayer && existingPlayer.status === 'Disabled') {
+        Swal.fire({
+          icon: 'error',
+          title: 'Profile Disabled',
+          text: `Your profile has been disabled. ${existingPlayer.disableReason ? `Reason: ${existingPlayer.disableReason}` : 'Please contact support.'}`,
+          confirmButtonColor: '#ef4444',
+          background: 'var(--bg-surface)',
+          color: 'var(--text-primary)'
+        });
+        return;
+      }
+
+      // Mock Check: If phone starts with '99' or exists in players, treat as Returning User. Else, New User.
+      if (phone.startsWith('99') || existingPlayer) {
         setIsNewUser(false);
         setStep('password');
       } else {
@@ -167,7 +184,7 @@ const Login = () => {
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} autoFocus
                 />
               </div>
-              <span className="text-small" style={{ opacity: 0.7, marginTop: '0.25rem' }}>Hint: Start with 99 to simulate returning user.</span>
+              <span className="text-small" style={{ opacity: 0.7, marginTop: '0.25rem' }}>Hint: Use 9876543010 for existing disabled player.</span>
             </div>
             <button type="submit" className="btn-primary" disabled={phone.length < 10}>
               Continue

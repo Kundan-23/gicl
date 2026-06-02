@@ -9,6 +9,16 @@ const PlayerManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
+  const handleToggleStatus = (player) => {
+    if (player.status === 'Active') {
+      const reason = window.prompt(`Please provide a reason for disabling ${player.name}:`);
+      if (reason === null) return;
+      togglePlayerStatus(player.id, reason);
+    } else {
+      togglePlayerStatus(player.id);
+    }
+  };
+
   // Filter players
   const filteredPlayers = players.filter(p => 
     p.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -115,7 +125,7 @@ const PlayerManagement = () => {
                         <Eye size={16} />
                       </button>
                       <button 
-                        onClick={() => togglePlayerStatus(player.id)} 
+                        onClick={() => handleToggleStatus(player)} 
                         className="btn-secondary" 
                         style={{ padding: '0.5rem', color: player.status === 'Active' ? 'var(--error)' : 'var(--success)', borderColor: player.status === 'Active' ? 'var(--error)' : 'var(--success)' }}
                         title={player.status === 'Active' ? 'Disable Player' : 'Enable Player'}
