@@ -51,6 +51,9 @@ export const useConfigStore = create(
         { id: 2, text: "Refer a Friend & Earn ₹50 Cash!", color: "linear-gradient(135deg, #b45309, #f59e0b)", image: null },
         { id: 3, text: "New Training Videos Uploaded", color: "linear-gradient(135deg, #064e3b, #10b981)", image: null }
       ],
+      adBanners: [
+        { id: 'ab1', text: 'Sponsor Ad 1', color: '#f59e0b', image: '' }
+      ],
 
       // Generic Update Actions
       updateAgeGroups: (newGroups) => set({ ageGroups: newGroups }),
@@ -61,6 +64,7 @@ export const useConfigStore = create(
       updateRegistrationTerms: (text) => set({ registrationTerms: text }),
       updatePlans: (newPlans) => set({ plans: newPlans }),
       updateBanners: (newBanners) => set({ banners: newBanners }),
+      updateAdBanners: (newAdBanners) => set({ adBanners: newAdBanners }),
       updateBallTypes: (arr) => set({ ballTypes: arr }),
       updateLandingBgImage: (base64) => set({ landingBgImage: base64 }),
       

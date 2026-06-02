@@ -11,7 +11,7 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const { resetForm, dashboardState, basicInfo } = useFormStore();
   const { isDashboardUnlocked } = dashboardState;
-  const { banners } = useConfigStore();
+  const { banners, adBanners } = useConfigStore();
   const [isDownloading, setIsDownloading] = useState(false);
 
   const handleLogout = () => {
@@ -49,6 +49,17 @@ const DashboardLayout = () => {
     }, 5000);
     return () => clearInterval(timer);
   }, [banners]);
+
+  const [currentAdBanner, setCurrentAdBanner] = useState(0);
+  // Auto-scroll ad banners
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (adBanners && adBanners.length > 0) {
+        setCurrentAdBanner((prev) => (prev + 1) % adBanners.length);
+      }
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [adBanners]);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--bg-color)', color: 'var(--text-primary)' }}>
@@ -213,6 +224,60 @@ const DashboardLayout = () => {
                     }} 
                   />
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Ad Banners Carousel */}
+          {isDashboardUnlocked && adBanners && adBanners.length > 0 && (
+            <div style={{ marginBottom: '2rem', position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-xl)', height: '120px' }}>
+              <AnimatePresence initial={false}>
+                <motion.div
+                  key={`ad-${currentAdBanner}`}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.05 }}
+                  transition={{ duration: 0.5 }}
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: adBanners[currentAdBanner]?.image ? `url(${adBanners[currentAdBanner].image}) center/cover` : (adBanners[currentAdBanner]?.color || 'var(--bg-surface)'),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '2rem',
+                    textAlign: 'center'
+                  }}
+                >
+                  {!adBanners[currentAdBanner]?.image && (
+                    <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
+                      {adBanners[currentAdBanner]?.text}
+                    </h2>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+              
+              {/* Carousel Indicators for Ads */}
+              {adBanners.length > 1 && (
+                <div style={{ position: 'absolute', bottom: '10px', left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+                  {adBanners.map((_, idx) => (
+                    <button 
+                      key={`ad-ind-${idx}`} 
+                      onClick={() => setCurrentAdBanner(idx)}
+                      style={{ 
+                        width: '8px', 
+                        height: '8px', 
+                        borderRadius: '50%', 
+                        background: currentAdBanner === idx ? '#fff' : 'rgba(255,255,255,0.3)',
+                        border: 'none',
+                        padding: 0
+                      }} 
+                    />
+                  ))}
+                </div>
+              )}
+              <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.4)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem', color: '#fff', letterSpacing: '0.05em' }}>
+                ADVERTISEMENT
               </div>
             </div>
           )}
