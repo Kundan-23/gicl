@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useConfigStore } from '../../store/useConfigStore';
-import { Settings, Plus, Trash2, Image as ImageIcon, Check, DollarSign } from 'lucide-react';
+import { Settings, Plus, Trash2, Image as ImageIcon, Check, DollarSign, Save } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const PlayerConfig = () => {
   const config = useConfigStore();
@@ -30,10 +31,18 @@ const PlayerConfig = () => {
   const handleBannerUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 2000000) { // Limit to 2MB to prevent localStorage overflow
+        Swal.fire({ icon: 'error', title: 'File Too Large', text: 'Please upload an image smaller than 2MB.' });
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
-        const newBanner = { id: Date.now(), text: "", color: "var(--bg-surface)", image: reader.result };
-        config.updateBanners([...config.banners, newBanner]);
+        try {
+          const newBanner = { id: Date.now(), text: "", color: "var(--bg-surface)", image: reader.result };
+          config.updateBanners([...config.banners, newBanner]);
+        } catch(err) {
+          Swal.fire({ icon: 'error', title: 'Storage Error', text: 'Storage limit exceeded. Try a smaller image or delete existing banners.' });
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -42,10 +51,18 @@ const PlayerConfig = () => {
   const handleAdBannerUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 2000000) { // Limit to 2MB
+        Swal.fire({ icon: 'error', title: 'File Too Large', text: 'Please upload an image smaller than 2MB.' });
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
-        const newBanner = { id: Date.now(), text: "", color: "var(--bg-surface)", image: reader.result };
-        config.updateAdBanners([...(config.adBanners || []), newBanner]);
+        try {
+          const newBanner = { id: Date.now(), text: "", color: "var(--bg-surface)", image: reader.result };
+          config.updateAdBanners([...(config.adBanners || []), newBanner]);
+        } catch(err) {
+          Swal.fire({ icon: 'error', title: 'Storage Error', text: 'Storage limit exceeded. Try a smaller image or delete existing banners.' });
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -104,9 +121,30 @@ const PlayerConfig = () => {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 className="heading-1">Player Configuration</h1>
-        <p className="text-secondary" style={{ marginTop: '0.5rem' }}>Manage all configurable dropdowns, terms, and banners for the player experience.</p>
+      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 className="heading-1">Player Configuration</h1>
+          <p className="text-secondary" style={{ marginTop: '0.5rem' }}>Manage all configurable dropdowns, terms, and banners for the player experience.</p>
+        </div>
+        <button 
+          className="btn-primary" 
+          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem' }}
+          onClick={() => {
+            // Because zustand persists immediately, this button is purely for UX confirmation
+            // and explicitly saving the Registration terms if they forgot to click its specific save button.
+            config.updateRegistrationTerms(regTerms);
+            Swal.fire({
+              icon: 'success',
+              title: 'Saved Successfully',
+              text: 'All configurations and banners have been universally saved.',
+              timer: 2000,
+              showConfirmButton: false
+            });
+          }}
+        >
+          <Save size={20} />
+          Save All Changes
+        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
