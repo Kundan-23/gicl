@@ -5,10 +5,10 @@ import { useConfigStore } from '../../store/useConfigStore';
 import { UserPlus, Users, AlertCircle } from 'lucide-react';
 
 const PlayerAllotment = () => {
-  const { dashboardData, simulateAdminAllotment, onboardingData } = useCoachStore();
-  const { maxSquadSize } = useConfigStore();
+  const { dashboardData, simulateAdminAllotment, onboardingData, updateMaxSquadSize } = useCoachStore();
   
   const currentCount = dashboardData.allocatedPlayers?.length || 0;
+  const maxSquadSize = dashboardData.maxSquadSize || 20;
   const isFull = currentCount >= maxSquadSize;
 
   const handleAllot = () => {
@@ -42,9 +42,22 @@ const PlayerAllotment = () => {
           </div>
 
           <div style={{ marginBottom: '2rem' }}>
-            <p className="text-body" style={{ marginBottom: '0.5rem' }}>
-              Current Squad Size: <strong>{currentCount} / {maxSquadSize}</strong>
-            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <p className="text-body">
+                Current Squad Size: <strong>{currentCount} / {maxSquadSize}</strong>
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="text-small text-secondary">Set Max Limit:</span>
+                <input 
+                  type="number" 
+                  value={maxSquadSize} 
+                  onChange={(e) => updateMaxSquadSize(Number(e.target.value))} 
+                  className="input-field" 
+                  style={{ width: '80px', padding: '0.25rem 0.5rem', textAlign: 'center' }}
+                  min={currentCount}
+                />
+              </div>
+            </div>
             {/* Progress bar */}
             <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--bg-color)', borderRadius: '4px', overflow: 'hidden' }}>
               <div 
@@ -70,7 +83,7 @@ const PlayerAllotment = () => {
           
           {isFull && (
             <p className="text-small" style={{ color: 'var(--error)', marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'center' }}>
-              <AlertCircle size={14} /> Max limit of {maxSquadSize} reached. Increase it in App Config.
+              <AlertCircle size={14} /> Max limit of {maxSquadSize} reached. Increase it above.
             </p>
           )}
         </div>

@@ -4,13 +4,11 @@ import { useConfigStore } from '../../store/useConfigStore';
 import { Save, AlertCircle } from 'lucide-react';
 
 const AppConfig = () => {
-  const { ageGroups, referralPoints, maxSquadSize, matchTeamSize, updateAgeGroups, updateReferralPoints, updateMaxSquadSize, updateMatchTeamSize } = useConfigStore();
+  const { ageGroups, updateAgeGroups, landingBgImage, updateLandingBgImage } = useConfigStore();
   
   // Local state for editing
   const [localAgeGroups, setLocalAgeGroups] = useState([...ageGroups]);
-  const [refPoints, setRefPoints] = useState(referralPoints.perUser);
-  const [squadSize, setSquadSize] = useState(maxSquadSize || 20);
-  const [teamSize, setTeamSize] = useState(matchTeamSize || 11);
+  const [bgImage, setBgImage] = useState(landingBgImage || '');
   
   const [savedMsg, setSavedMsg] = useState('');
 
@@ -20,9 +18,7 @@ const AppConfig = () => {
 
   const handleSave = () => {
     updateAgeGroups(localAgeGroups);
-    updateReferralPoints(refPoints);
-    updateMaxSquadSize(squadSize);
-    updateMatchTeamSize(teamSize);
+    updateLandingBgImage(bgImage);
     
     setSavedMsg('Global configuration updated successfully!');
     setTimeout(() => setSavedMsg(''), 3000);
@@ -76,42 +72,41 @@ const AppConfig = () => {
 
 
 
-        {/* Referrals & Squad Limits */}
+        {/* Landing Page Customization */}
         <section style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)' }}>
-          <h2 className="heading-3" style={{ marginBottom: '1.5rem' }}>System Variables</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-            <div className="form-group">
-              <label className="form-label">Points Per Successful Referral</label>
-              <input 
-                type="number" 
-                step="0.1"
-                className="form-input" 
-                value={refPoints} 
-                onChange={(e) => setRefPoints(Number(e.target.value))} 
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Max Squad Size (Coach)</label>
-              <input 
-                type="number" 
-                className="form-input" 
-                value={squadSize} 
-                onChange={(e) => setSquadSize(Number(e.target.value))} 
-                min="11"
-                max="50"
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Match Team Size</label>
-              <input 
-                type="number" 
-                className="form-input" 
-                value={teamSize} 
-                onChange={(e) => setTeamSize(Number(e.target.value))} 
-                min="5"
-                max="15"
-              />
-            </div>
+          <h2 className="heading-3" style={{ marginBottom: '1.5rem' }}>Landing Page Background</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <p className="text-secondary text-small">Upload a background image for the app landing screen. (Max 2MB)</p>
+            
+            {bgImage && (
+              <div style={{ width: '100%', height: '200px', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-subtle)', marginBottom: '1rem' }}>
+                <img src={bgImage} alt="Landing Background Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
+            
+            <input 
+              type="file" 
+              accept="image/*"
+              className="form-input"
+              style={{ padding: '0.5rem' }}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => setBgImage(reader.result);
+                  reader.readAsDataURL(file);
+                }
+              }}
+            />
+            {bgImage && (
+              <button 
+                className="btn-outline" 
+                onClick={() => setBgImage('')}
+                style={{ alignSelf: 'flex-start', color: 'var(--brand-accent)', borderColor: 'var(--brand-accent)' }}
+              >
+                Clear Custom Image
+              </button>
+            )}
           </div>
         </section>
 

@@ -59,7 +59,7 @@ const PlayerDashboard = () => {
           </div>
           <div>
             <h2 className="heading-2">{basicInfo.firstName || 'Player Name'} {basicInfo.lastName}</h2>
-            <p className="text-secondary">{playerProfile.cricketType || 'Cricket'} Player</p>
+            <p className="text-secondary">{playerProfile.cricketType || 'Cricket'} Player | ID: {basicInfo.giclId || 'PENDING'}</p>
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--bg-surface-elevated)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)' }}>{playerProfile.battingStyle || 'BAT'}</span>
               <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--bg-surface-elevated)', padding: '0.2rem 0.6rem', borderRadius: 'var(--radius-full)' }}>{playerProfile.bowlingStyle || 'BOWL'}</span>
@@ -98,8 +98,8 @@ const PlayerDashboard = () => {
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--bg-surface-elevated)', paddingBottom: '0.5rem' }}>
-              <span className="text-small text-secondary">Age</span>
-              <span style={{ fontWeight: 500 }}>{playerProfile.age || 'N/A'} Years</span>
+              <span className="text-small text-secondary">Gender / Age</span>
+              <span style={{ fontWeight: 500 }}>{basicInfo.gender || 'N/A'} / {playerProfile.age || 'N/A'} Years</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--bg-surface-elevated)', paddingBottom: '0.5rem' }}>
               <span className="text-small text-secondary">Height / Weight</span>

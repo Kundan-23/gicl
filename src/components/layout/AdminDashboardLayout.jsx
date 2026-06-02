@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, LayoutDashboard, Settings, Users, LogOut, ShieldCheck, UserPlus, Video } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Settings, Users, LogOut, ShieldCheck, UserPlus, Video, Calendar } from 'lucide-react';
 
 const AdminDashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -17,6 +17,7 @@ const AdminDashboardLayout = () => {
     { name: 'Player Config', path: '/admin/player-config', icon: <Settings size={20} /> },
     { name: 'Player Mgmt', path: '/admin/players', icon: <Users size={20} /> },
     { name: 'Coach Mgmt', path: '/admin/coaches', icon: <UserPlus size={20} /> },
+    { name: 'Matches', path: '/admin/matches', icon: <Calendar size={20} /> },
     { name: 'Player Allotment', path: '/admin/allotment', icon: <UserPlus size={20} /> },
     { name: 'Video Scrutiny', path: '/admin/scrutiny', icon: <Video size={20} /> },
   ];

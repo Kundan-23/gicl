@@ -33,6 +33,7 @@ import AppConfig from './pages/Admin/AppConfig';
 import PlayerConfig from './pages/Admin/PlayerConfig';
 import PlayerManagement from './pages/Admin/PlayerManagement';
 import CoachManagement from './pages/Admin/CoachManagement';
+import MatchManagement from './pages/Admin/MatchManagement';
 import PlayerAllotment from './pages/Admin/PlayerAllotment';
 import AdminVideoScrutiny from './pages/Admin/VideoScrutiny';
 
@@ -84,6 +85,7 @@ function App() {
           <Route path="player-config" element={<PlayerConfig />} />
           <Route path="players" element={<PlayerManagement />} />
           <Route path="coaches" element={<CoachManagement />} />
+          <Route path="matches" element={<MatchManagement />} />
           <Route path="allotment" element={<PlayerAllotment />} />
           <Route path="scrutiny" element={<AdminVideoScrutiny />} />
         </Route>

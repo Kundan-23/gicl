@@ -13,7 +13,7 @@ const categories = [
 
 const Step5_MyGameplay = () => {
   const navigate = useNavigate();
-  const { media, updateMedia } = useFormStore();
+  const { basicInfo, media, updateMedia, updateBasicInfo } = useFormStore();
   
   const [links, setLinks] = useState(media.gameplayLinks || {
     batting: [],
@@ -57,6 +57,13 @@ const Step5_MyGameplay = () => {
       return;
     }
     updateMedia({ gameplayLinks: links });
+    
+    // Generate GICL ID if it doesn't exist
+    if (!basicInfo.giclId) {
+      const randomId = 'GICL' + Math.floor(100000 + Math.random() * 900000);
+      updateBasicInfo({ giclId: randomId });
+    }
+
     // This is the final onboarding step. Proceed to dashboard.
     navigate('/dashboard');
   };

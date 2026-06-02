@@ -9,13 +9,23 @@ const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentBanner, setCurrentBanner] = useState(0);
   const navigate = useNavigate();
-  const { resetForm, dashboardState } = useFormStore();
+  const { resetForm, dashboardState, basicInfo } = useFormStore();
   const { isDashboardUnlocked } = dashboardState;
   const { banners } = useConfigStore();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleLogout = () => {
     resetForm();
     navigate('/');
+  };
+
+  const handleDownloadCard = () => {
+    setIsDownloading(true);
+    // Simulate PDF generation and download
+    setTimeout(() => {
+      alert(`GICL Membership Card for ${basicInfo.firstName || 'Player'} has been downloaded successfully as a PDF!`);
+      setIsDownloading(false);
+    }, 1500);
   };
 
   const navLinks = isDashboardUnlocked 
@@ -112,13 +122,26 @@ const DashboardLayout = () => {
           ))}
         </nav>
 
-        <button 
-          onClick={handleLogout}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: 'var(--error)', background: 'none', fontWeight: 500, marginTop: 'auto' }}
-        >
-          <LogOut size={20} />
-          Logout
-        </button>
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {isDashboardUnlocked && (
+            <button 
+              onClick={handleDownloadCard}
+              disabled={isDownloading}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: 'var(--brand-accent)', background: 'none', fontWeight: 600, border: '1px solid var(--brand-accent)', borderRadius: 'var(--radius-md)', opacity: isDownloading ? 0.7 : 1 }}
+            >
+              <User size={20} />
+              {isDownloading ? 'Generating PDF...' : 'Download ID Card'}
+            </button>
+          )}
+
+          <button 
+            onClick={handleLogout}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: 'var(--error)', background: 'none', fontWeight: 500 }}
+          >
+            <LogOut size={20} />
+            Logout
+          </button>
+        </div>
       </motion.aside>
 
       {/* Main Content Area */}

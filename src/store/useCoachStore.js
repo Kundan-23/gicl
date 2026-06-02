@@ -87,6 +87,7 @@ export const useCoachStore = create(
         referralPoints: 0,
         myReferralCode: 'COACH-' + Math.floor(1000 + Math.random() * 9000),
         referrals: [], 
+        maxSquadSize: 20,
       },
       
       // Dashboard Actions
@@ -164,7 +165,11 @@ export const useCoachStore = create(
 
       resetCoachForm: () => set({
         onboardingData: { name: '', age: '', cricketHistory: '', coachingHistory: '', referralPhone: '' }
-      })
+      }),
+
+      updateMaxSquadSize: (size) => set((state) => ({
+        dashboardData: { ...state.dashboardData, maxSquadSize: size }
+      }))
     }),
     {
       name: 'gicl-coach-storage',

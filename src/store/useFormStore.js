@@ -23,6 +23,8 @@ export const useFormStore = create(
         instagramLink: '',
         instagramApproved: false,
         acceptedTerms: false,
+        gender: '', // Male, Female, Other
+        giclId: '', // Auto-generated
       },
       updateBasicInfo: (data) => set((state) => ({ basicInfo: { ...state.basicInfo, ...data } })),
 
@@ -104,6 +106,8 @@ export const useFormStore = create(
           instagramLink: '',
           instagramApproved: false,
           acceptedTerms: false,
+          gender: '',
+          giclId: '',
         },
         playerProfile: {
           height: '', weight: '', age: '', instagramLink: '', ballsSelected: [], battingStyle: '', bowlingStyle: '', fieldPositions: [], cricketHistory: [{ level: 'International', matches: 0 }, { level: 'National', matches: 0 }, { level: 'State', matches: 0 }, { level: 'District', matches: 0 }, { level: 'Taluka', matches: 0 }], clubAssociated: 'no', clubsDetails: []

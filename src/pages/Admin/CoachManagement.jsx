@@ -10,7 +10,7 @@ const CoachManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   
   // New Coach Form State
-  const [newCoach, setNewCoach] = useState({ name: '', phone: '', experience: '' });
+  const [newCoach, setNewCoach] = useState({ name: '', phone: '', experience: '', location: '' });
 
   const filteredCoaches = coaches.filter(c => 
     c.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -37,7 +37,7 @@ const CoachManagement = () => {
     e.preventDefault();
     if (!newCoach.name || !newCoach.phone) return;
     importCoaches([newCoach]);
-    setNewCoach({ name: '', phone: '', experience: '' });
+    setNewCoach({ name: '', phone: '', experience: '', location: '' });
     setShowAddForm(false);
   };
 
@@ -76,7 +76,11 @@ const CoachManagement = () => {
               <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>Experience</label>
               <input type="text" value={newCoach.experience} onChange={e => setNewCoach({...newCoach, experience: e.target.value})} className="input-field" placeholder="e.g., 5 Years" style={{ width: '100%', padding: '0.75rem' }} />
             </div>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
+            <div>
+              <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>Location *</label>
+              <input type="text" value={newCoach.location} onChange={e => setNewCoach({...newCoach, location: e.target.value})} className="input-field" required placeholder="e.g., Mumbai" style={{ width: '100%', padding: '0.75rem' }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem', gridColumn: '1 / -1', marginTop: '1rem' }}>
               <button type="button" onClick={() => setShowAddForm(false)} className="btn-secondary" style={{ flex: 1 }}>Cancel</button>
               <button type="submit" className="btn-primary" style={{ flex: 1 }}>Save</button>
             </div>
@@ -107,6 +111,7 @@ const CoachManagement = () => {
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Coach ID</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Name</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Phone</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Location</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Experience</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Status</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Actions</th>
@@ -118,6 +123,7 @@ const CoachManagement = () => {
                   <td style={{ padding: '1rem 1.5rem', fontFamily: 'monospace', color: 'var(--brand-accent)' }}>{coach.id}</td>
                   <td style={{ padding: '1rem 1.5rem', fontWeight: 500 }}>{coach.name}</td>
                   <td style={{ padding: '1rem 1.5rem', color: 'var(--text-secondary)' }}>{coach.phone}</td>
+                  <td style={{ padding: '1rem 1.5rem' }}>{coach.location || 'N/A'}</td>
                   <td style={{ padding: '1rem 1.5rem' }}>{coach.experience}</td>
                   <td style={{ padding: '1rem 1.5rem' }}>
                     <span style={{ 

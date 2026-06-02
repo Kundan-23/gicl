@@ -1,9 +1,10 @@
-import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useConfigStore } from '../../store/useConfigStore';
 
 const MobileLayout = () => {
   const location = useLocation();
   const isLanding = location.pathname === '/';
+  const { landingBgImage } = useConfigStore();
 
   if (isLanding) {
     return (
@@ -12,7 +13,7 @@ const MobileLayout = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundImage: `url('/images/landingpagebgimage/bg-image.jpeg')`,
+        backgroundImage: `url('${landingBgImage || '/images/landingpagebgimage/bg-image.jpeg'}')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',

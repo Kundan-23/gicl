@@ -225,6 +225,24 @@ const Step2_BasicRegistration = () => {
           />
 
           <Controller
+            name="gender"
+            control={control}
+            rules={{ required: 'Required' }}
+            render={({ field }) => (
+              <div className="form-group">
+                <label className="form-label">Gender *</label>
+                <select {...field} className="form-input">
+                  <option value="">--Select Gender--</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                {errors.gender && <span className="form-error">{errors.gender.message}</span>}
+              </div>
+            )}
+          />
+
+          <Controller
             name="email"
             control={control}
             rules={{ 

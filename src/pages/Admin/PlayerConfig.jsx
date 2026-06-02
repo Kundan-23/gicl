@@ -39,6 +39,21 @@ const PlayerConfig = () => {
     }
   };
 
+  const handleBallUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const ballName = prompt("Enter the name of this ball type (e.g., Red Leather):");
+        if (ballName) {
+          const newBall = { id: `ball_${Date.now()}`, name: ballName, image: reader.result };
+          config.updateBallTypes([...config.ballTypes, newBall]);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const savePlan = () => {
     if (!newPlan.name || !newPlan.price) return;
     const planToAdd = {
@@ -180,6 +195,29 @@ const PlayerConfig = () => {
               <Plus size={24} style={{ marginBottom: '0.5rem' }} />
               <span className="text-small">Upload Image</span>
               <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBannerUpload} />
+            </label>
+          </div>
+        </div>
+
+        {/* Custom Ball Types */}
+        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)', gridColumn: '1 / -1' }}>
+          <h3 className="heading-3" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ImageIcon size={20} color="var(--brand-accent)" /> Custom Ball Types
+          </h3>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+            {config.ballTypes.map((ball) => (
+              <div key={ball.id} style={{ position: 'relative', width: '120px', height: '140px', borderRadius: 'var(--radius-md)', overflow: 'hidden', backgroundColor: 'var(--bg-color)', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem', textAlign: 'center' }}>
+                <img src={ball.image} alt={ball.name} style={{ width: '60px', height: '60px', objectFit: 'contain', marginBottom: '0.5rem' }} />
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>{ball.name}</span>
+                <button onClick={() => config.updateBallTypes(config.ballTypes.filter(b => b.id !== ball.id))} style={{ position: 'absolute', top: 5, right: 5, background: 'rgba(239, 68, 68, 0.9)', color: '#fff', border: 'none', borderRadius: '50%', padding: '0.25rem', cursor: 'pointer' }}>
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+            <label style={{ width: '120px', height: '140px', borderRadius: 'var(--radius-md)', border: '2px dashed var(--bg-surface-elevated)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+              <Plus size={24} style={{ marginBottom: '0.5rem' }} />
+              <span className="text-small">Add Ball</span>
+              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleBallUpload} />
             </label>
           </div>
         </div>

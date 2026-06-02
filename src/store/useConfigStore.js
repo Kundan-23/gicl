@@ -23,6 +23,13 @@ export const useConfigStore = create(
       battingStyles: ['Right-hand Bat', 'Left-hand Bat'],
       bowlingStyles: ['Right-arm Fast', 'Right-arm Off Spin', 'Left-arm Orthodox', 'Right-arm Leg Spin', 'None'],
       clubs: ['Mumbai Strikers', 'Delhi Capitals Academy', 'Chennai Super Kings Academy', 'Royal Challengers Academy'],
+      ballTypes: [
+        { id: 'red', name: 'Red Leather', image: '/images/balls/red.png' },
+        { id: 'white', name: 'White Leather', image: '/images/balls/white.png' },
+        { id: 'pink', name: 'Pink Leather', image: '/images/balls/pink.png' },
+        { id: 'tennis', name: 'Tennis Ball', image: '/images/balls/tennis.png' }
+      ],
+      landingBgImage: '',
       
       // Text & Policies
       registrationTerms: "By completing this registration, you agree to abide by the rules and regulations of GICL Sports...",
@@ -54,6 +61,8 @@ export const useConfigStore = create(
       updateRegistrationTerms: (text) => set({ registrationTerms: text }),
       updatePlans: (newPlans) => set({ plans: newPlans }),
       updateBanners: (newBanners) => set({ banners: newBanners }),
+      updateBallTypes: (arr) => set({ ballTypes: arr }),
+      updateLandingBgImage: (base64) => set({ landingBgImage: base64 }),
       
       // Specific Updates
       updateReferralPoints: (points) => set({ referralPoints: { perUser: points } }),

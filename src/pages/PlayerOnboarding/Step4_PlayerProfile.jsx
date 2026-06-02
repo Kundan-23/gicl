@@ -7,12 +7,7 @@ import { Camera, CheckCircle2 } from 'lucide-react';
 
 import { useConfigStore } from '../../store/useConfigStore';
 
-const ballTypes = [
-  { id: 'red', name: 'Red Leather', image: '/images/balls/red.png' },
-  { id: 'white', name: 'White Leather', image: '/images/balls/white.png' },
-  { id: 'pink', name: 'Pink Leather', image: '/images/balls/pink.png' },
-  { id: 'tennis', name: 'Tennis Ball', image: '/images/balls/tennis.png' }
-];
+
 
 const fieldPositionsList = [
   { id: 'slip', label: 'Slip' },
@@ -30,7 +25,7 @@ const fieldPositionsList = [
 const Step4_PlayerProfile = () => {
   const navigate = useNavigate();
   const { basicInfo, playerProfile, updatePlayerProfile } = useFormStore();
-  const { battingStyles, bowlingStyles, clubs: mockClubs } = useConfigStore();
+  const { battingStyles, bowlingStyles, clubs: mockClubs, ballTypes } = useConfigStore();
   const [zoomLevel, setZoomLevel] = useState(1);
   const [customPosition, setCustomPosition] = useState('');
   

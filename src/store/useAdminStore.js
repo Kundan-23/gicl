@@ -26,9 +26,9 @@ const generateMockGlobalPlayers = () => {
 
 const generateMockCoaches = () => {
   return [
-    { id: 'C1001', name: 'Ravi Shastri', phone: '9998887771', experience: '15 Years', status: 'Active' },
-    { id: 'C1002', name: 'Rahul Dravid', phone: '9998887772', experience: '10 Years', status: 'Active' },
-    { id: 'C1003', name: 'Gary Kirsten', phone: '9998887773', experience: '20 Years', status: 'Active' }
+    { id: 'C1001', name: 'Ravi Shastri', phone: '9998887771', experience: '15 Years', location: 'Mumbai', status: 'Active', maxSquadSize: 20 },
+    { id: 'C1002', name: 'Rahul Dravid', phone: '9998887772', experience: '10 Years', location: 'Bangalore', status: 'Active', maxSquadSize: 20 },
+    { id: 'C1003', name: 'Gary Kirsten', phone: '9998887773', experience: '20 Years', location: 'Delhi', status: 'Active', maxSquadSize: 20 }
   ];
 };
 
@@ -52,7 +52,9 @@ export const useAdminStore = create(
         const newCoaches = importedData.map((c, idx) => ({
           ...c,
           id: c.id || `C${Date.now() + idx}`,
-          status: c.status || 'Active'
+          status: c.status || 'Active',
+          location: c.location || 'Unknown',
+          maxSquadSize: c.maxSquadSize || 20
         }));
         return { coaches: [...state.coaches, ...newCoaches] };
       }),
@@ -68,6 +70,12 @@ export const useAdminStore = create(
       assignCoachToPlayer: (playerId, coachId) => set((state) => ({
         players: state.players.map(p => 
           p.id === playerId ? { ...p, coachId } : p
+        )
+      })),
+
+      updateCoachMaxSquadSize: (coachId, newSize) => set((state) => ({
+        coaches: state.coaches.map(c =>
+          c.id === coachId ? { ...c, maxSquadSize: parseInt(newSize, 10) } : c
         )
       })),
     }),
