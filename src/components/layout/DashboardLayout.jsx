@@ -230,7 +230,7 @@ const DashboardLayout = () => {
 
           {/* Ad Banners Carousel */}
           {isDashboardUnlocked && adBanners && adBanners.length > 0 && (
-            <div style={{ marginBottom: '2rem', position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-xl)', height: '180px' }}>
+            <div style={{ marginBottom: '2rem', position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-xl)', height: '250px' }}>
               <AnimatePresence initial={false}>
                 <motion.div
                   key={`ad-${currentAdBanner}`}
