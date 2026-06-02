@@ -11,7 +11,8 @@ const MatchManagement = () => {
   
   const [formData, setFormData] = useState({
     id: '',
-    opponent: '',
+    teamA: '',
+    teamB: '',
     date: '',
     location: '',
     type: 'League Match',
@@ -20,8 +21,9 @@ const MatchManagement = () => {
   });
 
   const filteredMatches = matches.filter(m => 
-    m.opponent.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    m.location.toLowerCase().includes(searchTerm.toLowerCase())
+    m.teamA?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    m.teamB?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    m.location?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSubmit = (e) => {
@@ -59,7 +61,7 @@ const MatchManagement = () => {
 
   const resetForm = () => {
     setFormData({
-      id: '', opponent: '', date: '', location: '', type: 'League Match', minSquadSize: 11, maxSquadSize: 15
+      id: '', teamA: '', teamB: '', date: '', location: '', type: 'League Match', minSquadSize: 11, maxSquadSize: 15
     });
     setShowAddForm(false);
     setIsEditing(false);
@@ -83,20 +85,24 @@ const MatchManagement = () => {
           <h3 className="heading-3" style={{ marginBottom: '1.5rem' }}>{isEditing ? 'Edit Match' : 'Create New Match'}</h3>
           <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
             <div>
-              <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>Opponent Team *</label>
-              <input type="text" value={formData.opponent} onChange={e => setFormData({...formData, opponent: e.target.value})} className="input-field" required placeholder="e.g., Delhi Capitals" style={{ width: '100%', padding: '0.75rem' }} />
+              <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>Team A *</label>
+              <input type="text" value={formData.teamA} onChange={e => setFormData({...formData, teamA: e.target.value})} className="form-input" required placeholder="e.g., Delhi Capitals" style={{ width: '100%', padding: '0.75rem' }} />
+            </div>
+            <div>
+              <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>Team B *</label>
+              <input type="text" value={formData.teamB} onChange={e => setFormData({...formData, teamB: e.target.value})} className="form-input" required placeholder="e.g., Mumbai Indians" style={{ width: '100%', padding: '0.75rem' }} />
             </div>
             <div>
               <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>Date & Time *</label>
-              <input type="datetime-local" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="input-field" required style={{ width: '100%', padding: '0.75rem' }} />
+              <input type="datetime-local" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} className="form-input" required style={{ width: '100%', padding: '0.75rem', colorScheme: 'dark' }} />
             </div>
             <div>
               <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>Location *</label>
-              <input type="text" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="input-field" required placeholder="Stadium / Ground Name" style={{ width: '100%', padding: '0.75rem' }} />
+              <input type="text" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="form-input" required placeholder="Stadium / Ground Name" style={{ width: '100%', padding: '0.75rem' }} />
             </div>
             <div>
               <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>Match Type</label>
-              <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="input-field" style={{ width: '100%', padding: '0.75rem' }}>
+              <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="form-input" style={{ width: '100%', padding: '0.75rem' }}>
                 <option value="League Match">League Match</option>
                 <option value="Quarter Final">Quarter Final</option>
                 <option value="Semi Final">Semi Final</option>
@@ -106,11 +112,11 @@ const MatchManagement = () => {
             </div>
             <div>
               <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>Min Squad Size</label>
-              <input type="number" min="5" max="30" value={formData.minSquadSize} onChange={e => setFormData({...formData, minSquadSize: e.target.value})} className="input-field" required style={{ width: '100%', padding: '0.75rem' }} />
+              <input type="number" min="5" max="30" value={formData.minSquadSize} onChange={e => setFormData({...formData, minSquadSize: e.target.value})} className="form-input" required style={{ width: '100%', padding: '0.75rem' }} />
             </div>
             <div>
               <label className="text-small text-secondary" style={{ display: 'block', marginBottom: '0.5rem' }}>Max Squad Size</label>
-              <input type="number" min="5" max="50" value={formData.maxSquadSize} onChange={e => setFormData({...formData, maxSquadSize: e.target.value})} className="input-field" required style={{ width: '100%', padding: '0.75rem' }} />
+              <input type="number" min="5" max="50" value={formData.maxSquadSize} onChange={e => setFormData({...formData, maxSquadSize: e.target.value})} className="form-input" required style={{ width: '100%', padding: '0.75rem' }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem', gridColumn: '1 / -1', marginTop: '1rem' }}>
               <button type="button" onClick={resetForm} className="btn-secondary" style={{ flex: 1 }}>Cancel</button>
@@ -150,7 +156,7 @@ const MatchManagement = () => {
                     </span>
                     <span className="text-secondary text-small">{match.id}</span>
                   </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Vs {match.opponent}</h3>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>{match.teamA} vs {match.teamB}</h3>
                 </div>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', flex: 1 }}>

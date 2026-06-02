@@ -52,7 +52,7 @@ const PlayerAllotment = () => {
                   type="number" 
                   value={maxSquadSize} 
                   onChange={(e) => updateMaxSquadSize(Number(e.target.value))} 
-                  className="input-field" 
+                  className="form-input" 
                   style={{ width: '80px', padding: '0.25rem 0.5rem', textAlign: 'center' }}
                   min={currentCount}
                 />

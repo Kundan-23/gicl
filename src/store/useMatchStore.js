@@ -8,7 +8,8 @@ export const useMatchStore = create(
         { 
           id: 'M1', 
           date: '2026-06-05T10:00:00Z', 
-          opponent: 'Delhi Capitals', 
+          teamA: 'Delhi Capitals', 
+          teamB: 'Mumbai Indians',
           location: 'Arun Jaitley Stadium', 
           type: 'League Match',
           minSquadSize: 11,
@@ -17,7 +18,8 @@ export const useMatchStore = create(
         { 
           id: 'M2', 
           date: '2026-06-20T14:30:00Z', 
-          opponent: 'Chennai Super Kings', 
+          teamA: 'Chennai Super Kings', 
+          teamB: 'Royal Challengers',
           location: 'Chepauk Stadium', 
           type: 'Semi Final',
           minSquadSize: 11,
