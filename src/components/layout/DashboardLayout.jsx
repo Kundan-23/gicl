@@ -34,7 +34,6 @@ const DashboardLayout = () => {
         { name: 'Training Tutorials', path: '/dashboard/tutorials', icon: <PlaySquare size={20} /> },
         { name: 'Upcoming Matches', path: '/dashboard/matches', icon: <Calendar size={20} /> },
         { name: 'Refer GICL Sports', path: '/dashboard/referral', icon: <Users size={20} /> },
-        { name: 'Profile', path: '/dashboard/profile', icon: <User size={20} /> },
       ]
     : [
         { name: 'Tutorials', path: '/dashboard/tutorials', icon: <Video size={20} />, end: false },
