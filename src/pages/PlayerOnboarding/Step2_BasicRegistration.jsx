@@ -271,6 +271,43 @@ const Step2_BasicRegistration = () => {
             )}
           />
 
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <Controller
+              name="emergencyContact"
+              control={control}
+              rules={{ required: 'Required' }}
+              render={({ field }) => (
+                <div className="form-group">
+                  <label className="form-label">Emergency Contact *</label>
+                  <input {...field} className="form-input" placeholder="+91" />
+                  {errors.emergencyContact && <span className="form-error">{errors.emergencyContact.message}</span>}
+                </div>
+              )}
+            />
+            <Controller
+              name="bloodGroup"
+              control={control}
+              rules={{ required: 'Required' }}
+              render={({ field }) => (
+                <div className="form-group">
+                  <label className="form-label">Blood Group *</label>
+                  <select {...field} className="form-input">
+                    <option value="">--Select--</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                  </select>
+                  {errors.bloodGroup && <span className="form-error">{errors.bloodGroup.message}</span>}
+                </div>
+              )}
+            />
+          </div>
+
           <Controller
             name="jerseySize"
             control={control}

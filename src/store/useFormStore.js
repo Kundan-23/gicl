@@ -14,6 +14,11 @@ export const useFormStore = create(
         firstName: '',
         lastName: '',
         dob: '',
+        gender: '',
+        whatsappNumber: '',
+        emergencyContact: '',
+        bloodGroup: '',
+        parentName: '',
         email: '',
         whatsapp: '+91',
         jerseySize: '',
@@ -25,7 +30,6 @@ export const useFormStore = create(
         instagramLink: '',
         instagramApproved: false,
         acceptedTerms: false,
-        gender: '', // Male, Female, Other
         giclId: '', // Auto-generated
       },
       updateBasicInfo: (data) => set((state) => ({ basicInfo: { ...state.basicInfo, ...data } })),
@@ -113,6 +117,10 @@ export const useFormStore = create(
           instagramApproved: false,
           acceptedTerms: false,
           gender: '',
+          whatsappNumber: '',
+          emergencyContact: '',
+          bloodGroup: '',
+          parentName: '',
           giclId: '',
         },
         playerProfile: {
@@ -123,7 +131,7 @@ export const useFormStore = create(
     }),
     {
       name: 'gicl-registration-storage',
-      version: 4, // Incremented to clear old cached defaults
+      version: 5, // Incremented to clear old cached defaults
     }
   )
 );
