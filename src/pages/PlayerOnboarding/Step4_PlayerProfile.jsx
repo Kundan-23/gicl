@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm, Controller } from 'react-hook-form';
 import { useFormStore } from '../../store/useFormStore';
-import { Camera, CheckCircle2 } from 'lucide-react';
+import { Camera, CheckCircle2, FileText, Upload } from 'lucide-react';
 
 import { useConfigStore } from '../../store/useConfigStore';
 
@@ -49,6 +49,8 @@ const Step4_PlayerProfile = () => {
       ...playerProfile, 
       age: calculatedAge,
       instagramLink: playerProfile.instagramLink || '',
+      addressProofDoc: playerProfile.addressProofDoc || '',
+      birthCertificateDoc: playerProfile.birthCertificateDoc || '',
       height: playerProfile.height || '',
       weight: playerProfile.weight || '',
       battingStyle: playerProfile.battingStyle || '',
@@ -136,6 +138,64 @@ const Step4_PlayerProfile = () => {
         <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
           <h3 className="heading-3" style={{ marginBottom: '1.5rem', fontSize: '1rem', borderBottom: '1px solid var(--bg-surface-elevated)', paddingBottom: '0.5rem' }}>Essential Details</h3>
           
+          <Controller
+            name="addressProofDoc"
+            control={control}
+            rules={{ required: 'Address Proof is compulsory' }}
+            render={({ field: { onChange, value } }) => (
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={18} color="var(--brand-primary)" /> Address Proof (Electricity Bill, Rent Agreement) *
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <label className="btn-secondary" style={{ width: 'auto', cursor: 'pointer', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Upload size={16} /> Upload Document
+                    <input 
+                      type="file" 
+                      accept=".pdf,image/*" 
+                      style={{ display: 'none' }} 
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) onChange(file.name);
+                      }} 
+                    />
+                  </label>
+                  {value && <span className="text-small" style={{ color: 'var(--brand-primary)', wordBreak: 'break-all' }}>{value}</span>}
+                </div>
+                {errors.addressProofDoc && <span className="form-error">{errors.addressProofDoc.message}</span>}
+              </div>
+            )}
+          />
+
+          <Controller
+            name="birthCertificateDoc"
+            control={control}
+            rules={{ required: 'Birth Certificate is compulsory' }}
+            render={({ field: { onChange, value } }) => (
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={18} color="var(--brand-primary)" /> Birth Certificate *
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <label className="btn-secondary" style={{ width: 'auto', cursor: 'pointer', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Upload size={16} /> Upload Document
+                    <input 
+                      type="file" 
+                      accept=".pdf,image/*" 
+                      style={{ display: 'none' }} 
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) onChange(file.name);
+                      }} 
+                    />
+                  </label>
+                  {value && <span className="text-small" style={{ color: 'var(--brand-primary)', wordBreak: 'break-all' }}>{value}</span>}
+                </div>
+                {errors.birthCertificateDoc && <span className="form-error">{errors.birthCertificateDoc.message}</span>}
+              </div>
+            )}
+          />
+
           <Controller
             name="instagramLink"
             control={control}

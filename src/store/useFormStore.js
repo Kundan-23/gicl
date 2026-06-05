@@ -35,6 +35,8 @@ export const useFormStore = create(
         height: '',
         weight: '',
         age: '', // Auto-calculated
+        addressProofDoc: '',
+        birthCertificateDoc: '',
         instagramLink: '',
         ballsSelected: [], // Red, White, Pink, Tennis, None
         battingStyle: '', // RHB, LHB, None
@@ -114,14 +116,14 @@ export const useFormStore = create(
           giclId: '',
         },
         playerProfile: {
-          height: '', weight: '', age: '', instagramLink: '', ballsSelected: [], battingStyle: '', bowlingStyle: '', fieldPositions: [], cricketHistory: [{ level: 'International', matches: 0 }, { level: 'National', matches: 0 }, { level: 'State', matches: 0 }, { level: 'District', matches: 0 }, { level: 'Taluka', matches: 0 }], clubAssociated: 'no', clubsDetails: []
+          height: '', weight: '', age: '', addressProofDoc: '', birthCertificateDoc: '', instagramLink: '', ballsSelected: [], battingStyle: '', bowlingStyle: '', fieldPositions: [], cricketHistory: [{ level: 'International', matches: 0 }, { level: 'National', matches: 0 }, { level: 'State', matches: 0 }, { level: 'District', matches: 0 }, { level: 'Taluka', matches: 0 }], clubAssociated: 'no', clubsDetails: []
         },
         media: { videoLink: '', instagramMediaApproved: false, galleryUrls: [] }
       })
     }),
     {
       name: 'gicl-registration-storage',
-      version: 3, // Incremented to clear old cached defaults
+      version: 4, // Incremented to clear old cached defaults
     }
   )
 );
