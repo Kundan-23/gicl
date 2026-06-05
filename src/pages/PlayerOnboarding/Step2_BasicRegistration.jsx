@@ -315,44 +315,74 @@ const Step2_BasicRegistration = () => {
           <h3 className="heading-3" style={{ marginBottom: '1rem', fontSize: '1rem' }}>Address Details</h3>
           
           <Controller
-            name="address"
+            name="addressLine1"
             control={control}
             rules={{ required: 'Required' }}
             render={({ field }) => (
-              <div className="form-group">
-                <label className="form-label">Residential Full Address *</label>
-                <textarea {...field} className="form-input" rows={3} placeholder="Flat, Building, Street..." />
-                {errors.address && <span className="form-error">{errors.address.message}</span>}
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">Address line 1 *</label>
+                <input {...field} className="form-input" placeholder="123 Test Street" />
+                {errors.addressLine1 && <span className="form-error">{errors.addressLine1.message}</span>}
               </div>
             )}
           />
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <Controller
-              name="city"
-              control={control}
-              rules={{ required: 'Required' }}
-              render={({ field }) => (
-                <div className="form-group">
-                  <label className="form-label">City *</label>
-                  <input {...field} className="form-input" />
-                  {errors.city && <span className="form-error">{errors.city.message}</span>}
-                </div>
-              )}
-            />
-            <Controller
-              name="pincode"
-              control={control}
-              rules={{ required: 'Required' }}
-              render={({ field }) => (
-                <div className="form-group">
-                  <label className="form-label">Pincode *</label>
-                  <input {...field} className="form-input" />
-                  {errors.pincode && <span className="form-error">{errors.pincode.message}</span>}
-                </div>
-              )}
-            />
-          </div>
+          <Controller
+            name="addressLine2"
+            control={control}
+            render={({ field }) => (
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">Address line 2 (optional)</label>
+                <input {...field} className="form-input" placeholder="" />
+              </div>
+            )}
+          />
+
+          <Controller
+            name="city"
+            control={control}
+            rules={{ required: 'Required' }}
+            render={({ field }) => (
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">City *</label>
+                <input {...field} className="form-input" placeholder="London" />
+                {errors.city && <span className="form-error">{errors.city.message}</span>}
+              </div>
+            )}
+          />
+
+          <Controller
+            name="country"
+            control={control}
+            rules={{ required: 'Required' }}
+            render={({ field }) => (
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">Country *</label>
+                <select {...field} className="form-input">
+                  <option value="">Select Country</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="India">India</option>
+                  <option value="United States">United States</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Canada">Canada</option>
+                </select>
+                {errors.country && <span className="form-error">{errors.country.message}</span>}
+              </div>
+            )}
+          />
+
+          <Controller
+            name="zipCode"
+            control={control}
+            rules={{ required: 'Required' }}
+            render={({ field }) => (
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">ZIP/ postcode *</label>
+                <input {...field} className="form-input" placeholder="SE1 1AB" />
+                {errors.zipCode && <span className="form-error">{errors.zipCode.message}</span>}
+              </div>
+            )}
+          />
         </div>
 
         <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>

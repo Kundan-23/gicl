@@ -17,9 +17,11 @@ export const useFormStore = create(
         email: '',
         whatsapp: '+91',
         jerseySize: '',
-        address: '',
+        addressLine1: '',
+        addressLine2: '',
         city: '',
-        pincode: '',
+        country: '',
+        zipCode: '',
         instagramLink: '',
         instagramApproved: false,
         acceptedTerms: false,
@@ -100,9 +102,11 @@ export const useFormStore = create(
           email: '',
           whatsapp: '+91',
           jerseySize: '',
-          address: '',
+          addressLine1: '',
+          addressLine2: '',
           city: '',
-          pincode: '',
+          country: '',
+          zipCode: '',
           instagramLink: '',
           instagramApproved: false,
           acceptedTerms: false,
@@ -117,7 +121,7 @@ export const useFormStore = create(
     }),
     {
       name: 'gicl-registration-storage',
-      version: 2, // Incremented to clear old cached defaults
+      version: 3, // Incremented to clear old cached defaults
     }
   )
 );
