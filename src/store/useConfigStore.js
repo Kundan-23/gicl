@@ -56,6 +56,7 @@ export const useConfigStore = create(
       referralPoints: { perUser: 0.5 },
       maxSquadSize: 20,
       matchTeamSize: 11,
+      nextRegistrationNumber: 1,
 
       // Banners
       banners: [
@@ -84,10 +85,11 @@ export const useConfigStore = create(
       updateReferralPoints: (points) => set({ referralPoints: { perUser: points } }),
       updateMaxSquadSize: (size) => set({ maxSquadSize: size }),
       updateMatchTeamSize: (size) => set({ matchTeamSize: size }),
+      incrementRegistrationNumber: () => set((state) => ({ nextRegistrationNumber: (state.nextRegistrationNumber || 1) + 1 })),
     }),
     {
       name: 'gicl-admin-config',
-      version: 3,
+      version: 4,
     }
   )
 );

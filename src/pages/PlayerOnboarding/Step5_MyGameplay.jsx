@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useFormStore } from '../../store/useFormStore';
+import { useConfigStore } from '../../store/useConfigStore';
 import { Camera, Plus, Link as LinkIcon, Trash2, CheckCircle, Video } from 'lucide-react';
 
 const categories = [
@@ -60,8 +61,30 @@ const Step5_MyGameplay = () => {
     
     // Generate GICL ID if it doesn't exist
     if (!basicInfo.giclId) {
-      const randomId = 'GICL' + Math.floor(100000 + Math.random() * 900000);
-      updateBasicInfo({ giclId: randomId });
+      const { nextRegistrationNumber, incrementRegistrationNumber } = useConfigStore.getState();
+      
+      const regNum = String(nextRegistrationNumber || 1).padStart(5, '0');
+      
+      const date = new Date();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = String(date.getFullYear());
+      
+      let stateCode = 'MH'; // Default
+      if (basicInfo.zipCode) {
+        const firstDigit = basicInfo.zipCode.charAt(0);
+        const pincodeMap = {
+          '1': 'DL', '2': 'UP', '3': 'GJ', '4': 'MH', 
+          '5': 'KA', '6': 'TN', '7': 'WB', '8': 'BR'
+        };
+        if (pincodeMap[firstDigit]) {
+          stateCode = pincodeMap[firstDigit];
+        }
+      }
+
+      const generatedId = `GICL${regNum}${month}${year}${stateCode}`;
+      
+      updateBasicInfo({ giclId: generatedId });
+      incrementRegistrationNumber();
     }
 
     // This is the final onboarding step. Proceed to dashboard.
