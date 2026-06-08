@@ -1,5 +1,6 @@
-const supabase     = require('../config/supabase');
-const asyncHandler = require('../utils/asyncHandler');
+const supabase            = require('../config/supabase');
+const asyncHandler        = require('../utils/asyncHandler');
+const { lookupPincodeState } = require('../utils/pincodeState');
 
 // ─── GET /api/player/profile ────────────────────────────────
 exports.getProfile = asyncHandler(async (req, res) => {
@@ -39,7 +40,17 @@ exports.updateProfile = asyncHandler(async (req, res) => {
   if (body.addressLine2     !== undefined) updateData.address_line2     = body.addressLine2;
   if (body.city             !== undefined) updateData.city              = body.city;
   if (body.country          !== undefined) updateData.country           = body.country;
-  if (body.zipCode          !== undefined) updateData.zip_code          = body.zipCode;
+  if (body.zipCode          !== undefined) {
+    updateData.zip_code = body.zipCode;
+    // Resolve state code from pincode immediately so GICL ID is always correct
+    try {
+      const resolvedState = await lookupPincodeState(body.zipCode);
+      updateData.state_code = resolvedState;
+      console.log(`[Pincode] Stored state_code=${resolvedState} for pincode ${body.zipCode}`);
+    } catch (e) {
+      console.error('[Pincode] State lookup failed:', e.message);
+    }
+  }
   if (body.jerseySize       !== undefined) updateData.jersey_size       = body.jerseySize;
   if (body.instagramLink    !== undefined) updateData.instagram_link    = body.instagramLink;
   if (body.height           !== undefined) updateData.height            = body.height;
@@ -120,10 +131,13 @@ exports.updateProfile = asyncHandler(async (req, res) => {
       const month     = String(now.getMonth() + 1).padStart(2, '0');
       const year      = String(now.getFullYear());
 
-      // Derive state code from zip code first digit
-      const pincodeMap = { '1':'DL','2':'UP','3':'GJ','4':'MH','5':'KA','6':'TN','7':'WB','8':'BR' };
-      const firstDigit = (player.zip_code || '').charAt(0);
-      const stateCode  = pincodeMap[firstDigit] || 'MH';
+      // Use pre-resolved state_code from DB (set when player saved their zipCode in Step 2).
+      // If missing for any reason, resolve it now from the pincode — never use the old 1-digit map.
+      let stateCode = player.state_code;
+      if (!stateCode && player.zip_code) {
+        stateCode = await lookupPincodeState(player.zip_code);
+      }
+      stateCode = stateCode || 'IN';
 
       const giclId = `GICL${regNum}${month}${year}${stateCode}`;
 

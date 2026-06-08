@@ -16,6 +16,7 @@ const Step2_BasicRegistration = () => {
   const [showMeasureModal, setShowMeasureModal] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [pincodeState, setPincodeState] = useState({ loading: false, stateName: '', stateCode: '', error: '' });
 
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm({
     defaultValues: { ...basicInfo, email: basicInfo.email || user?.email || '' },
@@ -65,6 +66,37 @@ const Step2_BasicRegistration = () => {
     }, 600);
     return () => clearTimeout(timer);
   }, [referralCode, setValue]);
+
+  // ── Live pincode lookup → auto-detect state & city ──────────
+  const zipCodeValue = watch('zipCode');
+  useEffect(() => {
+    const pin = (zipCodeValue || '').trim().replace(/\D/g, '');
+    if (pin.length !== 6) {
+      setPincodeState({ loading: false, stateName: '', stateCode: '', error: '' });
+      return;
+    }
+    setPincodeState(s => ({ ...s, loading: true, error: '' }));
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+        const json = await res.json();
+        if (json[0]?.Status === 'Success' && json[0]?.PostOffice?.length > 0) {
+          const po = json[0].PostOffice[0];
+          const stateName = po.State || '';
+          // Auto-fill city if currently blank
+          const currentCity = watch('city');
+          if (!currentCity && po.District) setValue('city', po.District);
+          setPincodeState({ loading: false, stateName, stateCode: '', error: '' });
+        } else {
+          setPincodeState({ loading: false, stateName: '', stateCode: '', error: 'Invalid pincode — check and re-enter' });
+        }
+      } catch {
+        setPincodeState({ loading: false, stateName: '', stateCode: '', error: '' });
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zipCodeValue]);
 
   const currentAge = parseInt(playerProfile.age || '0', 10);
   const isKidSize = currentAge > 0 && currentAge < 16;
@@ -449,11 +481,36 @@ const Step2_BasicRegistration = () => {
           <Controller
             name="zipCode"
             control={control}
-            rules={{ required: 'Required' }}
+            rules={{
+              required: 'Required',
+              pattern: { value: /^[0-9]{6}$/, message: 'Enter a valid 6-digit Indian pincode' }
+            }}
             render={({ field }) => (
               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label">ZIP/ postcode *</label>
-                <input {...field} className="form-input" placeholder="SE1 1AB" />
+                <label className="form-label">Pincode / ZIP *</label>
+                <input
+                  {...field}
+                  className="form-input"
+                  placeholder="e.g. 403001"
+                  maxLength={6}
+                  inputMode="numeric"
+                />
+                {/* Live state detection feedback */}
+                {pincodeState.loading && (
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.3rem', display: 'block' }}>
+                    🔍 Detecting state...
+                  </span>
+                )}
+                {pincodeState.stateName && !pincodeState.loading && (
+                  <span style={{ fontSize: '0.78rem', color: 'var(--success)', marginTop: '0.3rem', display: 'block', fontWeight: 600 }}>
+                    📍 Detected: {pincodeState.stateName} ✅
+                  </span>
+                )}
+                {pincodeState.error && (
+                  <span style={{ fontSize: '0.78rem', color: 'var(--error)', marginTop: '0.3rem', display: 'block' }}>
+                    ⚠️ {pincodeState.error}
+                  </span>
+                )}
                 {errors.zipCode && <span className="form-error">{errors.zipCode.message}</span>}
               </div>
             )}
