@@ -45,7 +45,11 @@ const profileUpdateSchema = z.object({
   clubAssociated:   z.string().optional(),
   fieldPositions:   z.array(z.string()).optional(),
   ballsSelected:    z.array(z.string()).optional(),
-  cricketHistory:   z.array(z.object({ level: z.string(), matches: z.number() })).optional(),
+  // matches comes as a string from HTML inputs — coerce to number
+  cricketHistory:   z.array(z.object({
+    level:   z.string(),
+    matches: z.coerce.number().int().min(0).default(0),
+  })).optional(),
   clubsDetails:     z.array(z.object({ name: z.string(), allowedOutside: z.string() })).optional(),
   gameplayLinks:    z.object({
     batting:  z.array(z.string()).optional(),
@@ -55,6 +59,7 @@ const profileUpdateSchema = z.object({
   }).optional(),
   galleryUrls:      z.array(z.string()).optional(),
 }); // No .strict() — allow any extra fields gracefully
+
 
 router.get('/profile',                          playerController.getProfile);
 router.put('/profile',    validate(profileUpdateSchema), playerController.updateProfile);
