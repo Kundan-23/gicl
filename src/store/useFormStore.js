@@ -17,6 +17,7 @@ export const useFormStore = create(
         gender: '',
         whatsappNumber: '',
         emergencyContact: '',
+        emergencyContactName: '',
         bloodGroup: '',
         parentName: '',
         email: '',

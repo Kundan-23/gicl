@@ -32,8 +32,9 @@ exports.updateProfile = asyncHandler(async (req, res) => {
   if (body.lastName         !== undefined) updateData.last_name         = body.lastName;
   if (body.dob              !== undefined) updateData.dob               = body.dob;
   if (body.gender           !== undefined) updateData.gender            = body.gender;
-  if (body.whatsapp         !== undefined) updateData.whatsapp          = body.whatsapp;
-  if (body.emergencyContact !== undefined) updateData.emergency_contact = body.emergencyContact;
+  if (body.whatsapp             !== undefined) updateData.whatsapp             = body.whatsapp;
+  if (body.emergencyContact     !== undefined) updateData.emergency_contact    = body.emergencyContact;
+  if (body.emergencyContactName !== undefined) updateData.emergency_contact_name = body.emergencyContactName;
   if (body.bloodGroup       !== undefined) updateData.blood_group       = body.bloodGroup;
   if (body.parentName       !== undefined) updateData.parent_name       = body.parentName;
   if (body.addressLine1     !== undefined) updateData.address_line1     = body.addressLine1;

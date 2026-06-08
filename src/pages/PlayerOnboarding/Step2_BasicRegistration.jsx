@@ -137,7 +137,8 @@ const Step2_BasicRegistration = () => {
       // Save to backend
       await playerAPI.updateProfile({
         firstName: data.firstName, lastName: data.lastName, dob: data.dob,
-        gender: data.gender, whatsapp: data.whatsapp, emergencyContact: data.emergencyContact,
+        gender: data.gender, whatsapp: data.whatsapp, 
+        emergencyContact: data.emergencyContact, emergencyContactName: data.emergencyContactName,
         bloodGroup: data.bloodGroup, parentName: data.parentName || '',
         addressLine1: data.addressLine1, addressLine2: data.addressLine2 || '',
         city: data.city, country: data.country, zipCode: data.zipCode,
@@ -341,14 +342,26 @@ const Step2_BasicRegistration = () => {
             )}
           />
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+            <Controller
+              name="emergencyContactName"
+              control={control}
+              rules={{ required: 'Required' }}
+              render={({ field }) => (
+                <div className="form-group">
+                  <label className="form-label">Emerg. Contact Name *</label>
+                  <input {...field} className="form-input" placeholder="Name" />
+                  {errors.emergencyContactName && <span className="form-error">{errors.emergencyContactName.message}</span>}
+                </div>
+              )}
+            />
             <Controller
               name="emergencyContact"
               control={control}
               rules={{ required: 'Required' }}
               render={({ field }) => (
                 <div className="form-group">
-                  <label className="form-label">Emergency Contact *</label>
+                  <label className="form-label">Emerg. Phone *</label>
                   <input {...field} className="form-input" placeholder="+91" />
                   {errors.emergencyContact && <span className="form-error">{errors.emergencyContact.message}</span>}
                 </div>

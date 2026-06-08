@@ -43,6 +43,8 @@ const PlayerDashboard = () => {
           district:         p.city              || basicInfo.district,
           country:          p.country           || basicInfo.country,
           zipCode:          p.zip_code          || basicInfo.zipCode,
+          emergencyContact: p.emergency_contact || basicInfo.emergencyContact,
+          emergencyContactName: p.emergency_contact_name || basicInfo.emergencyContactName,
           referralCode:     p.referral_code     || basicInfo.referralCode,
           jerseySize:       p.jersey_size       || basicInfo.jerseySize,
           jerseyName:       p.first_name        || basicInfo.jerseyName,
