@@ -61,7 +61,7 @@ exports.updateProfile = asyncHandler(async (req, res) => {
   }
 
   // Wire referral code to referred_by_id (only on first use)
-  if (body.referralCodeUsed) {
+  if (body.referralCodeUsed && body.referralCodeUsed.trim()) {
     const { data: currentPlayer } = await supabase
       .from('players')
       .select('referred_by_id')
@@ -75,9 +75,21 @@ exports.updateProfile = asyncHandler(async (req, res) => {
         .eq('referral_code', body.referralCodeUsed.toUpperCase().trim())
         .neq('id', req.user.id)  // Can't refer yourself
         .maybeSingle();
-      if (referrer) updateData.referred_by_id = referrer.id;
+
+      if (referrer) {
+        updateData.referred_by_id = referrer.id;
+        console.log(`[Referral] Linked player ${req.user.id} -> referrer ${referrer.id} (code: ${body.referralCodeUsed})`);
+      } else {
+        // Code was provided but not found — warn the caller so user knows
+        console.warn(`[Referral] Code not found: ${body.referralCodeUsed} for player ${req.user.id}`);
+        return res.status(400).json({
+          success: false,
+          message: `Referral code "${body.referralCodeUsed}" is invalid or does not exist. Please check and try again, or leave it blank.`,
+        });
+      }
     }
   }
+
 
   if (Object.keys(updateData).length === 0) {
     return res.status(400).json({ success: false, message: 'No fields to update.' });
