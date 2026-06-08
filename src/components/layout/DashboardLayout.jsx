@@ -97,8 +97,8 @@ const DashboardLayout = () => {
         }}
         className="sidebar-desktop"
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <img src="/logo/logo.png" alt="GICL Logo" style={{ height: '32px' }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <img src="/logo/logo.png" alt="GICL Logo" style={{ height: '44px', width: 'auto', maxWidth: '180px', objectFit: 'contain' }} />
           <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', color: 'var(--text-secondary)' }} className="close-btn-mobile">
             <X size={24} />
           </button>
@@ -180,7 +180,7 @@ const DashboardLayout = () => {
           
           {/* Web Banners Carousel */}
           {isDashboardUnlocked && banners && banners.length > 0 && (
-            <div style={{ marginBottom: '2rem', position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-xl)', height: '120px' }}>
+            <div style={{ marginBottom: '2rem', position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-xl)', height: '160px' }}>
               <AnimatePresence initial={false}>
                 <motion.div
                   key={currentBanner}
@@ -191,20 +191,13 @@ const DashboardLayout = () => {
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    background: banners[currentBanner]?.image ? `url(${banners[currentBanner].image}) center/cover` : (banners[currentBanner]?.color || '#000'),
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '2rem',
-                    textAlign: 'center'
+                    backgroundImage: `url(${banners[currentBanner]})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundColor: '#1a1a2e',
                   }}
-                >
-                  {!banners[currentBanner]?.image && (
-                    <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
-                      {banners[currentBanner]?.text}
-                    </h2>
-                  )}
-                </motion.div>
+                />
               </AnimatePresence>
               
               {/* Carousel Indicators */}
@@ -240,20 +233,13 @@ const DashboardLayout = () => {
                   style={{
                     position: 'absolute',
                     inset: 0,
-                    background: adBanners[currentAdBanner]?.image ? `url(${adBanners[currentAdBanner].image}) center/cover` : (adBanners[currentAdBanner]?.color || 'var(--bg-surface)'),
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '2rem',
-                    textAlign: 'center'
+                    backgroundImage: `url(${adBanners[currentAdBanner]})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundColor: '#1a1a2e',
                   }}
-                >
-                  {!adBanners[currentAdBanner]?.image && (
-                    <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
-                      {adBanners[currentAdBanner]?.text}
-                    </h2>
-                  )}
-                </motion.div>
+                />
               </AnimatePresence>
               
               {/* Carousel Indicators for Ads */}
