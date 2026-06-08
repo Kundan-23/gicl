@@ -98,8 +98,8 @@ const DashboardLayout = () => {
         className="sidebar-desktop"
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <img src="/logo/logo.png" alt="GICL Logo" style={{ height: '44px', width: 'auto', maxWidth: '180px', objectFit: 'contain' }} />
-          <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', color: 'var(--text-secondary)' }} className="close-btn-mobile">
+          <img src="/logo/logo.png" alt="GICL Logo" style={{ height: '56px', width: 'auto', maxWidth: '200px', objectFit: 'contain' }} />
+          <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', color: 'var(--text-secondary)', flexShrink: 0 }} className="close-btn-mobile">
             <X size={24} />
           </button>
         </div>
