@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import Swal from 'sweetalert2';
 import { useFormStore } from '../../store/useFormStore';
-import { useConfigStore } from '../../store/useConfigStore';
+import { useConfig } from '../../context/ConfigContext'; // eslint-disable-line no-unused-vars
+import { playerAPI } from '../../services/api';
 import { Camera, Plus, Link as LinkIcon, Trash2, CheckCircle, Video } from 'lucide-react';
 
 const categories = [
@@ -15,6 +17,7 @@ const categories = [
 const Step5_MyGameplay = () => {
   const navigate = useNavigate();
   const { basicInfo, media, updateMedia, updateBasicInfo } = useFormStore();
+  const [submitting, setSubmitting] = useState(false);
   
   const [links, setLinks] = useState(media.gameplayLinks || {
     batting: [],
@@ -51,44 +54,35 @@ const Step5_MyGameplay = () => {
     });
   };
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const totalLinks = Object.values(links).reduce((acc, curr) => acc + curr.length, 0);
     if (totalLinks === 0) {
-      alert("Please upload at least one gameplay link in any category.");
+      Swal.fire({ icon: 'warning', title: 'No Links Added',
+        text: 'Please add at least one Instagram gameplay link.',
+        background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
       return;
     }
-    updateMedia({ gameplayLinks: links });
-    
-    // Generate GICL ID if it doesn't exist
-    if (!basicInfo.giclId) {
-      const { nextRegistrationNumber, incrementRegistrationNumber } = useConfigStore.getState();
-      
-      const regNum = String(nextRegistrationNumber || 1).padStart(5, '0');
-      
-      const date = new Date();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = String(date.getFullYear());
-      
-      let stateCode = 'MH'; // Default
-      if (basicInfo.zipCode) {
-        const firstDigit = basicInfo.zipCode.charAt(0);
-        const pincodeMap = {
-          '1': 'DL', '2': 'UP', '3': 'GJ', '4': 'MH', 
-          '5': 'KA', '6': 'TN', '7': 'WB', '8': 'BR'
-        };
-        if (pincodeMap[firstDigit]) {
-          stateCode = pincodeMap[firstDigit];
-        }
+    setSubmitting(true);
+    try {
+      // Save gameplay links to local store
+      updateMedia({ gameplayLinks: links });
+      // Save to backend
+      await playerAPI.updateProfile({ gameplayLinks: links });
+      // Get updated profile to retrieve server-generated GICL ID
+      const profileRes = await playerAPI.getProfile();
+      if (profileRes.data?.giclId) {
+        updateBasicInfo({ giclId: profileRes.data.giclId });
       }
-
-      const generatedId = `GICL${regNum}${month}${year}${stateCode}`;
-      
-      updateBasicInfo({ giclId: generatedId });
-      incrementRegistrationNumber();
-    }
-
-    // This is the final onboarding step. Proceed to dashboard.
-    navigate('/dashboard');
+      Swal.fire({ icon: 'success', title: 'Registration Complete! 🎉',
+        text: 'Welcome to GICL Sports! Redirecting to your dashboard...',
+        background: 'var(--bg-surface)', color: 'var(--text-primary)',
+        confirmButtonColor: '#FFD700', timer: 2500, showConfirmButton: false });
+      setTimeout(() => navigate('/dashboard'), 2500);
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error',
+        text: err.response?.data?.message || 'Failed to save. Try again.',
+        background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
+    } finally { setSubmitting(false); }
   };
 
   const totalLinksCount = Object.values(links).reduce((acc, curr) => acc + curr.length, 0);
@@ -217,9 +211,9 @@ const Step5_MyGameplay = () => {
         <button 
           className="btn-primary" 
           onClick={onSubmit}
-          disabled={totalLinksCount === 0}
+          disabled={totalLinksCount === 0 || submitting}
         >
-          Complete Registration & Go to Dashboard
+          {submitting ? 'Completing Registration...' : 'Complete Registration & Go to Dashboard'}
         </button>
 
       </div>

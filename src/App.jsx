@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ConfigProvider } from './context/ConfigContext';
 import MobileLayout from './components/layout/MobileLayout';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -25,7 +27,7 @@ import CoachMatchesCalendar from './pages/CoachDashboard/CoachMatchesCalendar';
 import CoachReferralSystem from './pages/CoachDashboard/CoachReferralSystem';
 import CoachUploads from './pages/CoachDashboard/CoachUploads';
 
-// Admin Imports
+// Admin Imports (legacy — store-based)
 import AdminLogin from './pages/Admin/AdminLogin';
 import AdminDashboardLayout from './components/layout/AdminDashboardLayout';
 import AdminDashboard from './pages/Admin/AdminDashboard';
@@ -37,62 +39,115 @@ import MatchManagement from './pages/Admin/MatchManagement';
 import PlayerAllotment from './pages/Admin/PlayerAllotment';
 import AdminVideoScrutiny from './pages/Admin/VideoScrutiny';
 
+// Admin Imports (new — API-based)
+import AdminLayout from './pages/Admin/AdminLayout';
+import NewAdminDashboard from './pages/Admin/NewAdminDashboard';
+import Players from './pages/Admin/Players';
+import PlayerDetail from './pages/Admin/PlayerDetail';
+import Cashouts from './pages/Admin/Cashouts';
+import Coaches from './pages/Admin/Coaches';
+import Matches from './pages/Admin/Matches';
+import Config from './pages/Admin/Config';
+import AdminPlayerAllotment from './pages/Admin/PlayerAllotment';
+
+// ── Route Guard: redirect to /login if not authenticated ──
+function ProtectedRoute({ children, requiredRole }) {
+  const { isAuthenticated, role, loading } = useAuth();
+  if (loading) return <div style={{ display:'flex', justifyContent:'center', alignItems:'center', height:'100vh', color:'var(--text-primary)' }}>Loading…</div>;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // Wrong role: send admin to admin2, others back to landing
+  if (requiredRole && role !== requiredRole) {
+    if (role === 'admin') return <Navigate to="/admin2" replace />;
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<MobileLayout />}>
+        <Route index element={<Landing />} />
+        <Route path="login" element={<Login />} />
+        <Route path="onboarding/step1" element={<Step1_Terms />} />
+        <Route path="onboarding/step2" element={<Step2_BasicRegistration />} />
+        <Route path="onboarding/payment" element={<Step3_Payment />} />
+        <Route path="onboarding/step4" element={<Step4_PlayerProfile />} />
+        <Route path="onboarding/step5" element={<Step5_MyGameplay />} />
+      </Route>
+
+      {/* Coach Onboarding — public */}
+      <Route path="/coach-onboarding" element={
+        <div style={{ backgroundColor: 'var(--bg-color)', minHeight: '100vh', color: 'var(--text-primary)' }}>
+          <CoachRegistrationFlow />
+        </div>
+      } />
+
+      {/* Player Dashboard — protected */}
+      <Route path="/dashboard" element={
+        <ProtectedRoute requiredRole="player"><DashboardLayout /></ProtectedRoute>
+      }>
+        <Route index element={<PlayerDashboard />} />
+        <Route path="matches" element={<MatchesCalendar />} />
+        <Route path="referral" element={<ReferralSystem />} />
+        <Route path="tutorials" element={<Tutorials />} />
+      </Route>
+
+      {/* Coach Dashboard — protected */}
+      <Route path="/coach-dashboard" element={
+        <ProtectedRoute requiredRole="coach"><CoachDashboardLayout /></ProtectedRoute>
+      }>
+        <Route index element={<CoachDashboardHome />} />
+        <Route path="squad" element={<SquadOverview />} />
+        <Route path="uploads" element={<CoachUploads />} />
+        <Route path="scrutiny" element={<VideoScrutiny />} />
+        <Route path="teams" element={<TeamBuilder />} />
+        <Route path="matches" element={<CoachMatchesCalendar />} />
+        <Route path="referral" element={<CoachReferralSystem />} />
+      </Route>
+
+      {/* Admin — protected (legacy store-based) */}
+      <Route path="/admin-login" element={<AdminLogin />} />
+      <Route path="/admin" element={
+        <ProtectedRoute requiredRole="admin"><AdminDashboardLayout /></ProtectedRoute>
+      }>
+        <Route index element={<AdminDashboard />} />
+        <Route path="config" element={<AppConfig />} />
+        <Route path="player-config" element={<PlayerConfig />} />
+        <Route path="players" element={<PlayerManagement />} />
+        <Route path="coaches" element={<CoachManagement />} />
+        <Route path="matches" element={<MatchManagement />} />
+        <Route path="allotment" element={<PlayerAllotment />} />
+        <Route path="scrutiny" element={<AdminVideoScrutiny />} />
+      </Route>
+
+      {/* Admin v2 — API-based new panel */}
+      <Route path="/admin2" element={<AdminLayout />}>
+        <Route index element={<NewAdminDashboard />} />
+        <Route path="players" element={<Players />} />
+        <Route path="players/:id" element={<PlayerDetail />} />
+        <Route path="cashouts" element={<Cashouts />} />
+        <Route path="coaches" element={<Coaches />} />
+        <Route path="matches" element={<Matches />} />
+        <Route path="config" element={<Config />} />
+        <Route path="scrutiny" element={<AdminVideoScrutiny />} />
+        <Route path="allotment" element={<AdminPlayerAllotment />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<MobileLayout />}>
-          <Route index element={<Landing />} />
-          <Route path="login" element={<Login />} />
-          <Route path="onboarding/step1" element={<Step1_Terms />} />
-          <Route path="onboarding/step2" element={<Step2_BasicRegistration />} />
-          <Route path="onboarding/payment" element={<Step3_Payment />} />
-          <Route path="onboarding/step4" element={<Step4_PlayerProfile />} />
-          <Route path="onboarding/step5" element={<Step5_MyGameplay />} />
-        </Route>
-        
-        {/* Coach Onboarding Route */}
-        <Route path="/coach-onboarding" element={
-          <div style={{ backgroundColor: 'var(--bg-color)', minHeight: '100vh', color: 'var(--text-primary)' }}>
-            <CoachRegistrationFlow />
-          </div>
-        } />
-        
-        {/* Player Dashboard Routes */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<PlayerDashboard />} />
-          <Route path="matches" element={<MatchesCalendar />} />
-          <Route path="referral" element={<ReferralSystem />} />
-          <Route path="tutorials" element={<Tutorials />} />
-        </Route>
-
-        {/* Coach Dashboard Routes */}
-        <Route path="/coach-dashboard" element={<CoachDashboardLayout />}>
-          <Route index element={<CoachDashboardHome />} />
-          <Route path="squad" element={<SquadOverview />} />
-          <Route path="uploads" element={<CoachUploads />} />
-          <Route path="scrutiny" element={<VideoScrutiny />} />
-          <Route path="teams" element={<TeamBuilder />} />
-          <Route path="matches" element={<CoachMatchesCalendar />} />
-          <Route path="referral" element={<CoachReferralSystem />} />
-        </Route>
-
-        {/* Admin Routes */}
-        <Route path="/admin-login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminDashboardLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="config" element={<AppConfig />} />
-          <Route path="player-config" element={<PlayerConfig />} />
-          <Route path="players" element={<PlayerManagement />} />
-          <Route path="coaches" element={<CoachManagement />} />
-          <Route path="matches" element={<MatchManagement />} />
-          <Route path="allotment" element={<PlayerAllotment />} />
-          <Route path="scrutiny" element={<AdminVideoScrutiny />} />
-        </Route>
-
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <ConfigProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </AuthProvider>
+    </ConfigProvider>
   );
 }
 

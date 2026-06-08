@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, ShieldAlert } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 /* Glassmorphism button styles */
 const glassBtn = {
@@ -41,8 +42,41 @@ const glassBtn = {
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, role, logout } = useAuth();
   const [playerHover, setPlayerHover] = React.useState(false);
   const [coachHover, setCoachHover]   = React.useState(false);
+
+  // If admin is already logged in and lands here, redirect to admin2
+  React.useEffect(() => {
+    if (isAuthenticated && role === 'admin') {
+      navigate('/admin2', { replace: true });
+    }
+  }, [isAuthenticated, role, navigate]);
+
+  const handlePlayerClick = async () => {
+    // If logged in as admin/coach, log out first so player can register fresh
+    if (isAuthenticated && role !== 'player') {
+      await logout();
+    }
+    // If already logged in as player, go straight to dashboard
+    if (isAuthenticated && role === 'player') {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleCoachClick = async () => {
+    // If logged in as admin, log out first
+    if (isAuthenticated && role === 'admin') {
+      await logout();
+    }
+    if (isAuthenticated && role === 'coach') {
+      navigate('/coach-dashboard');
+    } else {
+      navigate('/login', { state: { role: 'coach' } });
+    }
+  };
 
   return (
     <motion.div
@@ -77,7 +111,7 @@ const Landing = () => {
       {/* Role buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
         <button
-          onClick={() => navigate('/login')}
+          onClick={handlePlayerClick}
           onMouseEnter={() => setPlayerHover(true)}
           onMouseLeave={() => setPlayerHover(false)}
           style={{ ...glassBtn.base, ...glassBtn.player, ...(playerHover ? glassBtn.playerHover : {}) }}
@@ -90,7 +124,7 @@ const Landing = () => {
         </button>
 
         <button
-          onClick={() => navigate('/login', { state: { role: 'coach' } })}
+          onClick={handleCoachClick}
           onMouseEnter={() => setCoachHover(true)}
           onMouseLeave={() => setCoachHover(false)}
           style={{ ...glassBtn.base, ...glassBtn.coach, ...(coachHover ? glassBtn.coachHover : {}) }}

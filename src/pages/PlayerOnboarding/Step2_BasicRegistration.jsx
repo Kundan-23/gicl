@@ -2,17 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm, Controller } from 'react-hook-form';
+import Swal from 'sweetalert2';
 import { useFormStore } from '../../store/useFormStore';
-import { useConfigStore } from '../../store/useConfigStore';
+import { useConfig } from '../../context/ConfigContext';
+import { playerAPI, publicAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 const Step2_BasicRegistration = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { basicInfo, updateBasicInfo, playerProfile, updatePlayerProfile } = useFormStore();
-  const { jerseySizes } = useConfigStore();
+  const { jersey_sizes: jerseySizes } = useConfig();
   const [showMeasureModal, setShowMeasureModal] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm({
-    defaultValues: basicInfo,
+    defaultValues: { ...basicInfo, email: basicInfo.email || user?.email || '' },
     mode: 'onBlur'
   });
 
@@ -34,16 +40,30 @@ const Step2_BasicRegistration = () => {
     }
   }, [dobValue, updatePlayerProfile]);
 
-  // Mock Referral Code Autofill
+  // Real Referral Code Validation
   useEffect(() => {
-    if (referralCode && referralCode.toUpperCase() === 'GICL-9999') {
-      setValue('referralFirstName', 'John');
-      setValue('referralLastName', 'Doe');
-    } else if (referralCode && referralCode.length > 5) {
-      // Clear if invalid
+    if (!referralCode || referralCode.length < 9) {
       setValue('referralFirstName', '');
       setValue('referralLastName', '');
+      return;
     }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await publicAPI.validateReferral(referralCode.toUpperCase());
+        if (res.data.valid) {
+          const parts = (res.data.referrerName || '').split(' ');
+          setValue('referralFirstName', parts[0] || '');
+          setValue('referralLastName', parts.slice(1).join(' ') || '');
+        } else {
+          setValue('referralFirstName', '');
+          setValue('referralLastName', '');
+        }
+      } catch {
+        setValue('referralFirstName', '');
+        setValue('referralLastName', '');
+      }
+    }, 600);
+    return () => clearTimeout(timer);
   }, [referralCode, setValue]);
 
   const currentAge = parseInt(playerProfile.age || '0', 10);
@@ -70,18 +90,36 @@ const Step2_BasicRegistration = () => {
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setPhotoFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setValue('profilePhotoUrl', reader.result);
-      };
+      reader.onloadend = () => { setValue('profilePhotoUrl', reader.result); };
       reader.readAsDataURL(file);
     }
   };
 
-  const onSubmit = (data) => {
-    updateBasicInfo(data);
-    // Proceed to Payment Mock
-    navigate('/onboarding/payment');
+  const onSubmit = async (data) => {
+    setSubmitting(true);
+    try {
+      // Save to local store
+      updateBasicInfo(data);
+      // Save to backend
+      await playerAPI.updateProfile({
+        firstName: data.firstName, lastName: data.lastName, dob: data.dob,
+        gender: data.gender, whatsapp: data.whatsapp, emergencyContact: data.emergencyContact,
+        bloodGroup: data.bloodGroup, parentName: data.parentName || '',
+        addressLine1: data.addressLine1, addressLine2: data.addressLine2 || '',
+        city: data.city, country: data.country, zipCode: data.zipCode,
+        jerseySize: data.jerseySize, instagramLink: data.instagramLink || '',
+        referralCodeUsed: data.referralCodeUsed || '',
+      });
+      // Upload photo if selected
+      if (photoFile) await playerAPI.uploadPhoto(photoFile);
+      navigate('/onboarding/payment');
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error',
+        text: err.response?.data?.message || 'Failed to save profile. Try again.',
+        background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
+    } finally { setSubmitting(false); }
   };
 
   return (
@@ -422,8 +460,8 @@ const Step2_BasicRegistration = () => {
           />
         </div>
 
-        <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }}>
-          Proceed to Payment
+        <button type="submit" className="btn-primary" style={{ marginTop: '1rem' }} disabled={submitting}>
+          {submitting ? 'Saving...' : 'Proceed to Payment'}
         </button>
       </form>
 

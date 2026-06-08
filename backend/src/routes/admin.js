@@ -1,0 +1,57 @@
+const express    = require('express');
+const router     = express.Router();
+const multer     = require('multer');
+const ctrl       = require('../controllers/adminController');
+const { protect, restrictTo } = require('../middlewares/auth');
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
+// All admin routes require auth + admin role
+router.use(protect);
+router.use(restrictTo('admin'));
+
+// Stats
+router.get('/stats',                                    ctrl.getStats);
+
+// Players
+router.get('/players',                                  ctrl.getPlayers);
+router.get('/players/:id',                              ctrl.getPlayerDetail);
+router.put('/players/:id/status',                       ctrl.updatePlayerStatus);
+router.put('/players/:id/approve-docs',                 ctrl.approveDocs);
+router.put('/players/:id/assign-coach',                 ctrl.assignCoach);
+
+// Payments
+router.get('/payments',                                 ctrl.getPayments);
+
+// Referrals
+router.get('/referrals',                                ctrl.getReferrals);
+
+// Cashouts
+router.get('/cashouts',                                 ctrl.getCashouts);
+router.put('/cashouts/:id/approve',                     ctrl.approveCashout);
+router.put('/cashouts/:id/reject',                      ctrl.rejectCashout);
+
+// Coaches
+router.get('/coaches',                                  ctrl.getCoaches);
+router.post('/coaches',                                 ctrl.createCoach);
+router.put('/coaches/:id',                              ctrl.updateCoach);
+router.delete('/coaches/:id',                           ctrl.deleteCoach);
+
+// Matches
+router.get('/matches',                                  ctrl.getMatches);
+router.post('/matches',                                 ctrl.createMatch);
+router.put('/matches/:id',                              ctrl.updateMatch);
+router.delete('/matches/:id',                           ctrl.deleteMatch);
+
+// Config
+router.get('/config',                                   ctrl.getConfig);
+router.put('/config',                                   ctrl.updateConfig);
+router.post('/config/banner/upload',    upload.single('file'), ctrl.uploadBanner);
+router.post('/config/ad-banner/upload', upload.single('file'), ctrl.uploadAdBanner);
+
+// Coach Video Uploads
+router.get('/coach-uploads',                            ctrl.listCoachUploads);
+router.put('/coach-uploads/:id/approve',                ctrl.approveCoachUpload);
+router.put('/coach-uploads/:id/reject',                 ctrl.rejectCoachUpload);
+
+module.exports = router;

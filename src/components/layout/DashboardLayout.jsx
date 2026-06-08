@@ -3,7 +3,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Home, Calendar, CalendarDays, Users, User, LogOut, Video, PlaySquare } from 'lucide-react';
 import { useFormStore } from '../../store/useFormStore';
-import { useConfigStore } from '../../store/useConfigStore';
+import { useConfig } from '../../context/ConfigContext';
 
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -11,7 +11,7 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const { resetForm, dashboardState, basicInfo } = useFormStore();
   const { isDashboardUnlocked } = dashboardState;
-  const { banners, adBanners } = useConfigStore();
+  const { banners, ad_banners: adBanners } = useConfig();
   const [isDownloading, setIsDownloading] = useState(false);
 
   const handleLogout = () => {

@@ -1,13 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useCoachStore } from '../../store/useCoachStore';
-import { useConfigStore } from '../../store/useConfigStore';
+import { useConfig } from '../../context/ConfigContext';
 import { Users, Calendar, Video, ArrowRight, Activity, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const CoachDashboardHome = () => {
   const { dashboardData } = useCoachStore();
-  const maxSquadSize = useConfigStore(state => state.maxSquadSize || 20);
+  const { maxSquadSize = 20 } = useConfig();
   const navigate = useNavigate();
 
   const squadSize = dashboardData.allocatedPlayers?.length || 0;

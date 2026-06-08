@@ -2,12 +2,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useFormStore } from '../../store/useFormStore';
-import { useConfigStore } from '../../store/useConfigStore';
+import { useConfig } from '../../context/ConfigContext';
 
 const Step1_Terms = () => {
   const navigate = useNavigate();
   const { updateBasicInfo } = useFormStore();
-  const { registrationTerms } = useConfigStore();
+  const { registration_terms: registrationTerms } = useConfig();
 
   const handleAccept = () => {
     updateBasicInfo({ acceptedTerms: true });
@@ -43,7 +43,7 @@ const Step1_Terms = () => {
           lineHeight: '1.6',
           color: 'var(--text-secondary)'
         }}>
-          {registrationTerms}
+          {registrationTerms || 'Loading terms & conditions...'}
         </pre>
       </div>
 

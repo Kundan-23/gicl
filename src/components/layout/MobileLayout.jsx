@@ -1,10 +1,10 @@
 import { Outlet, useLocation } from 'react-router-dom';
-import { useConfigStore } from '../../store/useConfigStore';
+import { useConfig } from '../../context/ConfigContext';
 
 const MobileLayout = () => {
   const location = useLocation();
   const isLanding = location.pathname === '/';
-  const { landingBgImage } = useConfigStore();
+  const { landing_bg_image: landingBgImage } = useConfig();
 
   if (isLanding) {
     return (

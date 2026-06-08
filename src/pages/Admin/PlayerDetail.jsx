@@ -1,0 +1,306 @@
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { adminAPI } from '../../services/adminAPI';
+import { ArrowLeft, User, Mail, Phone, FileText, CreditCard, Users, DollarSign, CheckCircle, XCircle, UserCheck } from 'lucide-react';
+import Swal from 'sweetalert2';
+
+const Section = ({ title, icon: Icon, children }) => (
+  <div style={{ backgroundColor: 'var(--bg-surface)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-subtle)', marginBottom: '1.5rem', overflow: 'hidden' }}>
+    <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      {Icon && <Icon size={18} color="var(--brand-primary)" />}
+      <h3 className="heading-3" style={{ margin: 0 }}>{title}</h3>
+    </div>
+    <div style={{ padding: '1.5rem' }}>{children}</div>
+  </div>
+);
+
+const InfoRow = ({ label, value }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{label}</span>
+    <span style={{ fontWeight: 600, fontSize: '0.9rem', textAlign: 'right', maxWidth: '60%', wordBreak: 'break-all' }}>{value || '—'}</span>
+  </div>
+);
+
+const PlayerDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [player, setPlayer] = useState(null);
+  const [coaches, setCoaches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCoach, setSelectedCoach] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [pRes, cRes] = await Promise.all([
+        adminAPI.getPlayerDetail(id),
+        adminAPI.getCoaches(),
+      ]);
+      const p = pRes.data?.player || pRes.data;
+      setPlayer(p);
+      setSelectedCoach(p.coach_id || '');
+      setCoaches(cRes.data?.coaches || cRes.data || []);
+    } catch (err) {
+      Swal.fire({
+        icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to load player.',
+        background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, [id]);
+
+  const handleApproveDocs = async () => {
+    const result = await Swal.fire({
+      title: 'Approve Documents?',
+      text: 'This will mark the player\'s documents as verified.',
+      icon: 'question', showCancelButton: true,
+      confirmButtonColor: '#10b981', cancelButtonColor: 'var(--bg-surface-elevated)',
+      confirmButtonText: 'Yes, Approve', background: 'var(--bg-surface)', color: 'var(--text-primary)',
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await adminAPI.approveDocs(id);
+      Swal.fire({ icon: 'success', title: 'Docs Approved!', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      load();
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to approve docs.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
+    }
+  };
+
+  // ── Status toggle with disable-reason prompt ─────────────────────
+  const handleToggleStatus = async () => {
+    const isActive = player.is_active !== false;
+
+    if (isActive) {
+      // Disabling — ask for reason
+      const { value: reason, isConfirmed } = await Swal.fire({
+        title: 'Disable Player',
+        input: 'textarea',
+        inputLabel: 'Reason for disabling this player',
+        inputPlaceholder: 'e.g., Violation of GICL terms...',
+        inputAttributes: { required: true },
+        showCancelButton: true,
+        confirmButtonText: 'Disable',
+        confirmButtonColor: '#ef4444',
+        background: 'var(--bg-surface)',
+        color: 'var(--text-primary)',
+      });
+      if (!isConfirmed || !reason) return;
+      try {
+        await adminAPI.updatePlayerStatus(id, 'inactive');
+        setPlayer(prev => ({ ...prev, is_active: false }));
+        Swal.fire({ icon: 'success', title: 'Player disabled', text: reason, timer: 2000, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to update status.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
+      }
+    } else {
+      // Enabling
+      const { isConfirmed } = await Swal.fire({
+        title: 'Enable Player?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#22c55e',
+        background: 'var(--bg-surface)',
+        color: 'var(--text-primary)',
+      });
+      if (!isConfirmed) return;
+      try {
+        await adminAPI.updatePlayerStatus(id, 'active');
+        setPlayer(prev => ({ ...prev, is_active: true }));
+        Swal.fire({ icon: 'success', title: 'Player enabled', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to update status.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
+      }
+    }
+  };
+
+  const handleAssignCoach = async () => {
+    if (!selectedCoach) return;
+    setSaving(true);
+    try {
+      await adminAPI.assignCoach(id, selectedCoach);
+      Swal.fire({ icon: 'success', title: 'Coach Assigned!', timer: 1200, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      load();
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to assign coach.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', color: 'var(--text-secondary)' }}>
+      Loading player…
+    </div>
+  );
+
+  if (!player) return null;
+
+  const isActive = player.is_active !== false;
+
+  return (
+    <div>
+      {/* Back + header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+        <button onClick={() => navigate('/admin2/players')} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', borderRadius: 'var(--radius-md)', padding: '0.5rem', cursor: 'pointer', display: 'flex' }}>
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h1 className="heading-1">{player.first_name} {player.last_name}</h1>
+          <p style={{ fontFamily: 'monospace', color: 'var(--brand-primary)', fontWeight: 700, fontSize: '0.9rem' }}>{player.gicl_id}</p>
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem' }}>
+          <button
+            onClick={handleToggleStatus}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: 'var(--radius-md)', background: isActive ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', color: isActive ? '#ef4444' : '#10b981', border: `1px solid ${isActive ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`, fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', transition: 'all 0.15s' }}
+          >
+            {isActive ? <XCircle size={16} /> : <CheckCircle size={16} />}
+            {isActive ? 'Disable Player' : 'Enable Player'}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+        {/* Profile card */}
+        <Section title="Profile" icon={User}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.5rem' }}>
+            <div style={{ width: 70, height: 70, borderRadius: '50%', backgroundColor: 'var(--bg-color)', border: '2px solid var(--brand-primary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              {player.profile_photo_url
+                ? <img src={player.profile_photo_url} alt="Photo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <User size={30} color="var(--text-secondary)" />
+              }
+            </div>
+            <div>
+              <p style={{ fontWeight: 700, fontSize: '1.1rem' }}>{player.first_name} {player.last_name}</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{player.email}</p>
+              <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '9999px', marginTop: '0.4rem', display: 'inline-block', backgroundColor: isActive ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: isActive ? '#10b981' : '#ef4444', fontWeight: 700 }}>
+                {isActive ? 'Active' : 'Disabled'}
+              </span>
+            </div>
+          </div>
+          <InfoRow label="GICL ID" value={player.gicl_id} />
+          <InfoRow label="Phone / WhatsApp" value={player.whatsapp || player.phone} />
+          <InfoRow label="Gender" value={player.gender} />
+          <InfoRow label="Date of Birth" value={player.dob ? new Date(player.dob).toLocaleDateString('en-IN') : null} />
+          <InfoRow label="Blood Group" value={player.blood_group} />
+          <InfoRow label="Parent / Guardian" value={player.parent_name} />
+        </Section>
+
+        {/* Address */}
+        <Section title="Address" icon={Mail}>
+          <InfoRow label="Address" value={player.address_line1} />
+          <InfoRow label="City" value={player.city} />
+          <InfoRow label="District" value={player.district} />
+          <InfoRow label="State" value={player.state} />
+          <InfoRow label="Country" value={player.country} />
+          <InfoRow label="ZIP Code" value={player.zip_code} />
+        </Section>
+
+        {/* Cricket profile */}
+        <Section title="Cricket Profile" icon={UserCheck}>
+          <InfoRow label="Batting Style" value={player.batting_style} />
+          <InfoRow label="Bowling Style" value={player.bowling_style} />
+          <InfoRow label="Height" value={player.height ? `${player.height} cm` : null} />
+          <InfoRow label="Weight" value={player.weight ? `${player.weight} kg` : null} />
+          <InfoRow label="Jersey Size" value={player.jersey_size} />
+          <InfoRow label="Jersey Name" value={player.jersey_name} />
+          <InfoRow label="Ball Types" value={Array.isArray(player.balls_selected) ? player.balls_selected.join(', ') : player.balls_selected} />
+          <InfoRow label="Field Positions" value={Array.isArray(player.field_positions) ? player.field_positions.join(', ') : player.field_positions} />
+        </Section>
+
+        {/* Documents */}
+        <Section title="Documents" icon={FileText}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {player.address_proof_url && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.875rem' }}>Address Proof</span>
+                <a href={player.address_proof_url} target="_blank" rel="noreferrer" style={{ color: 'var(--brand-accent)', fontSize: '0.8rem', fontWeight: 600 }}>View →</a>
+              </div>
+            )}
+            {player.birth_cert_url && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.875rem' }}>Birth Certificate</span>
+                <a href={player.birth_cert_url} target="_blank" rel="noreferrer" style={{ color: 'var(--brand-accent)', fontSize: '0.8rem', fontWeight: 600 }}>View →</a>
+              </div>
+            )}
+            {!player.address_proof_url && !player.birth_cert_url && (
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>No documents uploaded.</p>
+            )}
+            {(player.address_proof_url || player.birth_cert_url) && (
+              <button
+                onClick={handleApproveDocs}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: 'var(--radius-md)', background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', width: 'fit-content', transition: 'all 0.15s' }}
+                disabled={player.docs_approved}
+              >
+                <CheckCircle size={16} />
+                {player.docs_approved ? 'Docs Approved ✓' : 'Approve Documents'}
+              </button>
+            )}
+          </div>
+        </Section>
+
+        {/* Payment */}
+        <Section title="Payment Info" icon={CreditCard}>
+          <InfoRow label="Plan" value={player.plan_name || player.plan} />
+          <InfoRow label="Payment Status" value={player.payment_status} />
+          <InfoRow label="Payment Date" value={player.payment_date ? new Date(player.payment_date).toLocaleDateString('en-IN') : null} />
+          <InfoRow label="Transaction ID" value={player.transaction_id} />
+        </Section>
+
+        {/* Referrals */}
+        <Section title="Referral Stats" icon={Users}>
+          <InfoRow label="Referral Code" value={player.referral_code} />
+          <InfoRow label="Referral Balance" value={player.referral_balance != null ? `₹${player.referral_balance}` : null} />
+          <InfoRow label="Referred By" value={player.referred_by_code} />
+          <InfoRow label="Total Referrals Made" value={player.total_referrals} />
+        </Section>
+
+        {/* Cashout history */}
+        {player.cashouts && player.cashouts.length > 0 && (
+          <Section title="Cashout History" icon={DollarSign}>
+            {player.cashouts.map((c, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: '0.875rem' }}>
+                <span>₹{c.amount} — {c.method}</span>
+                <span style={{ color: c.status === 'approved' ? '#10b981' : c.status === 'rejected' ? '#ef4444' : '#f59e0b', fontWeight: 600 }}>{c.status}</span>
+              </div>
+            ))}
+          </Section>
+        )}
+
+        {/* Assign Coach */}
+        <Section title="Assign Coach" icon={UserCheck}>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <select
+              value={selectedCoach}
+              onChange={e => setSelectedCoach(e.target.value)}
+              style={{ flex: 1, minWidth: 180, padding: '0.65rem 2.5rem 0.65rem 0.875rem', backgroundColor: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontSize: '0.875rem', appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1.25em' }}
+            >
+              <option value="">No Coach</option>
+              {coaches.map(c => (
+                <option key={c.id} value={c.id}>{c.first_name} {c.last_name} ({c.email})</option>
+              ))}
+            </select>
+            <button
+              onClick={handleAssignCoach}
+              disabled={saving}
+              style={{ padding: '0.65rem 1.5rem', borderRadius: 'var(--radius-md)', background: 'var(--brand-primary)', color: '#121A3F', fontWeight: 700, fontSize: '0.875rem', cursor: saving ? 'wait' : 'pointer', border: 'none', transition: 'all 0.15s' }}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+          {player.coach_name && (
+            <p style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Current coach: <strong style={{ color: 'var(--text-primary)' }}>{player.coach_name}</strong>
+            </p>
+          )}
+        </Section>
+      </div>
+    </div>
+  );
+};
+
+export default PlayerDetail;

@@ -1,0 +1,16 @@
+const express = require('express');
+const { authenticate, authorize } = require('../middlewares/auth');
+const coachController = require('../controllers/coachController');
+
+const router = express.Router();
+router.use(authenticate, authorize('coach'));
+
+router.get('/profile',           coachController.getProfile);
+router.get('/players',           coachController.getPlayers);
+router.get('/videos',            coachController.getVideos);
+router.post('/videos/:id/review', coachController.reviewVideo);
+router.post('/uploads',          coachController.addUpload);
+router.get('/matches',           coachController.getMatches);
+router.get('/referrals',         coachController.getReferrals);
+
+module.exports = router;

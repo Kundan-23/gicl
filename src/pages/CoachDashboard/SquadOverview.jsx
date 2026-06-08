@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCoachStore } from '../../store/useCoachStore';
-import { useConfigStore } from '../../store/useConfigStore';
+import { useConfig } from '../../context/ConfigContext';
 import { Users, X, User, Video, Plus, ChevronDown, ChevronRight, PlaySquare } from 'lucide-react';
 
 const SquadOverview = () => {
   const { dashboardData = {}, onboardingData = {}, addUpload } = useCoachStore();
   const { allocatedPlayers = [], myUploads = [] } = dashboardData;
-  const { ageGroups, maxSquadSize = 20 } = useConfigStore();
+  const { age_groups: ageGroups, maxSquadSize = 20 } = useConfig();
   
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All');

@@ -1,18 +1,35 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, CheckCircle2, ChevronDown, ChevronUp, Star } from 'lucide-react';
-import { useConfigStore } from '../../store/useConfigStore';
-
+import Swal from 'sweetalert2';
+import { useConfig } from '../../context/ConfigContext';
+import { paymentAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import { useFormStore } from '../../store/useFormStore';
 
 
 const Step3_Payment = () => {
   const navigate = useNavigate();
-  const { plans } = useConfigStore();
+  const { user } = useAuth();
+  const { plans } = useConfig();
+  const { basicInfo } = useFormStore();
+  const referralCodeUsed = basicInfo?.referralCodeUsed || '';
   const [selectedPack, setSelectedPack] = useState(null);
   const [expandedPack, setExpandedPack] = useState(null);
   const [tcScrolled, setTcScrolled] = useState(false);
+  const [paying, setPaying] = useState(false);
   const tcRef = useRef(null);
+
+  // Load Razorpay script once
+  useEffect(() => {
+    if (document.getElementById('razorpay-script')) return;
+    const script = document.createElement('script');
+    script.id = 'razorpay-script';
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
   // Map plans to UI format
   const pricingTiers = plans.map(tier => ({
@@ -44,11 +61,56 @@ const Step3_Payment = () => {
     setExpandedPack(expandedPack === packId ? null : packId);
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (!selectedPack || !tcScrolled) return;
-    
-    alert(`Processing payment of ₹${pricingTiers.find(p => p.id === selectedPack).price}... Payment Successful!`);
-    navigate('/onboarding/step4');
+    const plan = pricingTiers.find(p => p.id === selectedPack);
+    setPaying(true);
+    try {
+      // 1. Create order on backend
+      const orderRes = await paymentAPI.createOrder(selectedPack);
+      const { orderId, amount, currency, keyId } = orderRes.data;
+
+      // 2. Open Razorpay checkout
+      const options = {
+        key: keyId,
+        amount,
+        currency,
+        name: 'GICL Sports',
+        description: plan.title,
+        order_id: orderId,
+        prefill: { email: user?.email || '' },
+        theme: { color: '#FFD700' },
+        handler: async (response) => {
+          try {
+            // 3. Verify payment on backend
+            await paymentAPI.verifyPayment({
+              razorpay_order_id:   response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature:  response.razorpay_signature,
+              planId: selectedPack,
+              referralCodeUsed: referralCodeUsed || undefined,
+            });
+            Swal.fire({ icon: 'success', title: 'Payment Successful! 🎉',
+              text: `Welcome to GICL ${plan.title}!`,
+              background: 'var(--bg-surface)', color: 'var(--text-primary)',
+              confirmButtonColor: '#FFD700', timer: 2500, showConfirmButton: false });
+            setTimeout(() => navigate('/onboarding/step4'), 2500);
+          } catch {
+            Swal.fire({ icon: 'error', title: 'Verification Failed',
+              text: 'Payment was received but verification failed. Contact support.',
+              background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
+          } finally { setPaying(false); }
+        },
+        modal: { ondismiss: () => setPaying(false) },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error',
+        text: err.response?.data?.message || 'Could not initiate payment. Try again.',
+        background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
+      setPaying(false);
+    }
   };
 
   return (
@@ -174,11 +236,11 @@ const Step3_Payment = () => {
 
             <button 
               className="btn-primary" 
-              style={{ width: '100%', opacity: tcScrolled ? 1 : 0.5, cursor: tcScrolled ? 'pointer' : 'not-allowed' }}
+              style={{ width: '100%', opacity: (tcScrolled && !paying) ? 1 : 0.5, cursor: (tcScrolled && !paying) ? 'pointer' : 'not-allowed' }}
               onClick={handlePayment}
-              disabled={!tcScrolled}
+              disabled={!tcScrolled || paying}
             >
-              Pay ₹{pricingTiers.find(p => p.id === selectedPack).price} & Continue
+              {paying ? 'Processing...' : `Pay ₹${pricingTiers.find(p => p.id === selectedPack)?.price} & Continue`}
             </button>
           </motion.div>
         )}

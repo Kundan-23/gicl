@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCoachStore } from '../../store/useCoachStore';
-import { useConfigStore } from '../../store/useConfigStore';
+import { useConfig } from '../../context/ConfigContext';
 import { ShieldPlus, CheckCircle, Trash2, Users, Plus, X } from 'lucide-react';
 
 const TeamBuilder = () => {
   const { dashboardData, createTeam } = useCoachStore();
   const { allocatedPlayers, teams } = dashboardData;
-  const { ageGroups } = useConfigStore();
+  const { age_groups: ageGroups } = useConfig();
   
   const [teamName, setTeamName] = useState('');
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);

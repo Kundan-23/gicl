@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm, Controller } from 'react-hook-form';
+import Swal from 'sweetalert2';
 import { useFormStore } from '../../store/useFormStore';
 import { Camera, CheckCircle2, FileText, Upload } from 'lucide-react';
-
-import { useConfigStore } from '../../store/useConfigStore';
+import { useConfig } from '../../context/ConfigContext';
+import { playerAPI } from '../../services/api';
 
 
 
@@ -25,9 +26,12 @@ const fieldPositionsList = [
 const Step4_PlayerProfile = () => {
   const navigate = useNavigate();
   const { basicInfo, playerProfile, updatePlayerProfile } = useFormStore();
-  const { battingStyles, bowlingStyles, clubs: mockClubs, ballTypes } = useConfigStore();
+  const { batting_styles: battingStyles, bowling_styles: bowlingStyles, clubs: mockClubs, ball_types: ballTypes } = useConfig();
   const [zoomLevel, setZoomLevel] = useState(1);
   const [customPosition, setCustomPosition] = useState('');
+  const [addressProofFile, setAddressProofFile] = useState(null);
+  const [birthCertFile, setBirthCertFile] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   
   // Calculate age from dob
   const [calculatedAge, setCalculatedAge] = useState('');
@@ -113,9 +117,28 @@ const Step4_PlayerProfile = () => {
     setValue('clubsDetails', current.map(c => c.name === club ? { ...c, allowedOutside: permission } : c));
   };
 
-  const onSubmit = (data) => {
-    updatePlayerProfile({ ...data, age: calculatedAge });
-    navigate('/onboarding/step5');
+  const onSubmit = async (data) => {
+    setSubmitting(true);
+    try {
+      updatePlayerProfile({ ...data, age: calculatedAge });
+      await playerAPI.updateProfile({
+        height: data.height, weight: data.weight,
+        battingStyle: data.battingStyle, bowlingStyle: data.bowlingStyle,
+        fieldPositions: data.fieldPositions || [],
+        ballsSelected: data.ballsSelected || [],
+        cricketHistory: data.cricketHistory,
+        clubAssociated: data.clubAssociated,
+        clubsDetails: data.clubsDetails || [],
+        instagramLink: data.instagramLink || '',
+      });
+      if (addressProofFile) await playerAPI.uploadAddressProof(addressProofFile);
+      if (birthCertFile)    await playerAPI.uploadBirthCert(birthCertFile);
+      navigate('/onboarding/step5');
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error',
+        text: err.response?.data?.message || 'Failed to save. Try again.',
+        background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
+    } finally { setSubmitting(false); }
   };
 
   return (
@@ -156,7 +179,7 @@ const Step4_PlayerProfile = () => {
                       style={{ display: 'none' }} 
                       onChange={(e) => {
                         const file = e.target.files[0];
-                        if (file) onChange(file.name);
+                        if (file) { setAddressProofFile(file); onChange(file.name); }
                       }} 
                     />
                   </label>
@@ -185,7 +208,7 @@ const Step4_PlayerProfile = () => {
                       style={{ display: 'none' }} 
                       onChange={(e) => {
                         const file = e.target.files[0];
-                        if (file) onChange(file.name);
+                        if (file) { setBirthCertFile(file); onChange(file.name); }
                       }} 
                     />
                   </label>
@@ -315,7 +338,7 @@ const Step4_PlayerProfile = () => {
                     position: 'relative'
                   }}
                 >
-                  <img src={ball.image} alt={ball.name} style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
+                  <img src={ball.imageUrl} alt={ball.name} style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
                   <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{ball.name}</span>
                   {isSelected && <CheckCircle2 size={16} color="var(--brand-primary)" style={{ position: 'absolute', top: 5, right: 5 }} />}
                 </div>
@@ -582,8 +605,8 @@ const Step4_PlayerProfile = () => {
           )}
         </div>
 
-        <button type="submit" className="btn-primary" disabled={watchBallsSelected.length === 0 || (watchClubAssociated === 'yes' && (watch('clubsDetails') || []).length === 0)}>
-          Continue to Gameplay Upload
+        <button type="submit" className="btn-primary" disabled={submitting || watchBallsSelected.length === 0 || (watchClubAssociated === 'yes' && (watch('clubsDetails') || []).length === 0)}>
+          {submitting ? 'Saving...' : 'Save & Continue'}
         </button>
       </form>
     </motion.div>

@@ -1,24 +1,116 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Navigate } from 'react-router-dom';
 import { useFormStore } from '../../store/useFormStore';
+import { playerAPI } from '../../services/api';
+import Swal from 'sweetalert2';
 import { User, Award, Activity, Star, Info, Shirt, Users, Video } from 'lucide-react';
 
 const PlayerDashboard = () => {
-  const { basicInfo, playerProfile, media, dashboardState, updateDashboard } = useFormStore();
+  const { basicInfo, playerProfile, media, dashboardState, updateDashboard, updateBasicInfo, updatePlayerProfile } = useFormStore();
   const fileInputRef = useRef(null);
 
-  const handlePhotoUpload = (e) => {
+  // Track whether we've loaded from API yet — prevents flash redirect
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
+  // Sync ALL profile data from backend on every mount (handles refresh / new login)
+  useEffect(() => {
+    playerAPI.getProfile()
+      .then((res) => {
+        const p = res.data?.player || res.data;
+        if (!p) { setProfileLoaded(true); return; }
+
+        // Calculate age from dob
+        let age = '';
+        if (p.dob) {
+          const diff = Date.now() - new Date(p.dob).getTime();
+          age = String(Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000)));
+        }
+
+        // Sync basicInfo (personal details)
+        updateBasicInfo({
+          giclId:           p.gicl_id          || basicInfo.giclId,
+          firstName:        p.first_name        || basicInfo.firstName,
+          lastName:         p.last_name         || basicInfo.lastName,
+          dob:              p.dob               || basicInfo.dob,
+          gender:           p.gender            || basicInfo.gender,
+          whatsapp:         p.whatsapp          || basicInfo.whatsapp,
+          bloodGroup:       p.blood_group       || basicInfo.bloodGroup,
+          parentName:       p.parent_name       || basicInfo.parentName,
+          addressLine1:     p.address_line1     || basicInfo.addressLine1,
+          city:             p.city              || basicInfo.city,
+          state:            p.city              || basicInfo.state,
+          district:         p.city              || basicInfo.district,
+          country:          p.country           || basicInfo.country,
+          zipCode:          p.zip_code          || basicInfo.zipCode,
+          referralCode:     p.referral_code     || basicInfo.referralCode,
+          jerseySize:       p.jersey_size       || basicInfo.jerseySize,
+          jerseyName:       p.first_name        || basicInfo.jerseyName,
+          instagramLink:    p.instagram_link    || basicInfo.instagramLink,
+        });
+
+        // Sync playerProfile (cricket details)
+        updatePlayerProfile({
+          battingStyle:     p.batting_style     || playerProfile.battingStyle,
+          bowlingStyle:     p.bowling_style     || playerProfile.bowlingStyle,
+          height:           p.height            || playerProfile.height,
+          weight:           p.weight            || playerProfile.weight,
+          jerseySize:       p.jersey_size       || playerProfile.jerseySize,
+          age:              age                 || playerProfile.age,
+          ballsSelected:    Array.isArray(p.balls_selected)  ? p.balls_selected  : (playerProfile.ballsSelected  || []),
+          fieldPositions:   Array.isArray(p.field_positions) ? p.field_positions : (playerProfile.fieldPositions || []),
+          clubsDetails:     Array.isArray(p.clubs_details)   ? p.clubs_details   : (playerProfile.clubsDetails   || []),
+          cricketHistory:   Array.isArray(p.cricket_history) ? p.cricket_history : (playerProfile.cricketHistory || []),
+          clubAssociated:   p.club_associated   || playerProfile.clubAssociated,
+        });
+
+        // Sync dashboardState — use actual DB value, not stale store default
+        updateDashboard({
+          isDashboardUnlocked: !!p.is_dashboard_unlocked,
+          profilePhotoUrl:     p.profile_photo_url || dashboardState.profilePhotoUrl,
+          referralPoints:      p.referral_balance  ?? dashboardState.referralPoints,
+        });
+      })
+      .catch(() => { /* silent — show local store data as fallback */ })
+      .finally(() => setProfileLoaded(true)); // always mark as loaded
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [photoUploading, setPhotoUploading] = useState(false);
+
+  const handlePhotoUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        updateDashboard({ profilePhotoUrl: reader.result });
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onloadend = () => updateDashboard({ profilePhotoUrl: reader.result });
+    reader.readAsDataURL(file);
+    // Upload to backend
+    setPhotoUploading(true);
+    try {
+      const res = await playerAPI.uploadPhoto(file);
+      const url = res.data?.url;
+      if (url) updateDashboard({ profilePhotoUrl: url });
+      Swal.fire({ icon: 'success', title: 'Photo Updated!', timer: 1500, showConfirmButton: false,
+        background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+    } catch {
+      Swal.fire({ icon: 'error', title: 'Upload failed', text: 'Please try again.',
+        background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
+    } finally { setPhotoUploading(false); }
   };
 
+  // Show spinner while waiting for API — prevents flash redirect
+  if (!profileLoaded) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ width: 40, height: 40, border: '3px solid var(--bg-surface-elevated)', borderTopColor: 'var(--brand-primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Loading your profile…</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // Only redirect after we have real data from API
   if (!dashboardState.isDashboardUnlocked) {
     return <Navigate to="/dashboard/tutorials" replace />;
   }
@@ -47,13 +139,15 @@ const PlayerDashboard = () => {
               )}
             </div>
             <button 
-              onClick={() => fileInputRef.current.click()}
+              onClick={() => !photoUploading && fileInputRef.current.click()}
               style={{ 
-                position: 'absolute', bottom: -5, right: -5, backgroundColor: 'var(--brand-accent)', 
-                color: '#fff', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg-surface)' 
+                position: 'absolute', bottom: -5, right: -5, backgroundColor: photoUploading ? 'var(--text-secondary)' : 'var(--brand-accent)', 
+                color: '#fff', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg-surface)',
+                cursor: photoUploading ? 'wait' : 'pointer', fontSize: '16px', fontWeight: 700
               }}
+              title={photoUploading ? 'Uploading...' : 'Change photo'}
             >
-              +
+              {photoUploading ? '⟳' : '+'}
             </button>
             <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handlePhotoUpload} />
           </div>
@@ -107,7 +201,7 @@ const PlayerDashboard = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--bg-surface-elevated)', paddingBottom: '0.5rem' }}>
               <span className="text-small text-secondary">Location</span>
-              <span style={{ fontWeight: 500 }}>{basicInfo.state || 'N/A'}, {basicInfo.district || 'N/A'}</span>
+              <span style={{ fontWeight: 500 }}>{basicInfo.city || basicInfo.state || 'N/A'}, {basicInfo.country || basicInfo.district || 'N/A'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem' }}>
               <span className="text-small text-secondary">Referred By Code</span>

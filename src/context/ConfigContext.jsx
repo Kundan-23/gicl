@@ -1,0 +1,85 @@
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import axios from 'axios';
+
+const ConfigContext = createContext(null);
+
+// Default fallback values while loading
+const DEFAULTS = {
+  plans:          [],
+  ball_types:     [],
+  batting_styles: ['Right-hand Bat', 'Left-hand Bat'],
+  bowling_styles: ['Right-arm Fast', 'Right-arm Off Spin', 'Left-arm Orthodox', 'Right-arm Leg Spin', 'None'],
+  jersey_sizes:   ['S', 'M', 'L', 'XL', 'XXL'],
+  clubs:          [],
+  age_groups:     [],
+  banners:        [],
+  ad_banners:     [],
+  landing_bg_image:   '',
+  registration_terms: '',
+  referral:  { level1: 50, level2: 20, level3plus: 10, minCashout: 500 },
+  maxSquadSize: 20,
+};
+
+export const ConfigProvider = ({ children }) => {
+  const [config, setConfig]   = useState(DEFAULTS);
+  const [loading, setLoading] = useState(true);
+  const [lastFetched, setLastFetched] = useState(null);
+
+  const fetchConfig = useCallback(async (force = false) => {
+    // Don't re-fetch if loaded within last 60 seconds, unless forced
+    if (!force && lastFetched && Date.now() - lastFetched < 60_000) return;
+
+    try {
+      const res = await axios.get('http://localhost:3000/api/config');
+      if (res.data?.success && res.data?.config) {
+        setConfig({ ...DEFAULTS, ...res.data.config });
+        setLastFetched(Date.now());
+      }
+    } catch (err) {
+      console.warn('[ConfigContext] Failed to fetch config, using defaults:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [lastFetched]);
+
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchConfig(true);
+  }, []);
+
+  // Re-fetch when the browser tab becomes visible again
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchConfig();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [fetchConfig]);
+
+  const value = {
+    // Spread all config fields
+    ...config,
+    loading,
+    refetch: () => fetchConfig(true),
+  };
+
+  return (
+    <ConfigContext.Provider value={value}>
+      {children}
+    </ConfigContext.Provider>
+  );
+};
+
+/**
+ * useConfig() — drop-in replacement for useConfigStore()
+ * Returns all config fields from the live backend, plus a refetch() method.
+ */
+export const useConfig = () => {
+  const ctx = useContext(ConfigContext);
+  if (!ctx) throw new Error('useConfig must be used within <ConfigProvider>');
+  return ctx;
+};
+
+export default ConfigContext;

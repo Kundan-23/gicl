@@ -99,6 +99,7 @@ export const useFormStore = create(
       // Global actions
       resetForm: () => set({
         basicInfo: {
+          referralCodeUsed: '',
           referralPhone: '',
           referralFirstName: '',
           referralLastName: '',
@@ -122,6 +123,8 @@ export const useFormStore = create(
           bloodGroup: '',
           parentName: '',
           giclId: '',
+          profilePhotoUrl: '',
+          password: '',
         },
         playerProfile: {
           height: '', weight: '', age: '', addressProofDoc: '', birthCertificateDoc: '', instagramLink: '', ballsSelected: [], battingStyle: '', bowlingStyle: '', fieldPositions: [], cricketHistory: [{ level: 'International', matches: 0 }, { level: 'National', matches: 0 }, { level: 'State', matches: 0 }, { level: 'District', matches: 0 }, { level: 'Taluka', matches: 0 }], clubAssociated: 'no', clubsDetails: []
