@@ -381,7 +381,7 @@ const Step4_PlayerProfile = () => {
                     width: '100%', 
                     height: '100%',
                     objectFit: 'contain',
-                    borderRadius: '50%', 
+                    borderRadius: 'var(--radius-md)', 
                     display: 'block'
                   }} 
                 />
