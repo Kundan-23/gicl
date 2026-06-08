@@ -54,16 +54,57 @@ const Landing = () => {
   }, [isAuthenticated, role, navigate]);
 
   const handlePlayerClick = async () => {
-    // If logged in as admin/coach, log out first so player can register fresh
+    // If logged in as admin/coach, log out first so a player can register fresh
     if (isAuthenticated && role !== 'player') {
       await logout();
-    }
-    // If already logged in as player, go straight to dashboard
-    if (isAuthenticated && role === 'player') {
-      navigate('/dashboard');
-    } else {
       navigate('/login');
+      return;
     }
+
+    // If already logged in as a player → check where they left off
+    if (isAuthenticated && role === 'player') {
+      try {
+        const { authAPI } = await import('../services/api');
+        const profileRes = await authAPI.me();
+        const p = profileRes.data?.user;
+
+        if (!p) { navigate('/onboarding/step1'); return; }
+
+        // Not paid yet → payment page
+        if (p.payment_status !== 'paid') {
+          // Check if they filled step2 already (have a first name)
+          if (!p.first_name) {
+            navigate('/onboarding/step1');
+          } else {
+            navigate('/onboarding/payment');
+          }
+          return;
+        }
+
+        // Paid but dashboard not unlocked → back to payment (shouldn't happen but safe)
+        if (!p.is_dashboard_unlocked) {
+          navigate('/onboarding/payment');
+          return;
+        }
+
+        // Check step4 (cricket profile) completion
+        const hasStep4 = p.batting_style || p.bowling_style || p.height || p.weight;
+        if (!hasStep4) {
+          navigate('/onboarding/step4');
+          return;
+        }
+
+        // All complete → dashboard
+        navigate('/dashboard');
+      } catch {
+        // API failed → send to login to re-authenticate
+        navigate('/login');
+      }
+      return;
+    }
+
+    // Not logged in → go to login/register
+    navigate('/login');
   };
 
   const handleCoachClick = async () => {
