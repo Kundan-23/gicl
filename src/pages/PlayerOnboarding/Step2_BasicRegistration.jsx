@@ -342,26 +342,27 @@ const Step2_BasicRegistration = () => {
             )}
           />
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-            <Controller
-              name="emergencyContactName"
-              control={control}
-              rules={{ required: 'Required' }}
-              render={({ field }) => (
-                <div className="form-group">
-                  <label className="form-label">Emerg. Contact Name *</label>
-                  <input {...field} className="form-input" placeholder="Name" />
-                  {errors.emergencyContactName && <span className="form-error">{errors.emergencyContactName.message}</span>}
-                </div>
-              )}
-            />
+          <Controller
+            name="emergencyContactName"
+            control={control}
+            rules={{ required: 'Required' }}
+            render={({ field }) => (
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">Emergency Contact Name *</label>
+                <input {...field} className="form-input" placeholder="Enter full name" />
+                {errors.emergencyContactName && <span className="form-error">{errors.emergencyContactName.message}</span>}
+              </div>
+            )}
+          />
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <Controller
               name="emergencyContact"
               control={control}
               rules={{ required: 'Required' }}
               render={({ field }) => (
                 <div className="form-group">
-                  <label className="form-label">Emerg. Phone *</label>
+                  <label className="form-label">Emergency Phone *</label>
                   <input {...field} className="form-input" placeholder="+91" />
                   {errors.emergencyContact && <span className="form-error">{errors.emergencyContact.message}</span>}
                 </div>
