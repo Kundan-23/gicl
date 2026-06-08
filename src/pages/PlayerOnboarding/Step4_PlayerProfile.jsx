@@ -11,16 +11,13 @@ import { playerAPI } from '../../services/api';
 
 
 const fieldPositionsList = [
-  { id: 'slip', label: 'Slip' },
-  { id: 'gully', label: 'Gully' },
+  { id: 'keeper', label: 'Keeper' },
+  { id: 'leg-side', label: 'Leg Side' },
+  { id: 'left-sweeper', label: 'Left Sweeper' },
+  { id: 'receiver', label: 'Receiver' },
   { id: 'point', label: 'Point' },
   { id: 'cover', label: 'Cover' },
-  { id: 'mid-off', label: 'Mid Off' },
-  { id: 'mid-on', label: 'Mid On' },
-  { id: 'mid-wicket', label: 'Mid Wicket' },
-  { id: 'square-leg', label: 'Square Leg' },
-  { id: 'fine-leg', label: 'Fine Leg' },
-  { id: 'third-man', label: 'Third Man' },
+  { id: 'right-sweeper', label: 'Right Sweeper' },
 ];
 
 const Step4_PlayerProfile = () => {
