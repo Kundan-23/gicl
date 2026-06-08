@@ -117,4 +117,12 @@ export const publicAPI = {
   validateReferral:(code) => API.get(`/referral/validate/${code}`),
 };
 
+// ─── Referral ──────────────────────────────────────────────
+export const referralAPI = {
+  getStats:       ()     => API.get('/referral/stats'),
+  getCashouts:    ()     => API.get('/referral/cashouts'),
+  requestCashout: (data) => API.post('/referral/cashout', data),
+  validateCode:   (code) => API.post('/referral/validate-code', { code }),
+};
+
 export default API;
