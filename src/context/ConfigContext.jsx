@@ -30,7 +30,8 @@ export const ConfigProvider = ({ children }) => {
     if (!force && lastFetched && Date.now() - lastFetched < 60_000) return;
 
     try {
-      const res = await axios.get('http://localhost:3000/api/config');
+      const base = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+      const res = await axios.get(`${base}/config`);
       if (res.data?.success && res.data?.config) {
         setConfig({ ...DEFAULTS, ...res.data.config });
         setLastFetched(Date.now());

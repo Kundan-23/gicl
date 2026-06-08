@@ -274,7 +274,8 @@ const Config = () => {
     }
     const formData = new FormData();
     formData.append('file', file);
-    const res = await axios.post(`http://localhost:3000/api${endpoint}`, formData, {
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+    const res = await axios.post(`${base}${endpoint}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data', 'Authorization': `Bearer ${localStorage.getItem('gicl_token')}` },
     });
     return res.data?.url || null;

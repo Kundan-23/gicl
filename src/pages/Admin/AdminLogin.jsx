@@ -17,7 +17,8 @@ const AdminLogin = () => {
     setError('');
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:3000/api/auth/login', { email, password });
+      const base = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+      const res = await axios.post(`${base}/auth/login`, { email, password });
       const { token, user } = res.data;
 
       if (user.role !== 'admin') {
