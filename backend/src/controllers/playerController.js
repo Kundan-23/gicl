@@ -40,13 +40,16 @@ exports.updateProfile = asyncHandler(async (req, res) => {
   if (body.addressLine2     !== undefined) updateData.address_line2     = body.addressLine2;
   if (body.city             !== undefined) updateData.city              = body.city;
   if (body.country          !== undefined) updateData.country           = body.country;
-  if (body.zipCode          !== undefined) {
+  if (body.zipCode !== undefined) {
     updateData.zip_code = body.zipCode;
-    // Resolve state code from pincode immediately so GICL ID is always correct
+  }
+  // Resolve state_code separately — stored after the main update so a missing
+  // column in the DB does NOT break profile saving.
+  let resolvedStateCode = null;
+  if (body.zipCode !== undefined) {
     try {
-      const resolvedState = await lookupPincodeState(body.zipCode);
-      updateData.state_code = resolvedState;
-      console.log(`[Pincode] Stored state_code=${resolvedState} for pincode ${body.zipCode}`);
+      resolvedStateCode = await lookupPincodeState(body.zipCode);
+      console.log(`[Pincode] Resolved state_code=${resolvedStateCode} for pincode ${body.zipCode}`);
     } catch (e) {
       console.error('[Pincode] State lookup failed:', e.message);
     }
@@ -116,6 +119,17 @@ exports.updateProfile = asyncHandler(async (req, res) => {
 
   if (error) throw new Error('Failed to update profile: ' + error.message);
 
+  // ── Save state_code separately (safe — won't crash if column doesn't exist yet) ──
+  if (resolvedStateCode) {
+    try {
+      await supabase.from('players').update({ state_code: resolvedStateCode }).eq('id', req.user.id);
+      player.state_code = resolvedStateCode;
+    } catch (scErr) {
+      // Column may not exist yet — run: ALTER TABLE players ADD COLUMN state_code TEXT;
+      console.warn('[Pincode] Could not save state_code (column missing?). Run DB migration 003_state_code.sql');
+    }
+  }
+
   // ── Auto-generate GICL ID when gameplay links are submitted (Step 5) ──
   if (gl !== undefined && !player.gicl_id) {
     try {
@@ -131,9 +145,8 @@ exports.updateProfile = asyncHandler(async (req, res) => {
       const month     = String(now.getMonth() + 1).padStart(2, '0');
       const year      = String(now.getFullYear());
 
-      // Use pre-resolved state_code from DB (set when player saved their zipCode in Step 2).
-      // If missing for any reason, resolve it now from the pincode — never use the old 1-digit map.
-      let stateCode = player.state_code;
+      // Priority: 1. resolvedStateCode from this request, 2. stored state_code in DB, 3. look up now
+      let stateCode = resolvedStateCode || player.state_code;
       if (!stateCode && player.zip_code) {
         stateCode = await lookupPincodeState(player.zip_code);
       }
