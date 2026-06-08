@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'http://localhost:3000/api' });
+const API = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api' });
 
 API.interceptors.request.use(cfg => {
   const token = localStorage.getItem('gicl_token');
@@ -14,7 +14,7 @@ API.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('gicl_token');
       localStorage.removeItem('gicl_user');
-      window.location.href = '/admin-login';
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
