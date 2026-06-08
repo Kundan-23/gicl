@@ -34,6 +34,7 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [coaches, setCoaches] = useState([]);
   const [topReferrers, setTopReferrers] = useState([]);
+  const [recentPlayers, setRecentPlayers] = useState([]);
   const [extraLoading, setExtraLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -42,6 +43,7 @@ const AdminDashboard = () => {
       try {
         const res = await adminAPI.getStats();
         setStats(res.data?.stats || res.data);
+        setRecentPlayers(res.data?.recentPlayers || []);
       } catch (err) {
         Swal.fire({
           icon: 'error', title: 'Failed to load stats',
@@ -90,10 +92,10 @@ const AdminDashboard = () => {
     { title: 'Est. Revenue',          value: extraLoading ? null : ((stats?.paidPlayers || 0) * 299).toLocaleString('en-IN'), icon: IndianRupee, color: '#10b981', bg: 'rgba(16,185,129,0.12)', prefix: '₹' },
   ];
 
-  const recent = stats?.recentPlayers || stats?.recentRegistrations || [];
+  const recent = recentPlayers;
 
-  const thStyle = { padding: '0.85rem 1.25rem', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' };
-  const tdStyle = { padding: '1rem 1.25rem', fontSize: '0.875rem', color: 'var(--text-primary)', whiteSpace: 'nowrap' };
+  const thStyle = { padding: '0.85rem 1.25rem', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap', textAlign: 'left' };
+  const tdStyle = { padding: '1rem 1.25rem', fontSize: '0.875rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', textAlign: 'left' };
 
   return (
     <div>
