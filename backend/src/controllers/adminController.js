@@ -165,6 +165,7 @@ exports.getCoaches = asyncHandler(async (req, res) => {
 exports.createCoach = asyncHandler(async (req, res) => {
   const bcrypt = require('bcryptjs');
   const { generateCoachGiclId } = require('../utils/giclId');
+  const { generateReferralCode } = require('../utils/referralCode');
   const {
     firstName, lastName, email, whatsapp, password,
     dob, gender, bloodGroup, emergencyContact, emergencyContactName,
@@ -176,6 +177,7 @@ exports.createCoach = asyncHandler(async (req, res) => {
 
   const password_hash = await bcrypt.hash(password || 'GICL@Coach123', 12);
   const gicl_id = await generateCoachGiclId(zipCode);
+  const referral_code = generateReferralCode();
 
   const insertData = {
     first_name: firstName,
@@ -186,6 +188,7 @@ exports.createCoach = asyncHandler(async (req, res) => {
     role: 'coach',
     status: 'Active',
     gicl_id,
+    referral_code,
   };
 
   if (dob)                    insertData.dob                    = dob;

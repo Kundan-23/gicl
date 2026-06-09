@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useCoachStore } from '../../store/useCoachStore';
 import { Share2, Copy, CheckCircle, Gift, Users } from 'lucide-react';
 
 const CoachReferralSystem = () => {
-  const { referralCode, referralPoints = 0 } = useCoachStore();
+  const { referralCode, referralPoints = 0, fetchReferrals } = useCoachStore();
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    fetchReferrals();
+  }, [fetchReferrals]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralCode || '');
