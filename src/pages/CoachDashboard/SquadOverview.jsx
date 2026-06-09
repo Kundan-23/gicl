@@ -5,8 +5,7 @@ import { useConfig } from '../../context/ConfigContext';
 import { Users, X, User, Video, Plus, ChevronDown, ChevronRight, PlaySquare } from 'lucide-react';
 
 const SquadOverview = () => {
-  const { dashboardData = {}, onboardingData = {}, addUpload } = useCoachStore();
-  const { allocatedPlayers = [], myUploads = [] } = dashboardData;
+  const { allocatedPlayers = [], profile } = useCoachStore();
   const { age_groups: ageGroups, maxSquadSize = 20 } = useConfig();
   
   const [selectedPlayer, setSelectedPlayer] = useState(null);

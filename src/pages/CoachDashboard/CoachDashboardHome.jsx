@@ -6,17 +6,15 @@ import { Users, Calendar, Video, ArrowRight, Activity, ShieldCheck } from 'lucid
 import { useNavigate } from 'react-router-dom';
 
 const CoachDashboardHome = () => {
-  const { dashboardData } = useCoachStore();
+  const { allocatedPlayers = [], matches = [], profile, videos = [] } = useCoachStore();
   const { maxSquadSize = 20 } = useConfig();
   const navigate = useNavigate();
 
-  const squadSize = dashboardData.allocatedPlayers?.length || 0;
-  const upcomingMatchesCount = dashboardData.upcomingMatches?.length || 0;
-  
-  // Scrutiny stats for my uploads
-  const myUploads = dashboardData.myUploads || [];
-  const pendingCount = myUploads.filter(u => u.status === 'pending' || !u.status).length;
-  const rejectedCount = myUploads.filter(u => u.status === 'rejected').length;
+  const squadSize = allocatedPlayers.length;
+  const upcomingMatchesCount = matches.length;
+
+  // Pending player videos to review
+  const pendingVideos = videos.filter(v => v.status !== 'Reviewed').length;
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
@@ -56,21 +54,11 @@ const CoachDashboardHome = () => {
             <div style={{ backgroundColor: 'rgba(255, 199, 44, 0.1)', padding: '0.75rem', borderRadius: '50%' }}>
               <Video size={24} color="var(--brand-primary)" />
             </div>
-            <h3 className="text-small text-secondary">My Uploads</h3>
+            <h3 className="text-small text-secondary">Pending Player Videos</h3>
           </div>
-          <div style={{ display: 'flex', gap: '1.5rem' }}>
-            <div>
-              <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{pendingCount}</p>
-              <p className="text-small text-secondary">Pending</p>
-            </div>
-            {rejectedCount > 0 && (
-              <div>
-                <p style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--error)' }}>{rejectedCount}</p>
-                <p className="text-small" style={{ color: 'var(--error)' }}>Rejected</p>
-              </div>
-            )}
-          </div>
+          <p style={{ fontSize: '2rem', fontWeight: 800 }}>{pendingVideos}</p>
         </div>
+
       </div>
 
       <h2 className="heading-2" style={{ marginBottom: '1rem' }}>Quick Actions</h2>

@@ -4,8 +4,7 @@ import { useCoachStore } from '../../store/useCoachStore';
 import { Video, CheckCircle, MessageSquare } from 'lucide-react';
 
 const VideoScrutiny = () => {
-  const { dashboardData, submitVideoReview } = useCoachStore();
-  const { videos } = dashboardData;
+  const { videos = [], submitVideoReview } = useCoachStore();
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [reviewText, setReviewText] = useState('');
   const [reviewFlag, setReviewFlag] = useState(''); // 'red', 'yellow', 'green'

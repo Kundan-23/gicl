@@ -4,8 +4,7 @@ import { useCoachStore } from '../../store/useCoachStore';
 import { Calendar as CalendarIcon, MapPin, Clock, Share2 } from 'lucide-react';
 
 const CoachMatchesCalendar = () => {
-  const { dashboardData } = useCoachStore();
-  const { upcomingMatches } = dashboardData;
+  const { matches: upcomingMatches = [] } = useCoachStore();
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>

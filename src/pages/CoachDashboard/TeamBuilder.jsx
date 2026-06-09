@@ -5,8 +5,7 @@ import { useConfig } from '../../context/ConfigContext';
 import { ShieldPlus, CheckCircle, Trash2, Users, Plus, X } from 'lucide-react';
 
 const TeamBuilder = () => {
-  const { dashboardData, createTeam } = useCoachStore();
-  const { allocatedPlayers, teams } = dashboardData;
+  const { allocatedPlayers = [], teams = [], createTeam } = useCoachStore();
   const { age_groups: ageGroups } = useConfig();
   
   const [teamName, setTeamName] = useState('');

@@ -4,8 +4,8 @@ import { useCoachStore } from '../../store/useCoachStore';
 import { Video, PlaySquare } from 'lucide-react';
 
 const CoachUploads = () => {
-  const { dashboardData, addUpload } = useCoachStore();
-  const { myUploads = [] } = dashboardData || {};
+  const { profile, addUpload } = useCoachStore();
+  const myUploads = profile?.my_uploads || [];
   
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadUrl, setUploadUrl] = useState('');

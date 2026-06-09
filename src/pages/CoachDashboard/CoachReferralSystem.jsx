@@ -4,20 +4,20 @@ import { useCoachStore } from '../../store/useCoachStore';
 import { Share2, Copy, CheckCircle, Gift, Users } from 'lucide-react';
 
 const CoachReferralSystem = () => {
-  const { dashboardData, simulateCoachReferral } = useCoachStore();
+  const { referralCode, referralPoints = 0 } = useCoachStore();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(dashboardData.myReferralCode);
+    navigator.clipboard.writeText(referralCode || '');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleEncash = () => {
-    if (dashboardData.referralPoints > 0) {
-      alert(`Successfully sent request to encash ${dashboardData.referralPoints} points! Our team will contact you.`);
+    if (referralPoints > 0) {
+      alert(`Successfully sent request to encash ${referralPoints} points! Our team will contact you.`);
     } else {
-      alert("You need at least 0.5 points to encash.");
+      alert('You need at least 0.5 points to encash.');
     }
   };
 
@@ -39,7 +39,7 @@ const CoachReferralSystem = () => {
           
           <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px dashed var(--brand-primary)' }}>
             <span style={{ fontSize: '1.25rem', fontWeight: 700, letterSpacing: '2px', color: 'var(--text-primary)' }}>
-              {dashboardData.myReferralCode}
+              {referralCode || 'Not assigned yet'}
             </span>
             <button onClick={handleCopy} style={{ background: 'none', color: 'var(--brand-accent)' }}>
               {copied ? <CheckCircle size={20} color="var(--success)" /> : <Copy size={20} />}
@@ -57,14 +57,14 @@ const CoachReferralSystem = () => {
         <div style={{ backgroundColor: 'var(--bg-surface)', padding: '2rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <h3 className="heading-3">Points Balance</h3>
-            <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--brand-primary)' }}>{dashboardData.referralPoints}</span>
+            <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--brand-primary)' }}>{referralPoints}</span>
           </div>
 
           <p className="text-small" style={{ marginBottom: '1.5rem', opacity: 0.8 }}>
             Points can be encashed for real rewards. You earn 0.5 points when someone registers using your code.
           </p>
 
-          <button className="btn-secondary" style={{ marginTop: 'auto' }} onClick={handleEncash} disabled={dashboardData.referralPoints === 0}>
+          <button className="btn-secondary" style={{ marginTop: 'auto' }} onClick={handleEncash} disabled={referralPoints === 0}>
             Encash Points
           </button>
         </div>
@@ -84,36 +84,9 @@ const CoachReferralSystem = () => {
         </div>
 
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--bg-surface-elevated)', color: 'var(--text-secondary)' }}>
-                <th style={{ padding: '1rem', fontWeight: 500 }}>Referred Person</th>
-                <th style={{ padding: '1rem', fontWeight: 500 }}>Status</th>
-                <th style={{ padding: '1rem', fontWeight: 500 }}>Points Earned</th>
-              </tr>
-            </thead>
-            <tbody>
-              {dashboardData.referrals.length > 0 ? (
-                dashboardData.referrals.map((ref, idx) => (
-                  <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '1rem', fontWeight: 500 }}>{ref.name}</td>
-                    <td style={{ padding: '1rem' }}>
-                      <span style={{ fontSize: '0.75rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)', padding: '0.25rem 0.5rem', borderRadius: 'var(--radius-full)' }}>
-                        {ref.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: '1rem', color: 'var(--brand-primary)', fontWeight: 600 }}>+{ref.pointsEarned} Pts</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="3" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                    You haven't referred anyone yet. Share your code to start earning!
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+            Share your referral code to start earning points!
+          </div>
         </div>
       </div>
 
