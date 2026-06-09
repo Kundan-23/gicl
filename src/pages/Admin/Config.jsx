@@ -164,6 +164,7 @@ const Config = () => {
   const [ageGroups, setAgeGroups] = useState([]); // array of { cat, sub, color }
   const [showAgeForm, setShowAgeForm] = useState(false);
   const [newAge, setNewAge] = useState({ cat: '', sub: '', color: '#F9CB1A' });
+  const [maxPlayersPerCoach, setMaxPlayersPerCoach] = useState(20);
 
   // Tab 5 — Registration T&C
   const [regTerms, setRegTerms] = useState('');
@@ -209,6 +210,7 @@ const Config = () => {
           setBallTypes(cfg.ballTypes.map(b => typeof b === 'string' ? { name: b, imageUrl: '' } : b));
         }
         if (Array.isArray(cfg.age_groups)) setAgeGroups(cfg.age_groups);
+        if (cfg.max_players_per_coach !== undefined) setMaxPlayersPerCoach(cfg.max_players_per_coach);
 
         // Tab 5
         if (cfg.registration_terms !== undefined) setRegTerms(cfg.registration_terms || '');
@@ -775,8 +777,25 @@ const Config = () => {
                     Cancel
                   </button>
                 </div>
-              )
             }
+          </Section>
+
+          <Section
+            title="Coach Allotment limit"
+            description="Set the maximum number of players that can be assigned to a single coach."
+            onSave={() => save('coachAllotment', { max_players_per_coach: parseInt(maxPlayersPerCoach, 10) || 20 })}
+            saving={savingSection === 'coachAllotment'}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <label style={{ fontSize: '0.9rem', fontWeight: 600 }}>Max Players per Coach</label>
+              <input
+                type="number"
+                value={maxPlayersPerCoach}
+                onChange={e => setMaxPlayersPerCoach(e.target.value)}
+                style={{ ...inputStyle, width: '100px' }}
+                min="1"
+              />
+            </div>
           </Section>
         </>
       )}

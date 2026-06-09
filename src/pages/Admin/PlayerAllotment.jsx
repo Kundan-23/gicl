@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { adminAPI } from '../../services/adminAPI';
+import { useConfig } from '../../context/ConfigContext';
 import { Users, Search, UserCog, RefreshCw, Shuffle, CheckCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-const MAX_SQUAD = 15;
-
 const PlayerAllotment = () => {
+  const config = useConfig();
+  const MAX_SQUAD = config.max_players_per_coach || 20;
+
   const [unassigned, setUnassigned]   = useState([]);
   const [coaches, setCoaches]         = useState([]);
   const [allPlayers, setAllPlayers]   = useState([]);
