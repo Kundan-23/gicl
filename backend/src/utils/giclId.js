@@ -1,49 +1,74 @@
 const supabase = require('../config/supabase');
 
-// Map first digit of pincode → Indian state abbreviation
-const PINCODE_STATE_MAP = {
-  '1': 'DL',  // Delhi
-  '2': 'RJ',  // Rajasthan
-  '3': 'GJ',  // Gujarat
-  '4': 'MH',  // Maharashtra
-  '5': 'AP',  // Andhra Pradesh / Telangana
-  '6': 'TN',  // Tamil Nadu / Kerala
-  '7': 'WB',  // West Bengal
-  '8': 'MP',  // Madhya Pradesh
-  '9': 'UP',  // Uttar Pradesh
+/**
+ * Resolve a pincode → 2-char Indian state abbreviation.
+ * Checks 3-digit prefix first (for disambiguation like Goa vs Maharashtra),
+ * then falls back to 1-digit prefix.
+ */
+const PINCODE_PREFIX3_MAP = {
+  '403': 'GA',  // Goa
+  '110': 'DL',  // Delhi
+  '201': 'UP',  // Uttar Pradesh (Noida overlap)
 };
 
+const PINCODE_PREFIX1_MAP = {
+  '1': 'DL',  // Delhi / Haryana / Punjab
+  '2': 'RJ',  // Rajasthan / UP (west)
+  '3': 'GJ',  // Gujarat
+  '4': 'MH',  // Maharashtra / MP / CG
+  '5': 'AP',  // Andhra Pradesh / Telangana
+  '6': 'KL',  // Kerala / TN
+  '7': 'WB',  // West Bengal / Odisha / NE
+  '8': 'MP',  // Madhya Pradesh / CG
+  '9': 'UP',  // Uttar Pradesh / UK
+};
+
+// Legacy export for any code using the old flat map
+const PINCODE_STATE_MAP = PINCODE_PREFIX1_MAP;
+
+function resolveState(zipCode) {
+  const pin = String(zipCode || '').replace(/\D/g, '');
+  if (!pin) return 'IN';
+  // Check 3-digit prefix first
+  const prefix3 = PINCODE_PREFIX3_MAP[pin.slice(0, 3)];
+  if (prefix3) return prefix3;
+  // Fallback to 1-digit prefix
+  return PINCODE_PREFIX1_MAP[pin[0]] || 'IN';
+}
+
 /**
- * Generate GICL ID in format: GICL00001062026MH
+ * Generate Player GICL ID in format: GICL00001062026MH
  * GICL + 5-digit-seq + 2-digit-month + 4-digit-year + 2-char-state
- * Uses atomic DB increment to prevent duplicate sequence numbers.
+ * Uses atomic DB increment via Supabase RPC.
  *
- * @param {string} zipCode - Player/Coach pincode
+ * @param {string} zipCode - Player pincode
  * @returns {Promise<{ giclId: string, registrationNumber: number }>}
  */
 async function generateGiclId(zipCode) {
-  // Atomic increment via Supabase RPC to prevent race conditions
   const { data, error } = await supabase.rpc('increment_registration_number');
-
   if (error) throw new Error('Failed to generate registration number: ' + error.message);
 
   const seq   = String(data).padStart(5, '0');
   const now   = new Date();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const year  = String(now.getFullYear());
-  const state = PINCODE_STATE_MAP[String(zipCode || '400001')[0]] || 'IN';
+  const state = resolveState(zipCode);
 
   const giclId = `GICL${seq}${month}${year}${state}`;
   return { giclId, registrationNumber: data };
 }
 
 /**
- * Generate Coach GICL ID in format: GICLC0001GA
- * GICLC + 4-digit-seq + GA  (Global Academy suffix)
- * Uses a separate coach counter stored in app_config.next_coach_number
+ * Generate Coach GICL ID in format: GICL0001062026GA
+ * Same logic as players but:
+ *   - 4-digit sequence (coach counter, separate from players)
+ *   - State derived from coach's pincode
+ *
+ * @param {string} zipCode - Coach pincode
+ * @returns {Promise<string>} e.g. "GICL0001062026GA"
  */
-async function generateCoachGiclId() {
-  // Get and increment coach counter atomically
+async function generateCoachGiclId(zipCode) {
+  // Get and increment coach counter from app_config
   const { data: cfg, error: fetchErr } = await supabase
     .from('app_config')
     .select('next_coach_number')
@@ -52,14 +77,18 @@ async function generateCoachGiclId() {
 
   if (fetchErr) throw new Error('Failed to fetch coach counter: ' + fetchErr.message);
 
-  const seq = String(cfg?.next_coach_number || 1).padStart(4, '0');
+  const seq   = String(cfg?.next_coach_number || 1).padStart(4, '0');
+  const now   = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year  = String(now.getFullYear());
+  const state = resolveState(zipCode);
 
   await supabase
     .from('app_config')
     .update({ next_coach_number: (cfg?.next_coach_number || 1) + 1 })
     .eq('id', 1);
 
-  return `GICLC${seq}GA`;
+  return `GICL${seq}${month}${year}${state}`;
 }
 
-module.exports = { generateGiclId, generateCoachGiclId, PINCODE_STATE_MAP };
+module.exports = { generateGiclId, generateCoachGiclId, PINCODE_STATE_MAP, resolveState };

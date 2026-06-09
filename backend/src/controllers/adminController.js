@@ -175,7 +175,7 @@ exports.createCoach = asyncHandler(async (req, res) => {
   } = req.body;
 
   const password_hash = await bcrypt.hash(password || 'GICL@Coach123', 12);
-  const gicl_id = await generateCoachGiclId();
+  const gicl_id = await generateCoachGiclId(zipCode);
 
   const insertData = {
     first_name: firstName,
