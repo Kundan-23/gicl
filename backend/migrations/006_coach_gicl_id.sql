@@ -8,3 +8,8 @@ ALTER TABLE app_config
 -- Also add gicl_id to coaches table if it wasn't added before
 ALTER TABLE coaches
   ADD COLUMN IF NOT EXISTS gicl_id TEXT UNIQUE;
+
+-- Document upload columns for coaches
+ALTER TABLE coaches
+  ADD COLUMN IF NOT EXISTS birth_cert_url TEXT,
+  ADD COLUMN IF NOT EXISTS address_proof_url TEXT;

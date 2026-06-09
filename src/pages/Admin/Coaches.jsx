@@ -320,50 +320,70 @@ const Coaches = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderBottom: '1px solid var(--border-subtle)' }}>
-                  <th style={thStyle}>Photo</th>
-                  <th style={thStyle}>Name</th>
-                  <th style={thStyle}>Email</th>
-                  <th style={thStyle}>WhatsApp</th>
-                  <th style={thStyle}>City</th>
-                  <th style={thStyle}>Styles</th>
+                  <th style={thStyle}>Coach ID</th>
+                  <th style={thStyle}>First Name</th>
+                  <th style={thStyle}>Last Name</th>
+                  <th style={thStyle}>Date of Birth</th>
+                  <th style={thStyle}>Age</th>
+                  <th style={thStyle}>Whatsapp</th>
+                  <th style={thStyle}>Location</th>
+                  <th style={thStyle}>Pincode</th>
+                  <th style={thStyle}>Birth Certificate</th>
+                  <th style={thStyle}>Address Proof</th>
                   <th style={thStyle}>Status</th>
                   <th style={thStyle}>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {coaches.map((c, i) => (
-                  <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s' }}
-                    onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'}
-                    onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <td style={tdStyle}>
-                      {c.profile_photo_url
-                        ? <img src={c.profile_photo_url} alt="coach" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--brand-primary)' }} />
-                        : <div style={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: 'rgba(249,203,26,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{c.first_name?.[0]}{c.last_name?.[0]}</div>
-                      }
-                    </td>
-                    <td style={{ ...tdStyle, fontWeight: 600 }}>{c.first_name} {c.last_name}</td>
-                    <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{c.email}</td>
-                    <td style={tdStyle}>{c.whatsapp || '—'}</td>
-                    <td style={tdStyle}>{c.city || '—'}</td>
-                    <td style={{ ...tdStyle, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                      {[c.batting_style, c.bowling_style].filter(Boolean).join(' / ') || '—'}
-                    </td>
-                    <td style={tdStyle}>
-                      <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: c.status === 'Active' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: c.status === 'Active' ? '#10b981' : '#ef4444', border: `1px solid ${c.status === 'Active' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
-                        {c.status || 'Active'}
-                      </span>
-                    </td>
-                    <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => setModal(c)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-md)', background: 'rgba(96,165,250,0.1)', color: 'var(--brand-accent)', border: '1px solid rgba(96,165,250,0.25)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
-                        <Pencil size={13} /> Edit
-                      </button>
-                      <button onClick={() => handleDelete(c)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-md)', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
-                        <Trash2 size={13} /> Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {coaches.map((c) => {
+                  const age = c.dob
+                    ? Math.floor((Date.now() - new Date(c.dob)) / (365.25 * 24 * 60 * 60 * 1000))
+                    : null;
+                  const dob = c.dob
+                    ? new Date(c.dob).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    : '—';
+                  const docBadge = (uploaded) => (
+                    <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 700,
+                      backgroundColor: uploaded ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.12)',
+                      color: uploaded ? '#10b981' : '#ef4444',
+                      border: `1px solid ${uploaded ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.25)'}` }}>
+                      {uploaded ? '✓ Done' : 'Pending'}
+                    </span>
+                  );
+                  return (
+                    <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s' }}
+                      onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'}
+                      onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--brand-primary)', fontWeight: 700, fontSize: '0.78rem' }}>{c.gicl_id || '—'}</td>
+                      <td style={{ ...tdStyle, fontWeight: 600 }}>{c.first_name}</td>
+                      <td style={{ ...tdStyle, fontWeight: 600 }}>{c.last_name}</td>
+                      <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{dob}</td>
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>{age ?? '—'}</td>
+                      <td style={tdStyle}>{c.whatsapp || '—'}</td>
+                      <td style={tdStyle}>{c.city || '—'}</td>
+                      <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{c.zip_code || '—'}</td>
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>{docBadge(c.birth_cert_url)}</td>
+                      <td style={{ ...tdStyle, textAlign: 'center' }}>{docBadge(c.address_proof_url)}</td>
+                      <td style={tdStyle}>
+                        <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700,
+                          backgroundColor: c.status === 'Active' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                          color: c.status === 'Active' ? '#10b981' : '#ef4444',
+                          border: `1px solid ${c.status === 'Active' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}` }}>
+                          {c.status || 'Active'}
+                        </span>
+                      </td>
+                      <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => setModal(c)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-md)', background: 'rgba(96,165,250,0.1)', color: 'var(--brand-accent)', border: '1px solid rgba(96,165,250,0.25)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
+                          <Pencil size={13} /> Edit
+                        </button>
+                        <button onClick={() => handleDelete(c)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-md)', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
+                          <Trash2 size={13} /> Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}
