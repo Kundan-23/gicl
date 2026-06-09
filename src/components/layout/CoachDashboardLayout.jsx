@@ -3,13 +3,11 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Users, Video, ShieldPlus, CalendarDays, LogOut, Bell, PlaySquare } from 'lucide-react';
 import { useCoachStore } from '../../store/useCoachStore';
-import { useAuthStore } from '../../store/useAuthStore';
 
 const CoachDashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { profile, fetchProfile, fetchPlayers, fetchVideos, fetchMatches, fetchReferrals, resetCoach } = useCoachStore();
-  const { logout } = useAuthStore();
 
   useEffect(() => {
     fetchProfile();
@@ -21,7 +19,7 @@ const CoachDashboardLayout = () => {
 
   const handleLogout = () => {
     resetCoach();
-    if (logout) logout();
+    localStorage.removeItem('gicl_token');
     navigate('/');
   };
 
