@@ -78,9 +78,7 @@ const CoachReferralSystem = () => {
             <Users size={20} color="var(--brand-primary)" />
             My Network
           </h3>
-          <button onClick={simulateCoachReferral} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', backgroundColor: 'var(--brand-accent)', color: '#fff', borderRadius: 'var(--radius-sm)' }}>
-            Simulate Signup (Dev)
-          </button>
+
         </div>
 
         <div style={{ overflowX: 'auto' }}>
