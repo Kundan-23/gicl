@@ -777,6 +777,7 @@ const Config = () => {
                     Cancel
                   </button>
                 </div>
+              )
             }
           </Section>
 
