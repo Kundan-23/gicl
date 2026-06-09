@@ -1,179 +1,131 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useConfigStore } from './useConfigStore';
+import { coachAPI } from '../services/api';
 
-const generateMockPlayers = () => {
-  const players = [];
-  const styles = ['Right-hand Bat', 'Left-hand Bat'];
-  const bowls = ['Right-arm Fast', 'Right-arm Off Spin', 'Left-arm Orthodox', 'Right-arm Leg Spin', 'None'];
-  
-  const ageGroups = useConfigStore.getState().ageGroups;
-
-  for (let i = 1; i <= 16; i++) {
-    const ag = ageGroups[Math.floor(Math.random() * ageGroups.length)];
-    players.push({
-      id: `P${i}`,
-      name: `Player ${i}`,
-      age: Math.floor(Math.random() * 30) + 12,
-      height: Math.floor(Math.random() * 30) + 160,
-      battingStyle: styles[Math.floor(Math.random() * styles.length)],
-      bowlingStyle: bowls[Math.floor(Math.random() * bowls.length)],
-      matchesPlayed: Math.floor(Math.random() * 50),
-      profilePic: `https://ui-avatars.com/api/?name=Player+${i}&background=0f172a&color=ffc72c`,
-      category: ag.cat,
-      subCategory: ag.sub,
-      color: ag.color
-    });
-  }
-  return players;
-};
-
-// Helper to generate mock videos for scrutiny
-const generateMockVideos = (players) => {
-  const videos = [];
-  // Randomly assign a video to 5 of the players initially
-  for (let i = 0; i < 5; i++) {
-    const player = players[Math.floor(Math.random() * players.length)];
-    videos.push({
-      id: `V${i}`,
-      playerId: player.id,
-      playerName: player.name,
-      title: 'Net Practice - Batting Footwork',
-      thumbnail: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=500&h=300&fit=crop',
-      videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
-      status: 'Pending', // Pending, Reviewed
-      reviewComment: '',
-      reviewFlag: null, // 'green', 'yellow', 'red'
-      dateUploaded: new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toISOString()
-    });
-  }
-  return videos;
-};
-
-const initialPlayers = generateMockPlayers();
-const initialVideos = generateMockVideos(initialPlayers);
-
+// ─── useCoachStore — backed by real API calls ──────────────────────────────
 export const useCoachStore = create(
   persist(
     (set, get) => ({
-      // Onboarding State
-      onboardingData: {
-        name: '',
-        age: '',
-        cricketHistory: '',
-        coachingHistory: '',
-        referralPhone: '',
-      },
-      updateOnboardingData: (data) => set((state) => ({ onboardingData: { ...state.onboardingData, ...data } })),
+      // ── Profile ──────────────────────────────────────────────────────────
+      profile: null,
+      profileLoading: false,
 
-      // Dashboard State
-      dashboardData: {
-        allocatedPlayers: initialPlayers,
-        videos: initialVideos,
-        teams: [], // Array of { id, name, playerIds: [] }
-        myUploads: [
-          { id: 'U1', title: 'Basic Batting Stance Drill', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', date: new Date().toISOString(), status: 'approved', rejectReason: '' }
-        ],
-        notifications: initialVideos.map(v => ({
-          id: `N${Math.random()}`,
-          message: `${v.playerName} uploaded a new video for scrutiny.`,
-          isRead: false,
-          date: v.dateUploaded
-        })),
-        upcomingMatches: [
-          { id: 1, date: '2026-06-05T10:00:00Z', opponent: 'Delhi Capitals', location: 'Arun Jaitley Stadium', type: 'League Match' },
-          { id: 2, date: '2026-06-20T14:30:00Z', opponent: 'Chennai Super Kings', location: 'Chepauk Stadium', type: 'Semi Final' }
-        ],
+      fetchProfile: async () => {
+        set({ profileLoading: true });
+        try {
+          const res = await coachAPI.getProfile();
+          set({ profile: res.data?.coach || null });
+        } catch (e) {
+          console.error('fetchProfile error', e);
+        } finally {
+          set({ profileLoading: false });
+        }
+      },
+
+      // ── Squad ─────────────────────────────────────────────────────────────
+      allocatedPlayers: [],
+      playersLoading: false,
+
+      fetchPlayers: async () => {
+        set({ playersLoading: true });
+        try {
+          const res = await coachAPI.getPlayers();
+          set({ allocatedPlayers: res.data?.players || [] });
+        } catch (e) {
+          console.error('fetchPlayers error', e);
+        } finally {
+          set({ playersLoading: false });
+        }
+      },
+
+      // ── Videos (Scrutiny) ────────────────────────────────────────────────
+      videos: [],
+      videosLoading: false,
+
+      fetchVideos: async () => {
+        set({ videosLoading: true });
+        try {
+          const res = await coachAPI.getVideos();
+          set({ videos: res.data?.videos || [] });
+        } catch (e) {
+          console.error('fetchVideos error', e);
+        } finally {
+          set({ videosLoading: false });
+        }
+      },
+
+      submitVideoReview: async (videoId, flag, comment) => {
+        await coachAPI.reviewVideo(videoId, { flag, comment });
+        // Refresh videos after review
+        get().fetchVideos();
+      },
+
+      // ── My Uploads ───────────────────────────────────────────────────────
+      myUploads: [],
+
+      addUpload: async (title, url) => {
+        await coachAPI.addUpload({ title, url });
+        // Optimistic update — re-fetch profile for latest uploads list
+        get().fetchProfile();
+      },
+
+      // ── Teams (custom squad groups - saved locally & to DB via profile) ──
+      teams: [],
+
+      createTeam: (teamName, playerIds) => set(state => {
+        const newTeam = { id: `T${Date.now()}`, name: teamName, playerIds };
+        return { teams: [...state.teams, newTeam] };
+      }),
+
+      deleteTeam: (teamId) => set(state => ({
+        teams: state.teams.filter(t => t.id !== teamId),
+      })),
+
+      // ── Matches ───────────────────────────────────────────────────────────
+      matches: [],
+      matchesLoading: false,
+
+      fetchMatches: async () => {
+        set({ matchesLoading: true });
+        try {
+          const res = await coachAPI.getMatches();
+          set({ matches: res.data?.matches || [] });
+        } catch (e) {
+          console.error('fetchMatches error', e);
+        } finally {
+          set({ matchesLoading: false });
+        }
+      },
+
+      // ── Referrals ─────────────────────────────────────────────────────────
+      referralCode: null,
+      referralPoints: 0,
+
+      fetchReferrals: async () => {
+        try {
+          const res = await coachAPI.getReferrals();
+          set({ referralCode: res.data?.referralCode, referralPoints: res.data?.referralPoints || 0 });
+        } catch (e) {
+          console.error('fetchReferrals error', e);
+        }
+      },
+
+      // ── Reset (on logout) ─────────────────────────────────────────────────
+      resetCoach: () => set({
+        profile: null,
+        allocatedPlayers: [],
+        videos: [],
+        myUploads: [],
+        matches: [],
+        teams: [],
+        referralCode: null,
         referralPoints: 0,
-        myReferralCode: 'COACH-' + Math.floor(1000 + Math.random() * 9000),
-        referrals: [], 
-        maxSquadSize: 20,
-      },
-      
-      // Dashboard Actions
-      addUpload: (title, url) => set((state) => {
-        const newUpload = { id: `U${Date.now()}`, title, url, date: new Date().toISOString(), status: 'pending', rejectReason: '' };
-        const currentUploads = state.dashboardData.myUploads || [];
-        return { dashboardData: { ...state.dashboardData, myUploads: [newUpload, ...currentUploads] } };
       }),
-      
-      updateUploadStatus: (id, status, reason = '') => set((state) => {
-        const updatedUploads = state.dashboardData.myUploads.map(u => 
-          u.id === id ? { ...u, status, rejectReason: reason } : u
-        );
-        return { dashboardData: { ...state.dashboardData, myUploads: updatedUploads } };
-      }),
-
-      submitVideoReview: (videoId, comment, flag) => set((state) => {
-        const updatedVideos = state.dashboardData.videos.map(v => 
-          v.id === videoId ? { ...v, status: 'Reviewed', reviewComment: comment, reviewFlag: flag } : v
-        );
-        return { dashboardData: { ...state.dashboardData, videos: updatedVideos } };
-      }),
-
-      markNotificationsRead: () => set((state) => {
-        const updatedNotifs = state.dashboardData.notifications.map(n => ({ ...n, isRead: true }));
-        return { dashboardData: { ...state.dashboardData, notifications: updatedNotifs } };
-      }),
-
-      createTeam: (teamName, playerIds) => set((state) => {
-        const newTeam = {
-          id: `T${Date.now()}`,
-          name: teamName,
-          playerIds: playerIds
-        };
-        return { dashboardData: { ...state.dashboardData, teams: [...state.dashboardData.teams, newTeam] } };
-      }),
-
-      simulateCoachReferral: () => set((state) => {
-        const newReferral = { name: `Coach/Player ${state.dashboardData.referrals.length + 1}`, status: 'Completed', pointsEarned: 0.5 };
-        return {
-          dashboardData: {
-            ...state.dashboardData,
-            referralPoints: state.dashboardData.referralPoints + 0.5,
-            referrals: [...state.dashboardData.referrals, newReferral]
-          }
-        };
-      }),
-
-      simulateAdminAllotment: () => set((state) => {
-        const styles = ['Right-hand Bat', 'Left-hand Bat'];
-        const bowls = ['Right-arm Fast', 'Right-arm Off Spin', 'Left-arm Orthodox', 'Right-arm Leg Spin', 'None'];
-        const ageGroups = useConfigStore.getState().ageGroups;
-        const ag = ageGroups[Math.floor(Math.random() * ageGroups.length)];
-        const newId = state.dashboardData.allocatedPlayers.length + 1;
-        const newPlayer = {
-          id: `P${newId + Date.now()}`,
-          name: `Mock Player ${newId}`,
-          age: Math.floor(Math.random() * 30) + 12,
-          height: Math.floor(Math.random() * 30) + 160,
-          battingStyle: styles[Math.floor(Math.random() * styles.length)],
-          bowlingStyle: bowls[Math.floor(Math.random() * bowls.length)],
-          matchesPlayed: Math.floor(Math.random() * 50),
-          profilePic: `https://ui-avatars.com/api/?name=Mock+${newId}&background=0f172a&color=ffc72c`,
-          category: ag.cat,
-          subCategory: ag.sub,
-          color: ag.color
-        };
-        return {
-          dashboardData: {
-            ...state.dashboardData,
-            allocatedPlayers: [...state.dashboardData.allocatedPlayers, newPlayer]
-          }
-        };
-      }),
-
-      resetCoachForm: () => set({
-        onboardingData: { name: '', age: '', cricketHistory: '', coachingHistory: '', referralPhone: '' }
-      }),
-
-      updateMaxSquadSize: (size) => set((state) => ({
-        dashboardData: { ...state.dashboardData, maxSquadSize: size }
-      }))
     }),
     {
       name: 'gicl-coach-storage',
-      version: 3,
+      version: 4, // bumped to clear old mock data
+      partialize: (state) => ({ teams: state.teams }), // only persist custom teams
     }
   )
 );

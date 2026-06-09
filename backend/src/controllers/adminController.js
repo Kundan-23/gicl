@@ -156,28 +156,97 @@ exports.rejectCashout = asyncHandler(async (req, res) => {
 
 // ─── Coaches CRUD ─────────────────────────────────────────────────
 exports.getCoaches = asyncHandler(async (req, res) => {
-  const { data } = await supabase.from('coaches').select('id, first_name, last_name, email, whatsapp, status, gicl_id, created_at').order('created_at', { ascending: false });
+  const { data } = await supabase.from('coaches')
+    .select('id, first_name, last_name, email, whatsapp, status, gicl_id, created_at, profile_photo_url, city, batting_style, bowling_style, blood_group, dob, gender, cricket_history, coaching_history, teams')
+    .order('created_at', { ascending: false });
   res.json({ success: true, coaches: data || [] });
 });
 
 exports.createCoach = asyncHandler(async (req, res) => {
   const bcrypt = require('bcryptjs');
-  const { firstName, lastName, email, whatsapp, password } = req.body;
+  const {
+    firstName, lastName, email, whatsapp, password,
+    dob, gender, bloodGroup, emergencyContact, emergencyContactName,
+    addressLine1, addressLine2, city, country, zipCode, stateCode,
+    battingStyle, bowlingStyle, jerseySize, instagramLink,
+    cricketHistory, coachingHistory, referredByPhone,
+    profilePhotoUrl,
+  } = req.body;
+
   const password_hash = await bcrypt.hash(password || 'GICL@Coach123', 12);
-  const { data, error } = await supabase.from('coaches')
-    .insert({ first_name: firstName, last_name: lastName, email, whatsapp, password_hash, role: 'coach', status: 'Active' })
-    .select().single();
+
+  const insertData = {
+    first_name: firstName,
+    last_name: lastName,
+    email,
+    whatsapp,
+    password_hash,
+    role: 'coach',
+    status: 'Active',
+  };
+
+  if (dob)                    insertData.dob                    = dob;
+  if (gender)                 insertData.gender                 = gender;
+  if (bloodGroup)             insertData.blood_group            = bloodGroup;
+  if (emergencyContact)       insertData.emergency_contact      = emergencyContact;
+  if (emergencyContactName)   insertData.emergency_contact_name = emergencyContactName;
+  if (addressLine1)           insertData.address_line1          = addressLine1;
+  if (addressLine2)           insertData.address_line2          = addressLine2;
+  if (city)                   insertData.city                   = city;
+  if (country)                insertData.country                = country;
+  if (zipCode)                insertData.zip_code               = zipCode;
+  if (stateCode)              insertData.state_code             = stateCode;
+  if (battingStyle)           insertData.batting_style          = battingStyle;
+  if (bowlingStyle)           insertData.bowling_style          = bowlingStyle;
+  if (jerseySize)             insertData.jersey_size            = jerseySize;
+  if (instagramLink)          insertData.instagram_link         = instagramLink;
+  if (cricketHistory)         insertData.cricket_history        = cricketHistory;
+  if (coachingHistory)        insertData.coaching_history       = coachingHistory;
+  if (referredByPhone)        insertData.referred_by_phone      = referredByPhone;
+  if (profilePhotoUrl)        insertData.profile_photo_url      = profilePhotoUrl;
+
+  const { data, error } = await supabase.from('coaches').insert(insertData).select().single();
   if (error) throw new Error('Failed to create coach: ' + error.message);
   res.status(201).json({ success: true, message: 'Coach created.', coach: data });
 });
 
 exports.updateCoach = asyncHandler(async (req, res) => {
-  const { firstName, lastName, whatsapp, status } = req.body;
+  const bcrypt = require('bcryptjs');
+  const {
+    firstName, lastName, whatsapp, status, password,
+    dob, gender, bloodGroup, emergencyContact, emergencyContactName,
+    addressLine1, addressLine2, city, country, zipCode, stateCode,
+    battingStyle, bowlingStyle, jerseySize, instagramLink,
+    cricketHistory, coachingHistory, referredByPhone,
+    profilePhotoUrl,
+  } = req.body;
+
   const updateData = {};
-  if (firstName !== undefined) updateData.first_name = firstName;
-  if (lastName  !== undefined) updateData.last_name  = lastName;
-  if (whatsapp  !== undefined) updateData.whatsapp   = whatsapp;
-  if (status    !== undefined) updateData.status     = status;
+  if (firstName !== undefined)           updateData.first_name             = firstName;
+  if (lastName  !== undefined)           updateData.last_name              = lastName;
+  if (whatsapp  !== undefined)           updateData.whatsapp               = whatsapp;
+  if (status    !== undefined)           updateData.status                 = status;
+  if (dob       !== undefined)           updateData.dob                    = dob;
+  if (gender    !== undefined)           updateData.gender                 = gender;
+  if (bloodGroup !== undefined)          updateData.blood_group            = bloodGroup;
+  if (emergencyContact !== undefined)    updateData.emergency_contact      = emergencyContact;
+  if (emergencyContactName !== undefined)updateData.emergency_contact_name = emergencyContactName;
+  if (addressLine1 !== undefined)        updateData.address_line1          = addressLine1;
+  if (addressLine2 !== undefined)        updateData.address_line2          = addressLine2;
+  if (city !== undefined)                updateData.city                   = city;
+  if (country !== undefined)             updateData.country                = country;
+  if (zipCode !== undefined)             updateData.zip_code               = zipCode;
+  if (stateCode !== undefined)           updateData.state_code             = stateCode;
+  if (battingStyle !== undefined)        updateData.batting_style          = battingStyle;
+  if (bowlingStyle !== undefined)        updateData.bowling_style          = bowlingStyle;
+  if (jerseySize !== undefined)          updateData.jersey_size            = jerseySize;
+  if (instagramLink !== undefined)       updateData.instagram_link         = instagramLink;
+  if (cricketHistory !== undefined)      updateData.cricket_history        = cricketHistory;
+  if (coachingHistory !== undefined)     updateData.coaching_history       = coachingHistory;
+  if (referredByPhone !== undefined)     updateData.referred_by_phone      = referredByPhone;
+  if (profilePhotoUrl !== undefined)     updateData.profile_photo_url      = profilePhotoUrl;
+  if (password)                          updateData.password_hash          = await bcrypt.hash(password, 12);
+
   const { error } = await supabase.from('coaches').update(updateData).eq('id', req.params.id);
   if (error) throw new Error(error.message);
   res.json({ success: true, message: 'Coach updated.' });
@@ -188,6 +257,7 @@ exports.deleteCoach = asyncHandler(async (req, res) => {
   if (error) throw new Error(error.message);
   res.json({ success: true, message: 'Coach deleted.' });
 });
+
 
 // ─── Matches CRUD ─────────────────────────────────────────────────
 exports.getMatches = asyncHandler(async (req, res) => {

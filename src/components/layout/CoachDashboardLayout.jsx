@@ -1,19 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Users, Video, ShieldPlus, CalendarDays, LogOut, Bell, PlaySquare } from 'lucide-react';
 import { useCoachStore } from '../../store/useCoachStore';
+import { useAuthStore } from '../../store/useAuthStore';
 
 const CoachDashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const navigate = useNavigate();
-  const { dashboardData, markNotificationsRead, resetCoachForm } = useCoachStore();
+  const { profile, fetchProfile, fetchPlayers, fetchVideos, fetchMatches, fetchReferrals, resetCoach } = useCoachStore();
+  const { logout } = useAuthStore();
 
-  const unreadCount = dashboardData.notifications.filter(n => !n.isRead).length;
+  useEffect(() => {
+    fetchProfile();
+    fetchPlayers();
+    fetchVideos();
+    fetchMatches();
+    fetchReferrals();
+  }, []);
 
   const handleLogout = () => {
-    resetCoachForm();
+    resetCoach();
+    if (logout) logout();
     navigate('/');
   };
 
@@ -127,42 +135,16 @@ const CoachDashboardLayout = () => {
             </h2>
           </div>
 
-          {/* Notifications Dropdown */}
-          <div style={{ position: 'relative' }}>
-            <button onClick={handleNotifClick} style={{ background: 'none', color: 'var(--text-primary)', position: 'relative' }}>
-              <Bell size={24} />
-              {unreadCount > 0 && (
-                <span style={{ position: 'absolute', top: -4, right: -4, backgroundColor: 'var(--brand-accent)', color: '#fff', fontSize: '0.65rem', fontWeight: 'bold', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            <AnimatePresence>
-              {isNotifOpen && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  style={{ position: 'absolute', right: 0, top: '120%', width: '300px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--bg-surface-elevated)', borderRadius: 'var(--radius-lg)', padding: '1rem', boxShadow: 'var(--shadow-xl)', zIndex: 30 }}
-                >
-                  <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.875rem', fontWeight: 600 }}>Notifications</h4>
-                  {dashboardData.notifications.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto' }}>
-                      {dashboardData.notifications.map(n => (
-                        <div key={n.id} style={{ fontSize: '0.875rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                          <p style={{ margin: 0, color: n.isRead ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{n.message}</p>
-                          <span style={{ fontSize: '0.7rem', color: 'var(--brand-accent)' }}>{new Date(n.date).toLocaleDateString()}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-small">No new notifications.</p>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          {/* Coach name pill */}
+          {profile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              {profile.profile_photo_url
+                ? <img src={profile.profile_photo_url} alt="coach" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--brand-primary)' }} />
+                : <div style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: 'rgba(249,203,26,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{profile.first_name?.[0]}{profile.last_name?.[0]}</div>
+              }
+              <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{profile.first_name} {profile.last_name}</span>
+            </div>
+          )}
         </header>
 
         <div style={{ flex: 1, padding: '1.5rem', overflowY: 'auto' }}>
