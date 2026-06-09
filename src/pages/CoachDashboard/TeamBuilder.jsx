@@ -4,13 +4,47 @@ import { useCoachStore } from '../../store/useCoachStore';
 import { useConfig } from '../../context/ConfigContext';
 import { ShieldPlus, CheckCircle, Trash2, Users, Plus, X } from 'lucide-react';
 
+// Compute age from ISO date string
+const calcAge = (dob) => {
+  if (!dob) return null;
+  const diff = Date.now() - new Date(dob).getTime();
+  return Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000));
+};
+
+// Determine which age-group category a player belongs to
+const getAgeGroup = (ageGroups, age) => {
+  if (!age || !ageGroups?.length) return null;
+  for (const ag of ageGroups) {
+    const [min, max] = ag.range || [];
+    if (min !== undefined && max !== undefined && age >= min && age <= max) return ag;
+  }
+  return null;
+};
+
 const TeamBuilder = () => {
   const { allocatedPlayers = [], teams = [], createTeam } = useCoachStore();
-  const { age_groups: ageGroups } = useConfig();
+  const { age_groups: ageGroups = [] } = useConfig();
   
   const [teamName, setTeamName] = useState('');
   const [selectedPlayerIds, setSelectedPlayerIds] = useState([]);
   const [filterAgeGroup, setFilterAgeGroup] = useState('All');
+
+  // Normalise real API fields to display-friendly shape
+  const players = allocatedPlayers.map(p => {
+    const age = calcAge(p.dob);
+    const ag  = getAgeGroup(ageGroups, age);
+    return {
+      ...p,
+      fullName:     `${p.first_name || ''} ${p.last_name || ''}`.trim(),
+      age,
+      photo:        p.profile_photo_url || null,
+      battingStyle: p.batting_style || '—',
+      bowlingStyle: p.bowling_style || '—',
+      category:     ag?.cat  || 'Open',
+      subCategory:  ag?.sub  || 'Open',
+      color:        ag?.color || 'var(--brand-accent)',
+    };
+  });
 
   const handleDragStart = (e, player) => {
     e.dataTransfer.setData('playerId', player.id);
@@ -21,13 +55,14 @@ const TeamBuilder = () => {
     const playerId = selectedPlayerIds[i];
     return {
       index: i,
-      player: playerId ? allocatedPlayers.find(p => p.id === playerId) : null
+      player: playerId ? players.find(p => p.id === playerId) : null
     };
   });
 
-  const allSubCats = Array.from(new Set(allocatedPlayers.map(p => p.subCategory)));
+  // Unique sub-categories present in this squad
+  const allSubCats = Array.from(new Set(players.map(p => p.subCategory)));
 
-  const availablePlayers = allocatedPlayers.filter(p => 
+  const availablePlayers = players.filter(p => 
     !selectedPlayerIds.includes(p.id) && 
     (filterAgeGroup === 'All' || p.subCategory === filterAgeGroup)
   );
@@ -57,6 +92,10 @@ const TeamBuilder = () => {
     setTeamName('');
     setSelectedPlayerIds([]);
   };
+
+  const avatarUrl = (p) =>
+    p.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.fullName || 'P')}&background=0f172a&color=ffc72c`;
+
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
@@ -137,8 +176,8 @@ const TeamBuilder = () => {
                           >
                             <X size={14} />
                           </button>
-                          <img src={slot.player.profilePic} alt="" style={{ width: '48px', height: '48px', borderRadius: '50%', marginBottom: '0.5rem', border: `2px solid ${liveColor}` }} />
-                          <span style={{ fontSize: '0.8rem', fontWeight: 600, lineHeight: 1.2 }}>{slot.player.name}</span>
+                          <img src={avatarUrl(slot.player)} alt="" style={{ width: '48px', height: '48px', borderRadius: '50%', marginBottom: '0.5rem', border: `2px solid ${liveColor}`, objectFit: 'cover' }} />
+                          <span style={{ fontSize: '0.8rem', fontWeight: 600, lineHeight: 1.2 }}>{slot.player.fullName}</span>
                           <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{slot.player.battingStyle}</span>
                         </>
                       ) : (
@@ -211,13 +250,15 @@ const TeamBuilder = () => {
                     onMouseOut={(e) => e.currentTarget.style.borderColor = 'var(--bg-surface-elevated)'}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <img src={player.profilePic} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${liveColor}` }} />
+                      <img src={avatarUrl(player)} alt="" style={{ width: '32px', height: '32px', borderRadius: '50%', border: `2px solid ${liveColor}`, objectFit: 'cover' }} />
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontWeight: 500, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          {player.name}
+                          {player.fullName}
                           <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: liveColor }}></div>
                         </span>
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{player.subCategory} | {player.battingStyle}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                          {player.subCategory}{player.age ? ` (${player.age}y)` : ''} | {player.battingStyle}
+                        </span>
                       </div>
                     </div>
                     <Plus size={16} color="var(--brand-accent)" />
