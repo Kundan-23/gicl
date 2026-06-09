@@ -77,7 +77,7 @@ async function generateCoachGiclId(zipCode) {
 
   if (fetchErr) throw new Error('Failed to fetch coach counter: ' + fetchErr.message);
 
-  const seq   = String(cfg?.next_coach_number || 1).padStart(4, '0');
+  const seq   = String(cfg?.next_coach_number || 1).padStart(5, '0');
   const now   = new Date();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const year  = String(now.getFullYear());
@@ -88,7 +88,7 @@ async function generateCoachGiclId(zipCode) {
     .update({ next_coach_number: (cfg?.next_coach_number || 1) + 1 })
     .eq('id', 1);
 
-  return `GICL${seq}${month}${year}${state}`;
+  return `GICLCO${seq}${month}${year}${state}`;
 }
 
 module.exports = { generateGiclId, generateCoachGiclId, PINCODE_STATE_MAP, resolveState };
