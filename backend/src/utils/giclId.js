@@ -37,4 +37,29 @@ async function generateGiclId(zipCode) {
   return { giclId, registrationNumber: data };
 }
 
-module.exports = { generateGiclId, PINCODE_STATE_MAP };
+/**
+ * Generate Coach GICL ID in format: GICLC0001GA
+ * GICLC + 4-digit-seq + GA  (Global Academy suffix)
+ * Uses a separate coach counter stored in app_config.next_coach_number
+ */
+async function generateCoachGiclId() {
+  // Get and increment coach counter atomically
+  const { data: cfg, error: fetchErr } = await supabase
+    .from('app_config')
+    .select('next_coach_number')
+    .eq('id', 1)
+    .single();
+
+  if (fetchErr) throw new Error('Failed to fetch coach counter: ' + fetchErr.message);
+
+  const seq = String(cfg?.next_coach_number || 1).padStart(4, '0');
+
+  await supabase
+    .from('app_config')
+    .update({ next_coach_number: (cfg?.next_coach_number || 1) + 1 })
+    .eq('id', 1);
+
+  return `GICLC${seq}GA`;
+}
+
+module.exports = { generateGiclId, generateCoachGiclId, PINCODE_STATE_MAP };
