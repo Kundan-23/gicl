@@ -67,6 +67,22 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'GICL Backend API', timestamp: new Date().toISOString() });
 });
 
+// ─── Debug: Practice Matches (temporary, no auth) ─────────
+app.get('/debug/practice-matches', async (req, res) => {
+  try {
+    const { supabase } = require('./config/supabase');
+    const { data, error } = await supabase.from('matches').select('id, title, type, match_type').order('date', { ascending: true });
+    if (error) return res.json({ error: error.message, data: null });
+    const practice = (data || []).filter(m =>
+      (m.match_type || '').toLowerCase() === 'practice' ||
+      (m.type || '').toLowerCase() === 'practice'
+    );
+    res.json({ total: data.length, practice_count: practice.length, practice, all: data });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
 // ─── API Routes ───────────────────────────────────────────
 app.use('/api/auth',     authRoutes);
 app.use('/api/player',   playerRoutes);
