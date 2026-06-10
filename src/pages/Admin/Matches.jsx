@@ -173,6 +173,9 @@ const Matches = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
+  const [squads, setSquads] = useState([]);
+  const [squadsLoading, setSquadsLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -185,6 +188,38 @@ const Matches = () => {
   };
 
   useEffect(() => { load(); }, []);
+
+  const loadSquads = async (matchId) => {
+    if (expandedId === matchId) { setExpandedId(null); return; }
+    setExpandedId(matchId);
+    setSquadsLoading(true);
+    try {
+      const r = await adminAPI.getMatchSquads(matchId);
+      setSquads(r.data?.squads || []);
+    } catch { setSquads([]); }
+    finally { setSquadsLoading(false); }
+  };
+
+  const handleApproveSquad = async (squadId, matchId) => {
+    try {
+      await adminAPI.approveSquad(squadId);
+      Swal.fire({ icon: 'success', title: 'Squad Approved!', timer: 1200, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      load();
+      const r = await adminAPI.getMatchSquads(matchId);
+      setSquads(r.data?.squads || []);
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to approve.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+    }
+  };
+
+  const handleRejectSquad = async (squadId, matchId) => {
+    try {
+      await adminAPI.rejectSquad(squadId);
+      Swal.fire({ icon: 'success', title: 'Squad Rejected', timer: 1200, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      const r = await adminAPI.getMatchSquads(matchId);
+      setSquads(r.data?.squads || []);
+    } catch { }
+  };
 
   const handleSave = async (data) => {
     try {
@@ -257,28 +292,113 @@ const Matches = () => {
                 </tr>
               </thead>
               <tbody>
-                {matches.map((m, i) => (
-                  <tr key={m.id || i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s' }}
-                    onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'}
-                    onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <td style={{ ...tdStyle, fontWeight: 700 }}>{m.title || m.opponent}</td>
-                    <td style={tdStyle}>{m.date ? new Date(m.date).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                    <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{m.venue || '—'}</td>
-                    <td style={tdStyle}><TypeBadge type={m.match_type} /></td>
-                    <td style={tdStyle}>{m.price_per_slot || 'Free'}</td>
-                    <td style={tdStyle}>{m.booked_slots || 0} / {m.total_slots || '∞'}</td>
-                    <td style={{ ...tdStyle, color: 'var(--text-secondary)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.description || '—'}</td>
-                    <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={() => setModal(m)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-md)', background: 'rgba(96,165,250,0.1)', color: 'var(--brand-accent)', border: '1px solid rgba(96,165,250,0.25)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
-                        <Pencil size={13} /> Edit
-                      </button>
-                      <button onClick={() => handleDelete(m)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-md)', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
-                        <Trash2 size={13} /> Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {matches.map((m, i) => {
+                  const isPractice = (m.match_type || m.type || '').toLowerCase() === 'practice';
+                  const isExpanded = expandedId === m.id;
+                  const slotsLeft = (m.total_slots || 0) - (m.booked_slots || 0);
+                  const isFull = m.total_slots > 0 && slotsLeft <= 0;
+                  return (
+                    <React.Fragment key={m.id || i}>
+                      <tr style={{ borderBottom: isExpanded ? 'none' : '1px solid rgba(255,255,255,0.04)', transition: 'background 0.15s', backgroundColor: isExpanded ? 'rgba(167,139,250,0.06)' : 'transparent' }}
+                        onMouseOver={e => { if (!isExpanded) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'; }}
+                        onMouseOut={e => { if (!isExpanded) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                      >
+                        <td style={{ ...tdStyle, fontWeight: 700, cursor: isPractice ? 'pointer' : 'default' }}
+                          onClick={() => isPractice && loadSquads(m.id)}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {isPractice && <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', color: '#a78bfa' }} />}
+                            {m.title || m.opponent}
+                          </div>
+                        </td>
+                        <td style={tdStyle}>{m.date ? new Date(m.date).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                        <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{m.venue || m.location || '—'}</td>
+                        <td style={tdStyle}><TypeBadge type={m.match_type || m.type} /></td>
+                        <td style={tdStyle}>{m.price_per_slot > 0 ? `₹${m.price_per_slot}` : 'Free'}</td>
+                        <td style={tdStyle}>
+                          <span style={{ color: isFull ? '#ef4444' : '#10b981', fontWeight: 700 }}>
+                            {m.booked_slots || 0} / {m.total_slots || '∞'}
+                          </span>
+                          {isFull && <span style={{ marginLeft: '0.4rem', fontSize: '0.7rem', background: 'rgba(239,68,68,0.15)', color: '#ef4444', padding: '0.1rem 0.4rem', borderRadius: '9999px' }}>FULL</span>}
+                        </td>
+                        <td style={{ ...tdStyle, color: 'var(--text-secondary)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.description || '—'}</td>
+                        <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem' }}>
+                          <button onClick={() => setModal(m)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-md)', background: 'rgba(96,165,250,0.1)', color: 'var(--brand-accent)', border: '1px solid rgba(96,165,250,0.25)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
+                            <Pencil size={13} /> Edit
+                          </button>
+                          <button onClick={() => handleDelete(m)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-md)', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>
+                            <Trash2 size={13} /> Delete
+                          </button>
+                        </td>
+                      </tr>
+
+                      {/* ── Expanded Squad Panel ── */}
+                      {isExpanded && (
+                        <tr>
+                          <td colSpan={8} style={{ padding: '0 1.25rem 1.25rem', backgroundColor: 'rgba(167,139,250,0.04)', borderBottom: '2px solid rgba(167,139,250,0.2)' }}>
+                            <div style={{ padding: '1rem', borderRadius: 'var(--radius-lg)', background: 'rgba(0,0,0,0.2)' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                <h4 style={{ margin: 0, color: '#a78bfa', fontSize: '0.95rem', fontWeight: 700 }}>🏏 Coach Squad Submissions</h4>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                  Slots: <strong style={{ color: isFull ? '#ef4444' : '#10b981' }}>{m.booked_slots || 0} / {m.total_slots || '∞'}</strong>
+                                  {!isFull && m.total_slots > 0 && <span style={{ color: '#a78bfa', marginLeft: '0.5rem' }}>({slotsLeft} remaining)</span>}
+                                </span>
+                              </div>
+
+                              {squadsLoading ? (
+                                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>Loading squads...</p>
+                              ) : squads.length === 0 ? (
+                                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>No squad submissions yet for this match.</p>
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                  {squads.map(sq => {
+                                    const statusColor = sq.status === 'approved' ? '#10b981' : sq.status === 'rejected' ? '#ef4444' : '#f59e0b';
+                                    return (
+                                      <div key={sq.id} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '0.875rem 1rem', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.04)', border: `1px solid ${statusColor}33` }}>
+                                        <div style={{ flex: 1 }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
+                                            <span style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-primary)' }}>
+                                              Coach: {sq.coach?.first_name} {sq.coach?.last_name}
+                                            </span>
+                                            <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '9999px', background: `${statusColor}22`, color: statusColor, border: `1px solid ${statusColor}44`, fontWeight: 700, textTransform: 'uppercase' }}>
+                                              {sq.status || 'pending'}
+                                            </span>
+                                          </div>
+                                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                            <strong>Players ({sq.players?.length || 0}):</strong>{' '}
+                                            {sq.players?.length > 0
+                                              ? sq.players.map(p => `${p.first_name} ${p.last_name} (${p.gicl_id})`).join(', ')
+                                              : 'No players listed'}
+                                          </div>
+                                        </div>
+                                        {sq.status === 'pending' && (
+                                          <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem', flexShrink: 0 }}>
+                                            <button
+                                              onClick={() => handleApproveSquad(sq.id, m.id)}
+                                              disabled={isFull}
+                                              style={{ padding: '0.4rem 0.9rem', borderRadius: 'var(--radius-md)', background: isFull ? 'rgba(100,100,100,0.2)' : 'rgba(16,185,129,0.15)', color: isFull ? '#666' : '#10b981', border: `1px solid ${isFull ? '#333' : 'rgba(16,185,129,0.4)'}`, fontWeight: 700, fontSize: '0.78rem', cursor: isFull ? 'not-allowed' : 'pointer' }}
+                                            >
+                                              ✓ Approve
+                                            </button>
+                                            <button
+                                              onClick={() => handleRejectSquad(sq.id, m.id)}
+                                              style={{ padding: '0.4rem 0.9rem', borderRadius: 'var(--radius-md)', background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}
+                                            >
+                                              ✗ Reject
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           )}

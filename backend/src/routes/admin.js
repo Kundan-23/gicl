@@ -43,6 +43,11 @@ router.post('/matches',                                 ctrl.createMatch);
 router.put('/matches/:id',                              ctrl.updateMatch);
 router.delete('/matches/:id',                           ctrl.deleteMatch);
 
+// Match Squad Submissions (coach → admin approval)
+router.get('/matches/:id/squads',                       ctrl.getMatchSquads);
+router.put('/squads/:squadId/approve',                  ctrl.approveSquad);
+router.put('/squads/:squadId/reject',                   ctrl.rejectSquad);
+
 // Config
 router.get('/config',                                   ctrl.getConfig);
 router.put('/config',                                   ctrl.updateConfig);

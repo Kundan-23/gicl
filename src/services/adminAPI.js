@@ -54,6 +54,9 @@ export const adminAPI = {
   createMatch:          (data)        => API.post('/admin/matches', data),
   updateMatch:          (id, data)    => API.put(`/admin/matches/${id}`, data),
   deleteMatch:          (id)          => API.delete(`/admin/matches/${id}`),
+  getMatchSquads:       (matchId)     => API.get(`/admin/matches/${matchId}/squads`),
+  approveSquad:         (squadId)     => API.put(`/admin/squads/${squadId}/approve`),
+  rejectSquad:          (squadId)     => API.put(`/admin/squads/${squadId}/reject`),
 
   // Training Slots
   getTrainingSlots:     ()            => API.get('/admin/training-slots'),

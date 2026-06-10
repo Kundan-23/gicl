@@ -332,6 +332,86 @@ exports.deleteMatch = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Match deleted.' });
 });
 
+// ─── Squad Submissions ────────────────────────────────────────────
+exports.getMatchSquads = asyncHandler(async (req, res) => {
+  const matchId = req.params.id;
+
+  // Get match info (for slot counts)
+  const { data: match } = await supabase.from('matches')
+    .select('id, title, total_slots, booked_slots')
+    .eq('id', matchId).single();
+
+  // Get all squad submissions for this match with coach + player details
+  const { data: squads, error } = await supabase.from('coach_match_squads')
+    .select(`
+      id, player_ids, status, created_at,
+      coach:coach_id (id, first_name, last_name, email, gicl_id)
+    `)
+    .eq('match_id', matchId)
+    .order('created_at', { ascending: true });
+
+  if (error) throw new Error(error.message);
+
+  // For each squad, fetch player names
+  const enriched = await Promise.all((squads || []).map(async (sq) => {
+    const playerIds = sq.player_ids || [];
+    let players = [];
+    if (playerIds.length > 0) {
+      const { data: playerData } = await supabase.from('players')
+        .select('id, first_name, last_name, gicl_id')
+        .in('id', playerIds);
+      players = playerData || [];
+    }
+    return { ...sq, players };
+  }));
+
+  res.json({ success: true, match, squads: enriched });
+});
+
+exports.approveSquad = asyncHandler(async (req, res) => {
+  const { squadId } = req.params;
+
+  // Get the squad
+  const { data: squad, error: sqErr } = await supabase.from('coach_match_squads')
+    .select('*').eq('id', squadId).single();
+  if (sqErr || !squad) throw new Error('Squad not found.');
+
+  // Get the match to check slots
+  const { data: match } = await supabase.from('matches')
+    .select('id, total_slots, booked_slots').eq('id', squad.match_id).single();
+
+  const currentBooked = match?.booked_slots || 0;
+  const totalSlots    = match?.total_slots || 0;
+  const newPlayers    = (squad.player_ids || []).length;
+
+  if (totalSlots > 0 && currentBooked + newPlayers > totalSlots) {
+    return res.status(400).json({
+      success: false,
+      message: `Not enough slots. Only ${totalSlots - currentBooked} slots remaining.`
+    });
+  }
+
+  // Approve the squad
+  await supabase.from('coach_match_squads')
+    .update({ status: 'approved', approved_at: new Date().toISOString() })
+    .eq('id', squadId);
+
+  // Increment booked_slots on the match
+  await supabase.from('matches')
+    .update({ booked_slots: currentBooked + newPlayers })
+    .eq('id', squad.match_id);
+
+  res.json({ success: true, message: 'Squad approved. Slots updated.' });
+});
+
+exports.rejectSquad = asyncHandler(async (req, res) => {
+  const { squadId } = req.params;
+  const { error } = await supabase.from('coach_match_squads')
+    .update({ status: 'rejected' }).eq('id', squadId);
+  if (error) throw new Error(error.message);
+  res.json({ success: true, message: 'Squad rejected.' });
+});
+
 // ─── Training Slots ───────────────────────────────────────────────
 const { sendEmail } = require('../config/brevo');
 
