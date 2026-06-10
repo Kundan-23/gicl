@@ -38,8 +38,8 @@ const MatchModal = ({ match, onClose, onSave }) => {
         </div>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label style={labelStyle}>Opponent *</label>
-            <input required value={form.opponent} onChange={e => set('opponent', e.target.value)} style={inputStyle} placeholder="Team name" />
+            <label style={labelStyle}>Title / Event Name *</label>
+            <input required value={form.opponent} onChange={e => set('opponent', e.target.value)} style={inputStyle} placeholder="e.g. Sunday League Slot" />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
@@ -48,7 +48,14 @@ const MatchModal = ({ match, onClose, onSave }) => {
             </div>
             <div>
               <label style={labelStyle}>Match Type</label>
-              <select value={form.match_type} onChange={e => set('match_type', e.target.value)} style={{ ...inputStyle, appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1.25em', paddingRight: '2.5rem' }}>
+              <select 
+                value={form.match_type} 
+                onChange={e => {
+                  set('match_type', e.target.value);
+                  if (e.target.value === 'Practice') set('price_per_slot', 0);
+                }} 
+                style={{ ...inputStyle, appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1.25em', paddingRight: '2.5rem' }}
+              >
                 {MATCH_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
@@ -56,7 +63,14 @@ const MatchModal = ({ match, onClose, onSave }) => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
               <label style={labelStyle}>Price per Slot (₹)</label>
-              <input type="number" min="0" value={form.price_per_slot} onChange={e => set('price_per_slot', Number(e.target.value))} style={inputStyle} placeholder="0 for free" />
+              <input 
+                type="number" min="0" 
+                value={form.price_per_slot} 
+                onChange={e => set('price_per_slot', Number(e.target.value))} 
+                disabled={form.match_type === 'Practice'}
+                style={{ ...inputStyle, opacity: form.match_type === 'Practice' ? 0.5 : 1 }} 
+                placeholder="0 for free" 
+              />
             </div>
             <div>
               <label style={labelStyle}>Total Slots</label>
@@ -166,7 +180,7 @@ const Matches = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: 'rgba(0,0,0,0.2)', borderBottom: '1px solid var(--border-subtle)' }}>
-                  <th style={thStyle}>Opponent</th>
+                  <th style={thStyle}>Title</th>
                   <th style={thStyle}>Date</th>
                   <th style={thStyle}>Venue</th>
                   <th style={thStyle}>Type</th>
@@ -182,7 +196,7 @@ const Matches = () => {
                     onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'}
                     onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
-                    <td style={{ ...tdStyle, fontWeight: 700 }}>vs {m.opponent}</td>
+                    <td style={{ ...tdStyle, fontWeight: 700 }}>{m.opponent}</td>
                     <td style={tdStyle}>{m.date ? new Date(m.date).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
                     <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{m.venue || '—'}</td>
                     <td style={tdStyle}><TypeBadge type={m.match_type} /></td>

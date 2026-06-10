@@ -43,7 +43,7 @@ const MatchBookings = () => {
         amount: amount,
         currency: currency,
         name: 'GICL Sports',
-        description: `Booking for ${match.match_type}: vs ${match.opponent}`,
+        description: `Booking for ${match.match_type}: ${match.opponent}`,
         order_id: orderId,
         handler: async function (response) {
           try {
@@ -112,7 +112,7 @@ const MatchBookings = () => {
                       <span style={{ fontSize: '0.8rem', color: '#10b981' }}>Available</span>
                     )}
                   </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>vs {match.opponent}</h3>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>{match.opponent}</h3>
                 </div>
 
                 <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
