@@ -8,9 +8,10 @@ const tdStyle = { padding: '1rem 1.25rem', fontSize: '0.875rem', color: 'var(--t
 const inputStyle = { width: '100%', padding: '0.7rem 0.875rem', backgroundColor: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontSize: '0.875rem' };
 const labelStyle = { display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: 500 };
 
-const MATCH_TYPES = ['League', 'Friendly', 'Tournament', 'Practice'];
-const MATCH_TYPE_COLORS = { League: '#3b82f6', Friendly: '#10b981', Tournament: '#f59e0b', Practice: '#a78bfa' };
-const EMPTY = { title: '', date: '', venue: '', match_type: 'League', description: '', price_per_slot: 0, total_slots: 0 };
+const MATCH_TYPES = ['League', 'Friendly', 'Tournament', 'Practice', 'Intro Match'];
+const MATCH_TYPE_COLORS = { League: '#3b82f6', Friendly: '#10b981', Tournament: '#f59e0b', Practice: '#a78bfa', 'Intro Match': '#f97316' };
+const AGE_CATEGORIES = ['Open (All Ages)', 'Under 10', 'Under 12', 'Under 14', 'Under 16', 'Under 18', 'Under 19', 'Under 21', 'Under 23', 'Senior (25+)', 'Masters (35+)', 'Veterans (45+)'];
+const EMPTY = { title: '', date: '', venue: '', match_type: 'League', age_category: 'Open (All Ages)', description: '', price_per_slot: 0, total_slots: 0 };
 
 // Custom dark-themed dropdown
 const DarkSelect = ({ value, onChange, options }) => {
@@ -81,7 +82,9 @@ const DarkSelect = ({ value, onChange, options }) => {
 const MatchModal = ({ match, onClose, onSave }) => {
   const [form, setForm] = useState(match ? {
     title: match.title || match.opponent || '', date: match.date ? match.date.slice(0, 16) : '',
-    venue: match.venue || '', match_type: match.match_type || 'League', description: match.description || '',
+    venue: match.venue || match.location || '', match_type: match.match_type || 'League',
+    age_category: match.age_category || 'Open (All Ages)',
+    description: match.description || '',
     price_per_slot: match.price_per_slot || 0, total_slots: match.total_slots || 0,
   } : { ...EMPTY });
   const [saving, setSaving] = useState(false);
@@ -120,10 +123,23 @@ const MatchModal = ({ match, onClose, onSave }) => {
                 options={MATCH_TYPES}
                 onChange={(val) => {
                   set('match_type', val);
-                  if (val === 'Practice') set('price_per_slot', 0);
+                  if (val === 'Practice' || val === 'Intro Match') set('price_per_slot', 0);
                 }}
               />
             </div>
+          </div>
+          {/* Age Category */}
+          <div>
+            <label style={labelStyle}>Age Category</label>
+            <select
+              value={form.age_category}
+              onChange={e => set('age_category', e.target.value)}
+              style={{ ...inputStyle, cursor: 'pointer' }}
+            >
+              {AGE_CATEGORIES.map(cat => (
+                <option key={cat} value={cat} style={{ backgroundColor: '#1a2340', color: '#fff' }}>{cat}</option>
+              ))}
+            </select>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
@@ -132,8 +148,8 @@ const MatchModal = ({ match, onClose, onSave }) => {
                 type="number" min="0"
                 value={form.price_per_slot}
                 onChange={e => set('price_per_slot', Number(e.target.value))}
-                disabled={form.match_type === 'Practice'}
-                style={{ ...inputStyle, opacity: form.match_type === 'Practice' ? 0.5 : 1 }}
+                disabled={form.match_type === 'Practice' || form.match_type === 'Intro Match'}
+                style={{ ...inputStyle, opacity: (form.match_type === 'Practice' || form.match_type === 'Intro Match') ? 0.5 : 1 }}
                 placeholder="0 for free"
               />
             </div>
@@ -163,8 +179,8 @@ const MatchModal = ({ match, onClose, onSave }) => {
 };
 
 const TypeBadge = ({ type }) => {
-  const key = (type || '').charAt(0).toUpperCase() + (type || '').slice(1).toLowerCase();
-  const colorMap = { League: '#3b82f6', Friendly: '#10b981', Tournament: '#f59e0b', Practice: '#a78bfa' };
+  const key = (type || '').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  const colorMap = { League: '#3b82f6', Friendly: '#10b981', Tournament: '#f59e0b', Practice: '#a78bfa', 'Intro Match': '#f97316' };
   const col = colorMap[key] || '#94a3b8';
   return <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: `${col}22`, color: col, border: `1px solid ${col}44` }}>{key}</span>;
 };
@@ -285,15 +301,16 @@ const Matches = () => {
                   <th style={thStyle}>Date</th>
                   <th style={thStyle}>Venue</th>
                   <th style={thStyle}>Type</th>
+                  <th style={thStyle}>Age Group</th>
                   <th style={thStyle}>Price (₹)</th>
                   <th style={thStyle}>Slots</th>
-                  <th style={thStyle}>Description</th>
                   <th style={thStyle}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {matches.map((m, i) => {
-                  const isPractice = (m.match_type || m.type || '').toLowerCase() === 'practice';
+                  const mt = (m.match_type || m.type || '').toLowerCase();
+                  const isPractice = mt === 'practice' || mt === 'intro match';
                   const isExpanded = expandedId === m.id;
                   const slotsLeft = (m.total_slots || 0) - (m.booked_slots || 0);
                   const isFull = m.total_slots > 0 && slotsLeft <= 0;
@@ -313,6 +330,9 @@ const Matches = () => {
                         <td style={tdStyle}>{m.date ? new Date(m.date).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
                         <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{m.venue || m.location || '—'}</td>
                         <td style={tdStyle}><TypeBadge type={m.match_type || m.type} /></td>
+                        <td style={{ ...tdStyle, color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                          {m.age_category || 'Open (All Ages)'}
+                        </td>
                         <td style={tdStyle}>{m.price_per_slot > 0 ? `₹${m.price_per_slot}` : 'Free'}</td>
                         <td style={tdStyle}>
                           <span style={{ color: isFull ? '#ef4444' : '#10b981', fontWeight: 700 }}>

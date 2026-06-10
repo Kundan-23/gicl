@@ -275,7 +275,7 @@ exports.getMatches = asyncHandler(async (req, res) => {
 const googleCalendar = require('../services/googleCalendar');
 
 exports.createMatch = asyncHandler(async (req, res) => {
-  const { title, date, venue, description, match_type = 'Practice', price_per_slot = 0, total_slots = 0 } = req.body;
+  const { title, date, venue, description, match_type = 'Practice', age_category = 'Open (All Ages)', price_per_slot = 0, total_slots = 0 } = req.body;
 
   // Create Google Calendar event
   let google_event_id = null;
@@ -294,9 +294,10 @@ exports.createMatch = asyncHandler(async (req, res) => {
   const { data, error } = await supabase.from('matches')
     .insert({
       title, date,
-      venue, location: venue,           // write both old + new column names
+      venue, location: venue,
       description,
-      match_type, type: match_type,     // write both old + new column names
+      match_type, type: match_type,
+      age_category,
       price_per_slot, total_slots, google_event_id
     })
     .select().single();
@@ -306,16 +307,17 @@ exports.createMatch = asyncHandler(async (req, res) => {
 });
 
 exports.updateMatch = asyncHandler(async (req, res) => {
-  const { title, date, venue, description, result, match_type, price_per_slot, total_slots } = req.body;
+  const { title, date, venue, description, result, match_type, age_category, price_per_slot, total_slots } = req.body;
   const updateData = {};
-  if (title !== undefined)          { updateData.title = title; }
-  if (date !== undefined)           { updateData.date = date; }
-  if (venue !== undefined)          { updateData.venue = venue; updateData.location = venue; } // both
-  if (description !== undefined)    { updateData.description = description; }
-  if (result !== undefined)         { updateData.result = result; }
-  if (match_type !== undefined)     { updateData.match_type = match_type; updateData.type = match_type; } // both
-  if (price_per_slot !== undefined) updateData.price_per_slot  = price_per_slot;
-  if (total_slots !== undefined)    updateData.total_slots     = total_slots;
+  if (title !== undefined)        { updateData.title = title; }
+  if (date !== undefined)         { updateData.date = date; }
+  if (venue !== undefined)        { updateData.venue = venue; updateData.location = venue; }
+  if (description !== undefined)  { updateData.description = description; }
+  if (result !== undefined)       { updateData.result = result; }
+  if (match_type !== undefined)   { updateData.match_type = match_type; updateData.type = match_type; }
+  if (age_category !== undefined) { updateData.age_category = age_category; }
+  if (price_per_slot !== undefined) updateData.price_per_slot = price_per_slot;
+  if (total_slots !== undefined)    updateData.total_slots = total_slots;
 
   const { error } = await supabase.from('matches').update(updateData).eq('id', req.params.id);
   if (error) throw new Error(error.message);
