@@ -1,20 +1,25 @@
 const { supabase } = require('../config/supabase');
 const asyncHandler = require('../utils/asyncHandler');
 
-// Fetch practice matches created by Admin (match_type = 'Practice')
+// Fetch practice matches created by Admin (match_type OR type = 'Practice')
 exports.getPracticeMatches = asyncHandler(async (req, res) => {
   try {
     const { data, error } = await supabase.from('matches')
-      .select('id, title, date, venue, match_type, total_slots, booked_slots, price_per_slot')
-      .eq('match_type', 'Practice')
+      .select('id, title, date, venue, location, match_type, type, total_slots, booked_slots, price_per_slot')
+      .or('match_type.eq.Practice,type.eq.Practice,match_type.ilike.practice,type.ilike.practice')
       .order('date', { ascending: true });
 
     if (error) {
-      console.error('[getPracticeMatches] DB error:', error.message, error.details);
-      // If column doesn't exist or other DB error, return empty rather than crashing
+      console.error('[getPracticeMatches] DB error:', error.message);
       return res.json({ success: true, matches: [], _debug: error.message });
     }
-    res.json({ success: true, matches: data || [] });
+    // Normalize: add venue fallback and match_type fallback
+    const matches = (data || []).map(m => ({
+      ...m,
+      venue: m.venue || m.location,
+      match_type: m.match_type || m.type
+    }));
+    res.json({ success: true, matches });
   } catch (err) {
     console.error('[getPracticeMatches] Unexpected error:', err);
     res.json({ success: true, matches: [] });

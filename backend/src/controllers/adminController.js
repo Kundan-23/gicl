@@ -292,7 +292,13 @@ exports.createMatch = asyncHandler(async (req, res) => {
   }
 
   const { data, error } = await supabase.from('matches')
-    .insert({ title, date, venue, description, match_type, price_per_slot, total_slots, google_event_id })
+    .insert({
+      title, date,
+      venue, location: venue,           // write both old + new column names
+      description,
+      match_type, type: match_type,     // write both old + new column names
+      price_per_slot, total_slots, google_event_id
+    })
     .select().single();
 
   if (error) throw new Error('Failed to create match: ' + error.message);
@@ -302,12 +308,12 @@ exports.createMatch = asyncHandler(async (req, res) => {
 exports.updateMatch = asyncHandler(async (req, res) => {
   const { title, date, venue, description, result, match_type, price_per_slot, total_slots } = req.body;
   const updateData = {};
-  if (title !== undefined)          updateData.title           = title;
-  if (date !== undefined)           updateData.date            = date;
-  if (venue !== undefined)          updateData.venue           = venue;
-  if (description !== undefined)    updateData.description     = description;
-  if (result !== undefined)         updateData.result          = result;
-  if (match_type !== undefined)     updateData.match_type      = match_type;
+  if (title !== undefined)          { updateData.title = title; }
+  if (date !== undefined)           { updateData.date = date; }
+  if (venue !== undefined)          { updateData.venue = venue; updateData.location = venue; } // both
+  if (description !== undefined)    { updateData.description = description; }
+  if (result !== undefined)         { updateData.result = result; }
+  if (match_type !== undefined)     { updateData.match_type = match_type; updateData.type = match_type; } // both
   if (price_per_slot !== undefined) updateData.price_per_slot  = price_per_slot;
   if (total_slots !== undefined)    updateData.total_slots     = total_slots;
 
