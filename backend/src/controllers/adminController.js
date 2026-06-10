@@ -336,33 +336,43 @@ exports.deleteMatch = asyncHandler(async (req, res) => {
 exports.getMatchSquads = asyncHandler(async (req, res) => {
   const matchId = req.params.id;
 
-  // Get match info (for slot counts)
+  // Get match info
   const { data: match } = await supabase.from('matches')
     .select('id, title, total_slots, booked_slots')
-    .eq('id', matchId).single();
+    .eq('id', matchId).maybeSingle();
 
-  // Get all squad submissions for this match with coach + player details
+  // Get squads — no join, just raw data
   const { data: squads, error } = await supabase.from('coach_match_squads')
-    .select(`
-      id, player_ids, status, created_at,
-      coach:coach_id (id, first_name, last_name, email, gicl_id)
-    `)
+    .select('id, coach_id, player_ids, status, created_at, approved_at')
     .eq('match_id', matchId)
     .order('created_at', { ascending: true });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error('[getMatchSquads] error:', error.message);
+    return res.json({ success: true, match, squads: [] });
+  }
 
-  // For each squad, fetch player names
-  const enriched = await Promise.all((squads || []).map(async (sq) => {
-    const playerIds = sq.player_ids || [];
-    let players = [];
-    if (playerIds.length > 0) {
-      const { data: playerData } = await supabase.from('players')
-        .select('id, first_name, last_name, gicl_id')
-        .in('id', playerIds);
-      players = playerData || [];
-    }
-    return { ...sq, players };
+  // Collect all unique coach_ids and player_ids
+  const coachIds  = [...new Set((squads || []).map(s => s.coach_id).filter(Boolean))];
+  const playerIds = [...new Set((squads || []).flatMap(s => s.player_ids || []).filter(Boolean))];
+
+  // Fetch coaches in one query
+  const { data: coaches } = coachIds.length > 0
+    ? await supabase.from('coaches').select('id, first_name, last_name, email, gicl_id').in('id', coachIds)
+    : { data: [] };
+
+  // Fetch players in one query
+  const { data: players } = playerIds.length > 0
+    ? await supabase.from('players').select('id, first_name, last_name, gicl_id').in('id', playerIds)
+    : { data: [] };
+
+  const coachMap  = Object.fromEntries((coaches  || []).map(c => [c.id, c]));
+  const playerMap = Object.fromEntries((players  || []).map(p => [p.id, p]));
+
+  const enriched = (squads || []).map(sq => ({
+    ...sq,
+    coach:   coachMap[sq.coach_id]  || { first_name: 'Unknown', last_name: 'Coach' },
+    players: (sq.player_ids || []).map(pid => playerMap[pid]).filter(Boolean),
   }));
 
   res.json({ success: true, match, squads: enriched });
