@@ -3,27 +3,23 @@ const asyncHandler = require('../utils/asyncHandler');
 
 // Fetch practice matches created by Admin (match_type OR type = 'Practice')
 exports.getPracticeMatches = asyncHandler(async (req, res) => {
-  try {
-    const { data, error } = await supabase.from('matches')
-      .select('id, title, date, venue, location, match_type, type, total_slots, booked_slots, price_per_slot')
-      .or('match_type.eq.Practice,type.eq.Practice,match_type.ilike.practice,type.ilike.practice')
-      .order('date', { ascending: true });
+  const { data, error } = await supabase.from('matches')
+    .select('*')
+    .or('match_type.eq.Practice,type.eq.Practice')
+    .order('date', { ascending: true });
 
-    if (error) {
-      console.error('[getPracticeMatches] DB error:', error.message);
-      return res.json({ success: true, matches: [], _debug: error.message });
-    }
-    // Normalize: add venue fallback and match_type fallback
-    const matches = (data || []).map(m => ({
-      ...m,
-      venue: m.venue || m.location,
-      match_type: m.match_type || m.type
-    }));
-    res.json({ success: true, matches });
-  } catch (err) {
-    console.error('[getPracticeMatches] Unexpected error:', err);
-    res.json({ success: true, matches: [] });
+  if (error) {
+    console.error('[getPracticeMatches] DB error:', error.message);
+    return res.json({ success: true, matches: [], _debug: error.message });
   }
+
+  // Normalize venue/location and match_type/type
+  const matches = (data || []).map(m => ({
+    ...m,
+    venue: m.venue || m.location,
+    match_type: m.match_type || m.type
+  }));
+  res.json({ success: true, matches });
 });
 
 // Coach creates a squad for a practice match
