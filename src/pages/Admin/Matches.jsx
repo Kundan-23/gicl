@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { adminAPI } from '../../services/adminAPI';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, ChevronDown } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const thStyle = { padding: '0.85rem 1.25rem', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' };
@@ -9,7 +9,74 @@ const inputStyle = { width: '100%', padding: '0.7rem 0.875rem', backgroundColor:
 const labelStyle = { display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: 500 };
 
 const MATCH_TYPES = ['League', 'Friendly', 'Tournament', 'Practice'];
+const MATCH_TYPE_COLORS = { League: '#3b82f6', Friendly: '#10b981', Tournament: '#f59e0b', Practice: '#a78bfa' };
 const EMPTY = { opponent: '', date: '', venue: '', match_type: 'League', description: '', price_per_slot: 0, total_slots: 0 };
+
+// Custom dark-themed dropdown
+const DarkSelect = ({ value, onChange, options }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const color = MATCH_TYPE_COLORS[value] || '#94a3b8';
+
+  return (
+    <div ref={ref} style={{ position: 'relative', userSelect: 'none' }}>
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0.7rem 0.875rem', backgroundColor: 'rgba(0,0,0,0.25)',
+          border: `1px solid ${open ? color : 'var(--border-subtle)'}`,
+          borderRadius: 'var(--radius-md)', cursor: 'pointer', transition: 'border-color 0.2s',
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'var(--text-primary)', fontWeight: 600 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: color, display: 'inline-block', flexShrink: 0 }} />
+          {value}
+        </span>
+        <ChevronDown size={16} color="var(--text-secondary)" style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+      </div>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 200,
+          backgroundColor: '#1a2340', border: '1px solid rgba(255,255,255,0.12)',
+          borderRadius: 'var(--radius-md)', overflow: 'hidden',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+        }}>
+          {options.map(opt => {
+            const optColor = MATCH_TYPE_COLORS[opt] || '#94a3b8';
+            const isSelected = opt === value;
+            return (
+              <div
+                key={opt}
+                onClick={() => { onChange(opt); setOpen(false); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.6rem',
+                  padding: '0.7rem 1rem', cursor: 'pointer', fontSize: '0.875rem',
+                  color: isSelected ? optColor : 'var(--text-primary)',
+                  backgroundColor: isSelected ? `${optColor}18` : 'transparent',
+                  fontWeight: isSelected ? 700 : 400,
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.06)'; }}
+                onMouseLeave={e => { if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'; }}
+              >
+                <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: optColor, display: 'inline-block', flexShrink: 0 }} />
+                {opt}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const MatchModal = ({ match, onClose, onSave }) => {
   const [form, setForm] = useState(match ? {
@@ -48,28 +115,26 @@ const MatchModal = ({ match, onClose, onSave }) => {
             </div>
             <div>
               <label style={labelStyle}>Match Type</label>
-              <select 
-                value={form.match_type} 
-                onChange={e => {
-                  set('match_type', e.target.value);
-                  if (e.target.value === 'Practice') set('price_per_slot', 0);
-                }} 
-                style={{ ...inputStyle, appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1.25em', paddingRight: '2.5rem' }}
-              >
-                {MATCH_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
+              <DarkSelect
+                value={form.match_type}
+                options={MATCH_TYPES}
+                onChange={(val) => {
+                  set('match_type', val);
+                  if (val === 'Practice') set('price_per_slot', 0);
+                }}
+              />
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
               <label style={labelStyle}>Price per Slot (₹)</label>
-              <input 
-                type="number" min="0" 
-                value={form.price_per_slot} 
-                onChange={e => set('price_per_slot', Number(e.target.value))} 
+              <input
+                type="number" min="0"
+                value={form.price_per_slot}
+                onChange={e => set('price_per_slot', Number(e.target.value))}
                 disabled={form.match_type === 'Practice'}
-                style={{ ...inputStyle, opacity: form.match_type === 'Practice' ? 0.5 : 1 }} 
-                placeholder="0 for free" 
+                style={{ ...inputStyle, opacity: form.match_type === 'Practice' ? 0.5 : 1 }}
+                placeholder="0 for free"
               />
             </div>
             <div>
