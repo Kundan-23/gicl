@@ -10,7 +10,7 @@ const labelStyle = { display: 'block', fontSize: '0.8rem', color: 'var(--text-se
 
 const MATCH_TYPES = ['League', 'Friendly', 'Tournament', 'Practice'];
 const MATCH_TYPE_COLORS = { League: '#3b82f6', Friendly: '#10b981', Tournament: '#f59e0b', Practice: '#a78bfa' };
-const EMPTY = { opponent: '', date: '', venue: '', match_type: 'League', description: '', price_per_slot: 0, total_slots: 0 };
+const EMPTY = { title: '', date: '', venue: '', match_type: 'League', description: '', price_per_slot: 0, total_slots: 0 };
 
 // Custom dark-themed dropdown
 const DarkSelect = ({ value, onChange, options }) => {
@@ -80,7 +80,7 @@ const DarkSelect = ({ value, onChange, options }) => {
 
 const MatchModal = ({ match, onClose, onSave }) => {
   const [form, setForm] = useState(match ? {
-    opponent: match.opponent || '', date: match.date ? match.date.slice(0, 16) : '',
+    title: match.title || match.opponent || '', date: match.date ? match.date.slice(0, 16) : '',
     venue: match.venue || '', match_type: match.match_type || 'League', description: match.description || '',
     price_per_slot: match.price_per_slot || 0, total_slots: match.total_slots || 0,
   } : { ...EMPTY });
@@ -106,7 +106,7 @@ const MatchModal = ({ match, onClose, onSave }) => {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
             <label style={labelStyle}>Title / Event Name *</label>
-            <input required value={form.opponent} onChange={e => set('opponent', e.target.value)} style={inputStyle} placeholder="e.g. Sunday League Slot" />
+            <input required value={form.title} onChange={e => set('title', e.target.value)} style={inputStyle} placeholder="e.g. Sunday Practice Slot" />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
@@ -205,7 +205,7 @@ const Matches = () => {
   const handleDelete = async (m) => {
     const result = await Swal.fire({
       title: 'Delete Match?',
-      text: `vs ${m.opponent} on ${new Date(m.date).toLocaleDateString('en-IN')}`,
+      text: `"${m.title || m.opponent}" on ${new Date(m.date).toLocaleDateString('en-IN')}`,
       icon: 'warning', showCancelButton: true,
       confirmButtonColor: '#ef4444', cancelButtonColor: 'transparent',
       confirmButtonText: 'Delete', background: 'var(--bg-surface)', color: 'var(--text-primary)',
@@ -261,7 +261,7 @@ const Matches = () => {
                     onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'}
                     onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
-                    <td style={{ ...tdStyle, fontWeight: 700 }}>{m.opponent}</td>
+                    <td style={{ ...tdStyle, fontWeight: 700 }}>{m.title || m.opponent}</td>
                     <td style={tdStyle}>{m.date ? new Date(m.date).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
                     <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{m.venue || '—'}</td>
                     <td style={tdStyle}><TypeBadge type={m.match_type} /></td>

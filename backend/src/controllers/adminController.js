@@ -266,19 +266,16 @@ exports.deleteCoach = asyncHandler(async (req, res) => {
 
 
 // ─── Matches CRUD ─────────────────────────────────────────────────
+// Map 'title' column → also expose as 'title' for frontend
 exports.getMatches = asyncHandler(async (req, res) => {
   const { data } = await supabase.from('matches').select('*').order('date', { ascending: true });
-  // Map 'title' column → 'opponent' for frontend compatibility
-  const matches = (data || []).map(m => ({ ...m, opponent: m.title || m.opponent }));
-  res.json({ success: true, matches });
+  res.json({ success: true, matches: data || [] });
 });
 
 const googleCalendar = require('../services/googleCalendar');
 
 exports.createMatch = asyncHandler(async (req, res) => {
-  const { opponent, date, venue, type, description, match_type = 'tournament', price_per_slot = 0, total_slots = 0 } = req.body;
-  // 'opponent' from frontend is stored as 'title' in the DB
-  const title = opponent;
+  const { title, date, venue, description, match_type = 'Practice', price_per_slot = 0, total_slots = 0 } = req.body;
 
   // Create Google Calendar event
   let google_event_id = null;
@@ -295,21 +292,17 @@ exports.createMatch = asyncHandler(async (req, res) => {
   }
 
   const { data, error } = await supabase.from('matches')
-    .insert({
-      title, date, venue, description,
-      match_type, price_per_slot, total_slots, google_event_id
-    })
+    .insert({ title, date, venue, description, match_type, price_per_slot, total_slots, google_event_id })
     .select().single();
 
   if (error) throw new Error('Failed to create match: ' + error.message);
-  // Return with opponent alias so frontend stays consistent
-  res.status(201).json({ success: true, message: 'Match scheduled.', match: { ...data, opponent: data.title } });
+  res.status(201).json({ success: true, message: 'Match scheduled.', match: data });
 });
 
 exports.updateMatch = asyncHandler(async (req, res) => {
-  const { opponent, date, venue, description, result, match_type, price_per_slot, total_slots } = req.body;
+  const { title, date, venue, description, result, match_type, price_per_slot, total_slots } = req.body;
   const updateData = {};
-  if (opponent !== undefined)       updateData.title          = opponent; // map to title
+  if (title !== undefined)          updateData.title           = title;
   if (date !== undefined)           updateData.date            = date;
   if (venue !== undefined)          updateData.venue           = venue;
   if (description !== undefined)    updateData.description     = description;
