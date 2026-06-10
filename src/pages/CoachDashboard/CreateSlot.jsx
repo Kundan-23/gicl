@@ -6,7 +6,7 @@ import { coachAPI } from '../../services/api';
 import { useCoachStore } from '../../store/useCoachStore';
 
 const CreateSlot = () => {
-  const { players } = useCoachStore();
+  const { allocatedPlayers: players = [] } = useCoachStore();
   const [slotType, setSlotType] = useState('practice_match'); // 'practice_match' or 'training'
   const [practiceMatches, setPracticeMatches] = useState([]);
   const [selectedMatch, setSelectedMatch] = useState('');
