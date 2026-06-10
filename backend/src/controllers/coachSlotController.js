@@ -1,24 +1,30 @@
 const { supabase } = require('../config/supabase');
 const asyncHandler = require('../utils/asyncHandler');
 
-// Fetch practice matches created by Admin (match_type OR type = 'Practice')
+// Fetch practice matches created by Admin
 exports.getPracticeMatches = asyncHandler(async (req, res) => {
+  // Fetch all matches, then filter in JS (avoids PostgREST reserved-word issues with 'type' column)
   const { data, error } = await supabase.from('matches')
     .select('*')
-    .or('match_type.eq.Practice,type.eq.Practice')
     .order('date', { ascending: true });
 
   if (error) {
     console.error('[getPracticeMatches] DB error:', error.message);
-    return res.json({ success: true, matches: [], _debug: error.message });
+    return res.json({ success: true, matches: [] });
   }
 
-  // Normalize venue/location and match_type/type
-  const matches = (data || []).map(m => ({
-    ...m,
-    venue: m.venue || m.location,
-    match_type: m.match_type || m.type
-  }));
+  const matches = (data || [])
+    .filter(m => {
+      const mt = (m.match_type || '').toLowerCase();
+      const t  = (m.type || '').toLowerCase();
+      return mt === 'practice' || t === 'practice';
+    })
+    .map(m => ({
+      ...m,
+      venue:      m.venue      || m.location,
+      match_type: m.match_type || m.type
+    }));
+
   res.json({ success: true, matches });
 });
 
