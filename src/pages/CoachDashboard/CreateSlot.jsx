@@ -128,7 +128,7 @@ const CreateSlot = () => {
                 <option value="">-- Choose a match --</option>
                 {practiceMatches.map(m => (
                   <option key={m.id} value={m.id}>
-                    {new Date(m.date).toLocaleString()} - {m.opponent} ({m.venue})
+                    {new Date(m.date).toLocaleString()} - {m.title || m.opponent} ({m.venue})
                   </option>
                 ))}
               </select>

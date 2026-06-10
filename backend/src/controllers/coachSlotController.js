@@ -5,7 +5,7 @@ const asyncHandler = require('../utils/asyncHandler');
 exports.getPracticeMatches = asyncHandler(async (req, res) => {
   const { data, error } = await supabase.from('matches')
     .select('*')
-    .eq('match_type', 'practice')
+    .ilike('match_type', 'practice')
     .order('date', { ascending: true });
     
   if (error) throw new Error(error.message);
