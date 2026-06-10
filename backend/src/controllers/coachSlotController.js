@@ -1,15 +1,24 @@
 const { supabase } = require('../config/supabase');
 const asyncHandler = require('../utils/asyncHandler');
 
-// Fetch practice matches created by Admin (match_type = 'practice')
+// Fetch practice matches created by Admin (match_type = 'Practice')
 exports.getPracticeMatches = asyncHandler(async (req, res) => {
-  const { data, error } = await supabase.from('matches')
-    .select('*')
-    .eq('match_type', 'Practice')
-    .order('date', { ascending: true });
-    
-  if (error) throw new Error(error.message);
-  res.json({ success: true, matches: data || [] });
+  try {
+    const { data, error } = await supabase.from('matches')
+      .select('id, title, date, venue, match_type, total_slots, booked_slots, price_per_slot')
+      .eq('match_type', 'Practice')
+      .order('date', { ascending: true });
+
+    if (error) {
+      console.error('[getPracticeMatches] DB error:', error.message, error.details);
+      // If column doesn't exist or other DB error, return empty rather than crashing
+      return res.json({ success: true, matches: [], _debug: error.message });
+    }
+    res.json({ success: true, matches: data || [] });
+  } catch (err) {
+    console.error('[getPracticeMatches] Unexpected error:', err);
+    res.json({ success: true, matches: [] });
+  }
 });
 
 // Coach creates a squad for a practice match

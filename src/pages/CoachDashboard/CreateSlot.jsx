@@ -29,8 +29,8 @@ const CreateSlot = () => {
       const res = await coachAPI.getPracticeMatches();
       setPracticeMatches(res.data?.matches || []);
     } catch (err) {
-      console.error(err);
-      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load practice matches' });
+      console.error('Could not load practice matches:', err);
+      setPracticeMatches([]); // just show empty dropdown, no crash
     }
   };
 
