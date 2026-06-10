@@ -268,22 +268,26 @@ exports.deleteCoach = asyncHandler(async (req, res) => {
 // ─── Matches CRUD ─────────────────────────────────────────────────
 exports.getMatches = asyncHandler(async (req, res) => {
   const { data } = await supabase.from('matches').select('*').order('date', { ascending: true });
-  res.json({ success: true, matches: data || [] });
+  // Map 'title' column → 'opponent' for frontend compatibility
+  const matches = (data || []).map(m => ({ ...m, opponent: m.title || m.opponent }));
+  res.json({ success: true, matches });
 });
 
 const googleCalendar = require('../services/googleCalendar');
 
 exports.createMatch = asyncHandler(async (req, res) => {
   const { opponent, date, venue, type, description, match_type = 'tournament', price_per_slot = 0, total_slots = 0 } = req.body;
-  
+  // 'opponent' from frontend is stored as 'title' in the DB
+  const title = opponent;
+
   // Create Google Calendar event
   let google_event_id = null;
   if (date) {
     const start = new Date(date);
-    const end = new Date(start.getTime() + 3 * 60 * 60 * 1000); // assume 3 hours duration
+    const end = new Date(start.getTime() + 3 * 60 * 60 * 1000);
     google_event_id = await googleCalendar.insertEvent({
-      summary: `${match_type.toUpperCase()}: vs ${opponent}`,
-      description: description || `Venue: ${venue}. Type: ${type}`,
+      summary: `${match_type.toUpperCase()}: ${title}`,
+      description: description || `Venue: ${venue}.`,
       location: venue,
       start,
       end
@@ -291,28 +295,28 @@ exports.createMatch = asyncHandler(async (req, res) => {
   }
 
   const { data, error } = await supabase.from('matches')
-    .insert({ 
-      opponent, date, venue, type: type || 'League Match', description,
+    .insert({
+      title, date, venue, description,
       match_type, price_per_slot, total_slots, google_event_id
     })
     .select().single();
 
   if (error) throw new Error('Failed to create match: ' + error.message);
-  res.status(201).json({ success: true, message: 'Match scheduled.', match: data });
+  // Return with opponent alias so frontend stays consistent
+  res.status(201).json({ success: true, message: 'Match scheduled.', match: { ...data, opponent: data.title } });
 });
 
 exports.updateMatch = asyncHandler(async (req, res) => {
-  const { opponent, date, venue, type, description, result, match_type, price_per_slot, total_slots } = req.body;
+  const { opponent, date, venue, description, result, match_type, price_per_slot, total_slots } = req.body;
   const updateData = {};
-  if (opponent !== undefined)    updateData.opponent    = opponent;
-  if (date !== undefined)        updateData.date        = date;
-  if (venue !== undefined)       updateData.venue       = venue;
-  if (type !== undefined)        updateData.type        = type;
-  if (description !== undefined) updateData.description = description;
-  if (result !== undefined)      updateData.result      = result;
-  if (match_type !== undefined)  updateData.match_type  = match_type;
-  if (price_per_slot !== undefined) updateData.price_per_slot = price_per_slot;
-  if (total_slots !== undefined) updateData.total_slots = total_slots;
+  if (opponent !== undefined)       updateData.title          = opponent; // map to title
+  if (date !== undefined)           updateData.date            = date;
+  if (venue !== undefined)          updateData.venue           = venue;
+  if (description !== undefined)    updateData.description     = description;
+  if (result !== undefined)         updateData.result          = result;
+  if (match_type !== undefined)     updateData.match_type      = match_type;
+  if (price_per_slot !== undefined) updateData.price_per_slot  = price_per_slot;
+  if (total_slots !== undefined)    updateData.total_slots     = total_slots;
 
   const { error } = await supabase.from('matches').update(updateData).eq('id', req.params.id);
   if (error) throw new Error(error.message);
