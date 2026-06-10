@@ -1,4 +1,4 @@
-const { supabase } = require('../config/supabase');
+const supabase     = require('../config/supabase');
 const asyncHandler = require('../utils/asyncHandler');
 
 // Fetch practice matches created by Admin
