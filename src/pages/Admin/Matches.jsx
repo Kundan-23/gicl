@@ -163,9 +163,10 @@ const MatchModal = ({ match, onClose, onSave }) => {
 };
 
 const TypeBadge = ({ type }) => {
+  const key = (type || '').charAt(0).toUpperCase() + (type || '').slice(1).toLowerCase();
   const colorMap = { League: '#3b82f6', Friendly: '#10b981', Tournament: '#f59e0b', Practice: '#a78bfa' };
-  const col = colorMap[type] || '#94a3b8';
-  return <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: `${col}22`, color: col, border: `1px solid ${col}44` }}>{type}</span>;
+  const col = colorMap[key] || '#94a3b8';
+  return <span style={{ padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: `${col}22`, color: col, border: `1px solid ${col}44` }}>{key}</span>;
 };
 
 const Matches = () => {
