@@ -69,5 +69,10 @@ router.post('/upload/birth-cert',    upload.single('file'), playerController.upl
 router.get('/matches',                          playerController.getMatches);
 router.get('/referrals',                        playerController.getReferrals);
 router.get('/id-card',                          playerController.downloadIdCard);
+// Match Bookings
+const matchBookingController = require('../controllers/matchBookingController');
+router.get('/available-matches',              matchBookingController.getAvailableMatches);
+router.post('/book-match/order',              matchBookingController.createBookingOrder);
+router.post('/book-match/verify',             matchBookingController.verifyBookingPayment);
 
 module.exports = router;

@@ -9,12 +9,13 @@ const inputStyle = { width: '100%', padding: '0.7rem 0.875rem', backgroundColor:
 const labelStyle = { display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem', fontWeight: 500 };
 
 const MATCH_TYPES = ['League', 'Friendly', 'Tournament', 'Practice'];
-const EMPTY = { opponent: '', date: '', venue: '', match_type: 'League', description: '' };
+const EMPTY = { opponent: '', date: '', venue: '', match_type: 'League', description: '', price_per_slot: 0, total_slots: 0 };
 
 const MatchModal = ({ match, onClose, onSave }) => {
   const [form, setForm] = useState(match ? {
     opponent: match.opponent || '', date: match.date ? match.date.slice(0, 16) : '',
     venue: match.venue || '', match_type: match.match_type || 'League', description: match.description || '',
+    price_per_slot: match.price_per_slot || 0, total_slots: match.total_slots || 0,
   } : { ...EMPTY });
   const [saving, setSaving] = useState(false);
 
@@ -50,6 +51,16 @@ const MatchModal = ({ match, onClose, onSave }) => {
               <select value={form.match_type} onChange={e => set('match_type', e.target.value)} style={{ ...inputStyle, appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1.25em', paddingRight: '2.5rem' }}>
                 {MATCH_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div>
+              <label style={labelStyle}>Price per Slot (₹)</label>
+              <input type="number" min="0" value={form.price_per_slot} onChange={e => set('price_per_slot', Number(e.target.value))} style={inputStyle} placeholder="0 for free" />
+            </div>
+            <div>
+              <label style={labelStyle}>Total Slots</label>
+              <input type="number" min="0" value={form.total_slots} onChange={e => set('total_slots', Number(e.target.value))} style={inputStyle} placeholder="0 for unlimited" />
             </div>
           </div>
           <div>
@@ -159,6 +170,8 @@ const Matches = () => {
                   <th style={thStyle}>Date</th>
                   <th style={thStyle}>Venue</th>
                   <th style={thStyle}>Type</th>
+                  <th style={thStyle}>Price (₹)</th>
+                  <th style={thStyle}>Slots</th>
                   <th style={thStyle}>Description</th>
                   <th style={thStyle}>Actions</th>
                 </tr>
@@ -173,6 +186,8 @@ const Matches = () => {
                     <td style={tdStyle}>{m.date ? new Date(m.date).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</td>
                     <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{m.venue || '—'}</td>
                     <td style={tdStyle}><TypeBadge type={m.match_type} /></td>
+                    <td style={tdStyle}>{m.price_per_slot || 'Free'}</td>
+                    <td style={tdStyle}>{m.booked_slots || 0} / {m.total_slots || '∞'}</td>
                     <td style={{ ...tdStyle, color: 'var(--text-secondary)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.description || '—'}</td>
                     <td style={{ ...tdStyle, display: 'flex', gap: '0.5rem' }}>
                       <button onClick={() => setModal(m)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.8rem', borderRadius: 'var(--radius-md)', background: 'rgba(96,165,250,0.1)', color: 'var(--brand-accent)', border: '1px solid rgba(96,165,250,0.25)', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer' }}>

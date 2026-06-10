@@ -25,6 +25,7 @@ const CoachDashboardLayout = () => {
 
   const navLinks = [
     { name: 'Dashboard', path: '/coach-dashboard', icon: <ShieldPlus size={20} />, end: true },
+    { name: 'Create Practice Slot', path: '/coach-dashboard/create-slot', icon: <CalendarDays size={20} /> },
     { name: 'My Squad', path: '/coach-dashboard/squad', icon: <Users size={20} /> },
     { name: 'Team Builder', path: '/coach-dashboard/teams', icon: <Users size={20} /> },
     { name: 'My Uploads', path: '/coach-dashboard/uploads', icon: <PlaySquare size={20} /> },

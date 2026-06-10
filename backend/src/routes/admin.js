@@ -54,4 +54,9 @@ router.get('/coach-uploads',                            ctrl.listCoachUploads);
 router.put('/coach-uploads/:id/approve',                ctrl.approveCoachUpload);
 router.put('/coach-uploads/:id/reject',                 ctrl.rejectCoachUpload);
 
+// Training Slots Approvals
+router.get('/training-slots',                           ctrl.getTrainingSlots);
+router.put('/training-slots/:id/approve',               ctrl.approveTrainingSlot);
+router.put('/training-slots/:id/reject',                ctrl.rejectTrainingSlot);
+
 module.exports = router;

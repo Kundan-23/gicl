@@ -271,17 +271,38 @@ exports.getMatches = asyncHandler(async (req, res) => {
   res.json({ success: true, matches: data || [] });
 });
 
+const googleCalendar = require('../services/googleCalendar');
+
 exports.createMatch = asyncHandler(async (req, res) => {
-  const { opponent, date, venue, type, description } = req.body;
+  const { opponent, date, venue, type, description, match_type = 'tournament', price_per_slot = 0, total_slots = 0 } = req.body;
+  
+  // Create Google Calendar event
+  let google_event_id = null;
+  if (date) {
+    const start = new Date(date);
+    const end = new Date(start.getTime() + 3 * 60 * 60 * 1000); // assume 3 hours duration
+    google_event_id = await googleCalendar.insertEvent({
+      summary: `${match_type.toUpperCase()}: vs ${opponent}`,
+      description: description || `Venue: ${venue}. Type: ${type}`,
+      location: venue,
+      start,
+      end
+    });
+  }
+
   const { data, error } = await supabase.from('matches')
-    .insert({ opponent, date, venue, type: type || 'League Match', description })
+    .insert({ 
+      opponent, date, venue, type: type || 'League Match', description,
+      match_type, price_per_slot, total_slots, google_event_id
+    })
     .select().single();
+
   if (error) throw new Error('Failed to create match: ' + error.message);
   res.status(201).json({ success: true, message: 'Match scheduled.', match: data });
 });
 
 exports.updateMatch = asyncHandler(async (req, res) => {
-  const { opponent, date, venue, type, description, result } = req.body;
+  const { opponent, date, venue, type, description, result, match_type, price_per_slot, total_slots } = req.body;
   const updateData = {};
   if (opponent !== undefined)    updateData.opponent    = opponent;
   if (date !== undefined)        updateData.date        = date;
@@ -289,15 +310,75 @@ exports.updateMatch = asyncHandler(async (req, res) => {
   if (type !== undefined)        updateData.type        = type;
   if (description !== undefined) updateData.description = description;
   if (result !== undefined)      updateData.result      = result;
+  if (match_type !== undefined)  updateData.match_type  = match_type;
+  if (price_per_slot !== undefined) updateData.price_per_slot = price_per_slot;
+  if (total_slots !== undefined) updateData.total_slots = total_slots;
+
   const { error } = await supabase.from('matches').update(updateData).eq('id', req.params.id);
   if (error) throw new Error(error.message);
   res.json({ success: true, message: 'Match updated.' });
 });
 
 exports.deleteMatch = asyncHandler(async (req, res) => {
+  const { data } = await supabase.from('matches').select('google_event_id').eq('id', req.params.id).single();
+  if (data?.google_event_id) {
+    await googleCalendar.deleteEvent(data.google_event_id);
+  }
   const { error } = await supabase.from('matches').delete().eq('id', req.params.id);
   if (error) throw new Error(error.message);
   res.json({ success: true, message: 'Match deleted.' });
+});
+
+// ─── Training Slots ───────────────────────────────────────────────
+const { sendEmail } = require('../config/brevo');
+
+exports.getTrainingSlots = asyncHandler(async (req, res) => {
+  const { data, error } = await supabase.from('training_slots')
+    .select(`
+      *,
+      coach:coach_id (first_name, last_name, email, gicl_id)
+    `)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  res.json({ success: true, slots: data || [] });
+});
+
+exports.approveTrainingSlot = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { data, error } = await supabase.from('training_slots')
+    .update({ status: 'approved' })
+    .eq('id', id)
+    .select('*, coach:coach_id (email, first_name)').single();
+  if (error) throw new Error(error.message);
+
+  if (data?.coach?.email) {
+    await sendEmail(
+      data.coach.email,
+      'Training Slot Approved',
+      `<p>Hi ${data.coach.first_name},</p><p>Your training slot for ${data.training_type} on ${new Date(data.scheduled_time).toLocaleString()} has been approved.</p>`
+    );
+  }
+
+  res.json({ success: true, message: 'Training slot approved.', slot: data });
+});
+
+exports.rejectTrainingSlot = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { data, error } = await supabase.from('training_slots')
+    .update({ status: 'rejected' })
+    .eq('id', id)
+    .select('*, coach:coach_id (email, first_name)').single();
+  if (error) throw new Error(error.message);
+
+  if (data?.coach?.email) {
+    await sendEmail(
+      data.coach.email,
+      'Training Slot Rejected',
+      `<p>Hi ${data.coach.first_name},</p><p>Your training slot for ${data.training_type} on ${new Date(data.scheduled_time).toLocaleString()} has been rejected. Please contact administration for details.</p>`
+    );
+  }
+
+  res.json({ success: true, message: 'Training slot rejected.', slot: data });
 });
 
 // ─── App Config ───────────────────────────────────────────────────

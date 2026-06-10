@@ -13,6 +13,7 @@ import Step5_MyGameplay from './pages/PlayerOnboarding/Step5_MyGameplay';
 import DashboardLayout from './components/layout/DashboardLayout';
 import PlayerDashboard from './pages/Dashboard/PlayerDashboard';
 import MatchesCalendar from './pages/Dashboard/MatchesCalendar';
+import MatchBookings from './pages/Dashboard/MatchBookings';
 import ReferralSystem from './pages/Dashboard/ReferralSystem';
 import Tutorials from './pages/Dashboard/Tutorials';
 
@@ -20,6 +21,7 @@ import Tutorials from './pages/Dashboard/Tutorials';
 import CoachRegistrationFlow from './pages/CoachOnboarding/CoachRegistrationFlow';
 import CoachDashboardLayout from './components/layout/CoachDashboardLayout';
 import CoachDashboardHome from './pages/CoachDashboard/CoachDashboardHome';
+import CreateSlot from './pages/CoachDashboard/CreateSlot';
 import SquadOverview from './pages/CoachDashboard/SquadOverview';
 import VideoScrutiny from './pages/CoachDashboard/VideoScrutiny';
 import TeamBuilder from './pages/CoachDashboard/TeamBuilder';
@@ -49,6 +51,7 @@ import Coaches from './pages/Admin/Coaches';
 import Matches from './pages/Admin/Matches';
 import Config from './pages/Admin/Config';
 import AdminPlayerAllotment from './pages/Admin/PlayerAllotment';
+import AdminTrainingSlots from './pages/Admin/AdminTrainingSlots';
 
 // ── Route Guard: redirect to /login if not authenticated ──
 function ProtectedRoute({ children, requiredRole }) {
@@ -89,6 +92,7 @@ function AppRoutes() {
       }>
         <Route index element={<PlayerDashboard />} />
         <Route path="matches" element={<MatchesCalendar />} />
+        <Route path="bookings" element={<MatchBookings />} />
         <Route path="referral" element={<ReferralSystem />} />
         <Route path="tutorials" element={<Tutorials />} />
       </Route>
@@ -98,6 +102,7 @@ function AppRoutes() {
         <ProtectedRoute requiredRole="coach"><CoachDashboardLayout /></ProtectedRoute>
       }>
         <Route index element={<CoachDashboardHome />} />
+        <Route path="create-slot" element={<CreateSlot />} />
         <Route path="squad" element={<SquadOverview />} />
         <Route path="uploads" element={<CoachUploads />} />
         <Route path="scrutiny" element={<VideoScrutiny />} />
@@ -131,6 +136,7 @@ function AppRoutes() {
         <Route path="matches" element={<Matches />} />
         <Route path="config" element={<Config />} />
         <Route path="scrutiny" element={<AdminVideoScrutiny />} />
+        <Route path="training" element={<AdminTrainingSlots />} />
         <Route path="allotment" element={<AdminPlayerAllotment />} />
       </Route>
 

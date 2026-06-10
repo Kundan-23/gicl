@@ -16,6 +16,7 @@ const navLinks = [
   { name: 'Matches',      path: '/admin2/matches',      icon: Calendar },
   { name: 'Allotment',    path: '/admin2/allotment',    icon: Users2 },
   { name: 'Video Review', path: '/admin2/scrutiny',     icon: Video },
+  { name: 'Training Approvals', path: '/admin2/training', icon: ShieldCheck },
   { name: 'Config',       path: '/admin2/config',       icon: Settings },
 ];
 

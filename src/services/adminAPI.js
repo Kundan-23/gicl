@@ -55,6 +55,11 @@ export const adminAPI = {
   updateMatch:          (id, data)    => API.put(`/admin/matches/${id}`, data),
   deleteMatch:          (id)          => API.delete(`/admin/matches/${id}`),
 
+  // Training Slots
+  getTrainingSlots:     ()            => API.get('/admin/training-slots'),
+  approveTrainingSlot:  (id)          => API.put(`/admin/training-slots/${id}/approve`),
+  rejectTrainingSlot:   (id)          => API.put(`/admin/training-slots/${id}/reject`),
+
   // Config
   getConfig:            ()            => API.get('/admin/config'),
   updateConfig:         (data)        => API.put('/admin/config', data),

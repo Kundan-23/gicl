@@ -13,4 +13,10 @@ router.post('/uploads',          coachController.addUpload);
 router.get('/matches',           coachController.getMatches);
 router.get('/referrals',         coachController.getReferrals);
 
+// Coach Slots
+const coachSlotController = require('../controllers/coachSlotController');
+router.get('/practice-matches',  coachSlotController.getPracticeMatches);
+router.post('/squad-matches',    coachSlotController.submitMatchSquad);
+router.post('/training-slots',   coachSlotController.submitTrainingSlot);
+router.get('/training-slots',    coachSlotController.getTrainingSlots);
 module.exports = router;

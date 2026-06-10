@@ -56,6 +56,11 @@ export const playerAPI = {
   getMatches:         ()       => API.get('/player/matches'),
   getReferrals:       ()       => API.get('/player/referrals'),
   downloadIdCard:     ()       => API.get('/player/id-card', { responseType: 'blob' }),
+  
+  // Match Bookings
+  getAvailableMatches:  ()     => API.get('/player/available-matches'),
+  createBookingOrder:   (data) => API.post('/player/book-match/order', data),
+  verifyBookingPayment: (data) => API.post('/player/book-match/verify', data),
 };
 
 // ─── Coach ─────────────────────────────────────────────────
@@ -67,6 +72,11 @@ export const coachAPI = {
   addUpload:    (data)       => API.post('/coach/uploads', data),
   getMatches:   ()           => API.get('/coach/matches'),
   getReferrals: ()           => API.get('/coach/referrals'),
+  // Slots & Scheduling
+  getPracticeMatches: ()         => API.get('/coach/practice-matches'),
+  submitMatchSquad:   (data)     => API.post('/coach/squad-matches', data),
+  submitTrainingSlot: (data)     => API.post('/coach/training-slots', data),
+  getTrainingSlots:   ()         => API.get('/coach/training-slots'),
 };
 
 // ─── Admin ─────────────────────────────────────────────────
