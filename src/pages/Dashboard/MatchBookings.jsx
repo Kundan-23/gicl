@@ -126,8 +126,14 @@ const MatchBookings = () => {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-      {/* Header */}
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} style={{ position: 'relative' }}>
+      
+      {/* Background glow orbs to make glassmorphism pop */}
+      <div style={{ position: 'fixed', top: '10%', right: '5%', width: '40vw', height: '40vw', background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, rgba(0,0,0,0) 70%)', filter: 'blur(80px)', zIndex: 0, pointerEvents: 'none' }} />
+      <div style={{ position: 'fixed', bottom: '10%', left: '5%', width: '35vw', height: '35vw', background: 'radial-gradient(circle, rgba(167,139,250,0.08) 0%, rgba(0,0,0,0) 70%)', filter: 'blur(80px)', zIndex: 0, pointerEvents: 'none' }} />
+
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
         <h1 className="heading-1">Book a Match</h1>
         <p className="text-secondary" style={{ marginTop: '0.35rem' }}>
@@ -166,21 +172,32 @@ const MatchBookings = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
                 style={{
-                  borderRadius: 20,
-                  border: isBooked
-                    ? '1.5px solid rgba(16,185,129,0.45)'
-                    : `1.5px solid rgba(255,255,255,0.08)`,
-                  background: 'linear-gradient(145deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.02) 100%)',
-                  backdropFilter: 'blur(12px)',
+                  borderRadius: '1.25rem',
+                  border: 'none',
+                  background: isBooked
+                    ? 'linear-gradient(145deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.02) 100%)'
+                    : 'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.01) 100%)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
                   overflow: 'hidden',
                   position: 'relative',
                   boxShadow: isBooked
-                    ? '0 8px 32px rgba(16,185,129,0.12)'
-                    : `0 8px 32px ${typeGlow}`,
-                  transition: 'transform 0.2s, box-shadow 0.2s',
+                    ? '0 8px 32px rgba(16,185,129,0.15), inset 0 1px 0 rgba(16,185,129,0.4), inset 0 0 0 1px rgba(16,185,129,0.1)'
+                    : `0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 0 0 1px rgba(255,255,255,0.05)`,
+                  transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
-                onMouseOver={e => { if (!isBooked) e.currentTarget.style.transform = 'translateY(-3px)'; }}
-                onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                onMouseOver={e => { 
+                  if (!isBooked) {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = `0 16px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 0 0 1px rgba(255,255,255,0.1)`;
+                  }
+                }}
+                onMouseOut={e => { 
+                  if (!isBooked) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = `0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 0 0 1px rgba(255,255,255,0.05)`;
+                  }
+                }}
               >
                 {/* Top colour stripe — turns green when booked */}
                 <div style={{ height: 3, background: isBooked ? 'linear-gradient(90deg, #10b981, #059669)' : `linear-gradient(90deg, ${typeColor}, ${typeColor}55)` }} />
@@ -392,6 +409,7 @@ const MatchBookings = () => {
           })}
         </div>
       )}
+      </div>
     </motion.div>
   );
 };
