@@ -120,7 +120,7 @@ function getOTPEmailTemplate(code, purpose) {
     <div style="max-width: 480px; margin: 0 auto; background: #1a1a1a; border-radius: 16px; overflow: hidden; border: 1px solid #FFD700;">
       <div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 32px; text-align: center;">
         <h1 style="margin: 0; color: #000; font-size: 28px; font-weight: 900; letter-spacing: 2px;">GICL SPORTS</h1>
-        <p style="margin: 4px 0 0; color: #333; font-size: 13px;">Global Institute of Cricket League</p>
+        <p style="margin: 4px 0 0; color: #333; font-size: 13px;">Global Indoor Cricket League</p>
       </div>
       <div style="padding: 40px 32px; text-align: center;">
         <p style="color: #ccc; font-size: 15px; margin: 0 0 24px;">Use the code below to ${action}:</p>

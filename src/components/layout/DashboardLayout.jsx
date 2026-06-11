@@ -132,12 +132,24 @@ const DashboardLayout = () => {
           ))}
         </nav>
 
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          
+          {/* Sponsor Logo Placeholders */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', paddingBottom: '0.5rem' }}>
+            <div style={{ width: 60, height: 60, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem', textAlign: 'center', lineHeight: 1.2 }}>
+              Logo<br/>Space 1
+            </div>
+            <div style={{ width: 60, height: 60, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem', textAlign: 'center', lineHeight: 1.2 }}>
+              Logo<br/>Space 2
+            </div>
+          </div>
+
           {isDashboardUnlocked && (
             <button 
               onClick={handleDownloadCard}
               disabled={isDownloading}
               style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: 'var(--brand-accent)', background: 'none', fontWeight: 600, border: '1px solid var(--brand-accent)', borderRadius: 'var(--radius-md)', opacity: isDownloading ? 0.7 : 1 }}
+
             >
               <User size={20} />
               {isDownloading ? 'Generating PDF...' : 'Download ID Card'}

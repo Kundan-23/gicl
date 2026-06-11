@@ -253,7 +253,7 @@ async function generateIdCardPDF(player) {
   <div class="top-bar">
     <div>
       <div class="org-name">GICL</div>
-      <div class="org-sub">GLOBAL INSTITUTE OF CRICKET LEAGUE</div>
+      <div class="org-sub">GLOBAL INDOOR CRICKET LEAGUE</div>
     </div>
     <div class="badge">${plan.toUpperCase()} MEMBER</div>
   </div>
