@@ -32,7 +32,6 @@ const DashboardLayout = () => {
     ? [
         { name: 'Dashboard', path: '/dashboard', icon: <Home size={20} />, end: true },
         { name: 'Training Tutorials', path: '/dashboard/tutorials', icon: <PlaySquare size={20} /> },
-        { name: 'Upcoming Matches', path: '/dashboard/matches', icon: <Calendar size={20} /> },
         { name: 'Book a Match', path: '/dashboard/bookings', icon: <CalendarDays size={20} /> },
         { name: 'Refer GICL Sports', path: '/dashboard/referral', icon: <Users size={20} /> },
       ]
