@@ -67,6 +67,9 @@ export const adminAPI = {
   // Config
   getConfig:            ()            => API.get('/admin/config'),
   updateConfig:         (data)        => API.put('/admin/config', data),
+  uploadBanner:         (file)        => { const f = new FormData(); f.append('file', file); return API.post('/admin/config/banner/upload', f, { headers: { 'Content-Type': 'multipart/form-data' } }); },
+  uploadAdBanner:       (file)        => { const f = new FormData(); f.append('file', file); return API.post('/admin/config/ad-banner/upload', f, { headers: { 'Content-Type': 'multipart/form-data' } }); },
+  uploadSponsorLogo:    (file, slot)  => { const f = new FormData(); f.append('file', file); return API.post(`/admin/config/sponsor-logo/upload/${slot}`, f, { headers: { 'Content-Type': 'multipart/form-data' } }); },
 
   // Coach Video Uploads
   getCoachUploads:      (status)      => API.get('/admin/coach-uploads', { params: { status } }),

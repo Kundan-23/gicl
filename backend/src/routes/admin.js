@@ -58,6 +58,7 @@ router.get('/config',                                   ctrl.getConfig);
 router.put('/config',                                   ctrl.updateConfig);
 router.post('/config/banner/upload',    upload.single('file'), ctrl.uploadBanner);
 router.post('/config/ad-banner/upload', upload.single('file'), ctrl.uploadAdBanner);
+router.post('/config/sponsor-logo/upload/:slot', upload.single('file'), ctrl.uploadSponsorLogo);
 
 // Coach Video Uploads
 router.get('/coach-uploads',                            ctrl.listCoachUploads);

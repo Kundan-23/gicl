@@ -577,3 +577,26 @@ exports.uploadAdBanner = asyncHandler(async (req, res) => {
   const { data: { publicUrl } } = sb.storage.from('ad-banners').getPublicUrl(path);
   res.json({ success: true, url: publicUrl });
 });
+
+// ─── Upload sponsor logo (sidebar) ─────────────────────────────────────────
+exports.uploadSponsorLogo = asyncHandler(async (req, res) => {
+  const { slot } = req.params; // '1' or '2'
+  if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
+  const { createClient } = require('@supabase/supabase-js');
+  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  
+  // Use a fixed name so the frontend can just fetch this static URL
+  // We use .png to keep it simple, but we can just name it sponsor-[slot] without extension
+  // However, it's safer to use an extension so the browser sets the correct mime type
+  const path = `sponsor-${slot}.png`;
+  
+  const { error: uploadError } = await sb.storage.from('banners').upload(path, req.file.buffer, { 
+    contentType: req.file.mimetype, 
+    upsert: true 
+  });
+  
+  if (uploadError) throw new Error(uploadError.message);
+  
+  const { data: { publicUrl } } = sb.storage.from('banners').getPublicUrl(path);
+  res.json({ success: true, url: `${publicUrl}?t=${Date.now()}` }); // Cache buster
+});

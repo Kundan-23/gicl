@@ -150,6 +150,10 @@ const Config = () => {
   const landingFileRef = useRef();
   const bannerFileRef = useRef();
   const adBannerFileRef = useRef();
+  const sponsor1FileRef = useRef();
+  const sponsor2FileRef = useRef();
+  const [uploadingSponsor, setUploadingSponsor] = useState({ 1: false, 2: false });
+  const [sponsorTimestamp, setSponsorTimestamp] = useState(Date.now());
 
   // Tab 4 — Player Options
   const [jerseySizes, setJerseySizes] = useState([]);
@@ -348,6 +352,24 @@ const Config = () => {
     const updated = adBanners.filter((_, i) => i !== idx);
     setAdBanners(updated);
     await adminAPI.updateConfig({ ad_banners: updated });
+  };
+
+  // ─── Sponsor Logo upload ──────────────────────────────────────────────────
+  const handleSponsorUpload = async (e, slot) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingSponsor(prev => ({ ...prev, [slot]: true }));
+    try {
+      await adminAPI.uploadSponsorLogo(file, slot);
+      setSponsorTimestamp(Date.now());
+      Swal.fire({ icon: 'success', title: `Sponsor Logo ${slot} updated!`, timer: 1200, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Upload failed', text: err.response?.data?.message || err.message, background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
+    } finally { 
+      setUploadingSponsor(prev => ({ ...prev, [slot]: false })); 
+      if (slot === 1 && sponsor1FileRef.current) sponsor1FileRef.current.value = ''; 
+      if (slot === 2 && sponsor2FileRef.current) sponsor2FileRef.current.value = ''; 
+    }
   };
 
   // ─── Ball type image upload ────────────────────────────────────────────────
@@ -633,6 +655,37 @@ const Config = () => {
             >
               <Plus size={15} /> {uploadingAdBanner ? 'Uploading…' : 'Upload Ad Banner'}
             </button>
+          </Section>
+
+          {/* D. Sponsor Logos */}
+          <Section title="Sponsor Logos" description="Logos displayed inside the player sidebar navigation.">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+              {[1, 2].map(slot => (
+                <div key={slot} style={{ backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 'var(--radius-lg)', padding: '1rem', border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <p style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Logo Placeholder {slot}</p>
+                  
+                  <div style={{ width: '100%', height: '80px', backgroundColor: 'var(--bg-color)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '1px dashed var(--border-subtle)' }}>
+                    <img 
+                      src={`https://qrgwmahlngkmebtwntha.supabase.co/storage/v1/object/public/banners/sponsor-${slot}.png?t=${sponsorTimestamp}`} 
+                      alt={`Sponsor ${slot}`} 
+                      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                      onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+                      onLoad={(e) => { e.target.style.display = 'block'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'none'; }}
+                    />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'none' }}>No image</span>
+                  </div>
+
+                  <input ref={slot === 1 ? sponsor1FileRef : sponsor2FileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleSponsorUpload(e, slot)} />
+                  <button
+                    onClick={() => slot === 1 ? sponsor1FileRef.current?.click() : sponsor2FileRef.current?.click()}
+                    disabled={uploadingSponsor[slot]}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.5rem', borderRadius: 'var(--radius-md)', background: 'rgba(249,203,26,0.1)', color: 'var(--brand-primary)', border: '1px solid rgba(249,203,26,0.25)', fontWeight: 600, fontSize: '0.8rem', cursor: uploadingSponsor[slot] ? 'wait' : 'pointer', width: '100%' }}
+                  >
+                    <ImageIcon size={14} /> {uploadingSponsor[slot] ? 'Uploading…' : `Update Logo ${slot}`}
+                  </button>
+                </div>
+              ))}
+            </div>
           </Section>
         </>
       )}

@@ -134,14 +134,20 @@ const DashboardLayout = () => {
 
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           
-          {/* Sponsor Logo Placeholders */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', paddingBottom: '0.5rem' }}>
-            <div style={{ width: 60, height: 60, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem', textAlign: 'center', lineHeight: 1.2 }}>
-              Logo<br/>Space 1
-            </div>
-            <div style={{ width: 60, height: 60, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.05)', border: '1px dashed rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem', textAlign: 'center', lineHeight: 1.2 }}>
-              Logo<br/>Space 2
-            </div>
+          {/* Logo Placeholders (Sponsors) */}
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            {[1, 2].map(slot => (
+              <div key={slot} style={{ flex: 1, height: '60px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                <img 
+                  src={`https://qrgwmahlngkmebtwntha.supabase.co/storage/v1/object/public/banners/sponsor-${slot}.png`} 
+                  alt={`Sponsor ${slot}`} 
+                  style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+                  onLoad={(e) => { e.target.style.display = 'block'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'none'; }}
+                />
+                <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', textAlign: 'center', display: 'none' }}>Sponsor {slot}</span>
+              </div>
+            ))}
           </div>
 
           {isDashboardUnlocked && (
