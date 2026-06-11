@@ -1,20 +1,20 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
-import { Calendar, MapPin, IndianRupee, ShieldCheck, Share2, CheckCircle2, Users, Tag } from 'lucide-react';
+import { Calendar, MapPin, IndianRupee, ShieldCheck, Share2, CheckCircle2, Users, Tag, Zap } from 'lucide-react';
 import { playerAPI } from '../../services/api';
 
 const TYPE_COLORS = {
-  league:     '#3b82f6',
-  friendly:   '#10b981',
-  tournament: '#f59e0b',
+  league:     { bg: '#3b82f6', glow: 'rgba(59,130,246,0.15)' },
+  friendly:   { bg: '#10b981', glow: 'rgba(16,185,129,0.15)' },
+  tournament: { bg: '#f59e0b', glow: 'rgba(245,158,11,0.15)' },
 };
 
 const MatchBookings = () => {
-  const [matches,  setMatches]  = useState([]);
-  const [booked,   setBooked]   = useState(new Set()); // Set of match_ids already booked
-  const [loading,  setLoading]  = useState(true);
-  const [bookingId, setBookingId] = useState(null); // match id currently being processed
+  const [matches,   setMatches]   = useState([]);
+  const [booked,    setBooked]    = useState(new Set());
+  const [loading,   setLoading]   = useState(true);
+  const [bookingId, setBookingId] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -44,26 +44,20 @@ const MatchBookings = () => {
 
       const options = {
         key:         import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount:      amount,
-        currency:    currency,
+        amount,
+        currency,
         name:        'GICL Sports',
         description: `Slot booking — ${matchTitle}`,
         order_id:    orderId,
-        prefill: {
-          name:  localStorage.getItem('gicl_user') ? JSON.parse(localStorage.getItem('gicl_user') || '{}')?.name : '',
-          email: '',
-        },
-        theme: { color: '#F9CB1A' },
-        modal: {
-          ondismiss: () => setBookingId(null),
-        },
+        theme:       { color: '#F9CB1A' },
+        modal:       { ondismiss: () => setBookingId(null) },
         handler: async function (response) {
           try {
             await playerAPI.verifyBookingPayment({
-              matchId:              match.id,
-              razorpay_order_id:    response.razorpay_order_id,
-              razorpay_payment_id:  response.razorpay_payment_id,
-              razorpay_signature:   response.razorpay_signature,
+              matchId:             match.id,
+              razorpay_order_id:   response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature:  response.razorpay_signature,
             });
             setBooked(prev => new Set([...prev, match.id]));
             setMatches(prev => prev.map(m =>
@@ -72,189 +66,288 @@ const MatchBookings = () => {
             Swal.fire({
               icon: 'success',
               title: '🎉 Slot Confirmed!',
-              html: `<p>Your slot for <strong>${matchTitle}</strong> is confirmed.</p><p style="margin-top:0.5rem;color:#94a3b8;font-size:0.875rem;">Payment ID: ${response.razorpay_payment_id}</p>`,
-              background: '#1a2340',
+              html: `<p>Your slot for <strong>${matchTitle}</strong> is confirmed.</p><p style="margin-top:0.5rem;color:#94a3b8;font-size:0.85rem;">Payment ID: ${response.razorpay_payment_id}</p>`,
+              background: '#0f1629',
               color: '#fff',
               confirmButtonColor: '#F9CB1A',
             });
           } catch (err) {
-            Swal.fire({ icon: 'error', title: 'Verification Failed', text: err.response?.data?.message || 'Please contact support.', background: '#1a2340', color: '#fff' });
-          } finally {
-            setBookingId(null);
-          }
+            Swal.fire({ icon: 'error', title: 'Verification Failed', text: err.response?.data?.message || 'Contact support.', background: '#0f1629', color: '#fff' });
+          } finally { setBookingId(null); }
         },
       };
 
       if (!window.Razorpay) {
-        Swal.fire({ icon: 'error', title: 'Payment Error', text: 'Razorpay failed to load. Please refresh and try again.', background: '#1a2340', color: '#fff' });
+        Swal.fire({ icon: 'error', title: 'Payment Error', text: 'Razorpay failed to load. Please refresh.', background: '#0f1629', color: '#fff' });
         setBookingId(null);
         return;
       }
-
       const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', function (response) {
-        Swal.fire({ icon: 'error', title: 'Payment Failed', text: response.error.description, background: '#1a2340', color: '#fff' });
+      rzp.on('payment.failed', (r) => {
+        Swal.fire({ icon: 'error', title: 'Payment Failed', text: r.error.description, background: '#0f1629', color: '#fff' });
         setBookingId(null);
       });
       rzp.open();
-
     } catch (err) {
       setBookingId(null);
       Swal.fire({
-        icon: 'error',
-        title: 'Booking Failed',
+        icon: 'error', title: 'Booking Failed',
         text: err.response?.data?.message || 'Could not initiate booking. Please try again.',
-        background: '#1a2340',
-        color: '#fff',
-        confirmButtonColor: '#F9CB1A',
+        background: '#0f1629', color: '#fff', confirmButtonColor: '#F9CB1A',
       });
     }
   };
 
   const handleShare = async (match) => {
-    const text = `🏏 ${match.match_type?.toUpperCase()} | ${match.title}\n📅 ${new Date(match.date).toLocaleString('en-IN')}\n📍 ${match.venue}\n\nBook your slot on GICL Sports!`;
+    const text = `🏏 ${match.match_type?.toUpperCase()} | ${match.title}\n📅 ${new Date(match.date).toLocaleString('en-IN')}\n📍 ${match.venue}\n💰 ₹${match.price_per_slot}/slot\n\nBook on GICL Sports!`;
     if (navigator.share) {
-      try { await navigator.share({ title: match.title, text }); } catch { /* user cancelled */ }
+      try { await navigator.share({ title: match.title, text }); } catch { /* cancelled */ }
     } else {
       await navigator.clipboard.writeText(text);
-      Swal.fire({ icon: 'success', title: 'Copied!', text: 'Match details copied to clipboard.', timer: 1500, showConfirmButton: false, background: '#1a2340', color: '#fff' });
+      Swal.fire({ icon: 'success', title: 'Copied!', text: 'Match details copied.', timer: 1500, showConfirmButton: false, background: '#0f1629', color: '#fff' });
     }
   };
 
+  /* ── Skeleton ── */
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {[1,2,3].map(i => (
-          <div key={i} style={{ height: 200, backgroundColor: 'var(--bg-surface)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-subtle)', animation: 'pulse 1.5s ease-in-out infinite', opacity: 0.6 }} />
-        ))}
+      <div>
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 className="heading-1">Book a Match</h1>
+          <p className="text-secondary" style={{ marginTop: '0.35rem' }}>Loading available matches…</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{ height: 280, borderRadius: 20, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+      {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
-        <h1 className="heading-1">Match Bookings</h1>
-        <p className="text-secondary" style={{ marginTop: '0.35rem' }}>Book your slot for upcoming matches. Payment is secured via Razorpay.</p>
+        <h1 className="heading-1">Book a Match</h1>
+        <p className="text-secondary" style={{ marginTop: '0.35rem' }}>
+          {matches.length > 0 ? `${matches.length} match${matches.length > 1 ? 'es' : ''} available — secure your slot now` : 'No matches available yet'}
+        </p>
       </div>
 
+      {/* Empty state */}
       {matches.length === 0 ? (
-        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '5rem 2rem', borderRadius: 'var(--radius-xl)', textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
-          <Calendar size={52} color="var(--text-secondary)" style={{ margin: '0 auto 1.25rem', opacity: 0.4 }} />
+        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '5rem 2rem', borderRadius: 20, textAlign: 'center', border: '1px solid var(--border-subtle)' }}>
+          <Calendar size={52} color="var(--text-secondary)" style={{ margin: '0 auto 1.25rem', opacity: 0.35 }} />
           <h3 className="heading-3">No Upcoming Matches</h3>
-          <p className="text-secondary" style={{ marginTop: '0.5rem' }}>Check back soon — new matches will appear here once scheduled by the admin.</p>
+          <p className="text-secondary" style={{ marginTop: '0.5rem' }}>Check back soon — new matches will appear here once scheduled.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
-          {matches.map(match => {
-            const isFull     = match.total_slots > 0 && (match.booked_slots || 0) >= match.total_slots;
-            const isBooked   = booked.has(match.id);
-            const isLoading  = bookingId === match.id;
-            const slotsLeft  = match.total_slots > 0 ? match.total_slots - (match.booked_slots || 0) : null;
-            const typeColor  = TYPE_COLORS[(match.match_type || '').toLowerCase()] || '#94a3b8';
-            const typeLabel  = (match.match_type || '').toUpperCase();
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>
+          {matches.map((match, idx) => {
+            const isFull    = match.total_slots > 0 && (match.booked_slots || 0) >= match.total_slots;
+            const isBooked  = booked.has(match.id);
+            const isLoading = bookingId === match.id;
+            const slotsLeft = match.total_slots > 0 ? match.total_slots - (match.booked_slots || 0) : null;
+            const typeKey   = (match.match_type || '').toLowerCase();
+            const typeColor = TYPE_COLORS[typeKey]?.bg || '#94a3b8';
+            const typeGlow  = TYPE_COLORS[typeKey]?.glow || 'transparent';
+            const fillPct   = match.total_slots > 0
+              ? Math.min(100, ((match.booked_slots || 0) / match.total_slots) * 100)
+              : 0;
+            const ageCategory = match.age_category && match.age_category !== 'Open (All Ages)'
+              ? match.age_category
+              : null;
 
             return (
               <motion.div
                 key={match.id}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
                 style={{
-                  backgroundColor: 'var(--bg-surface)',
-                  borderRadius: 'var(--radius-xl)',
-                  border: isBooked ? '1px solid rgba(16,185,129,0.4)' : '1px solid var(--border-subtle)',
+                  borderRadius: 20,
+                  border: isBooked
+                    ? '1.5px solid rgba(16,185,129,0.45)'
+                    : `1.5px solid rgba(255,255,255,0.08)`,
+                  background: 'linear-gradient(145deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.02) 100%)',
+                  backdropFilter: 'blur(12px)',
                   overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
                   position: 'relative',
-                  boxShadow: isBooked ? '0 0 20px rgba(16,185,129,0.1)' : 'none',
-                  transition: 'box-shadow 0.3s',
+                  boxShadow: isBooked
+                    ? '0 8px 32px rgba(16,185,129,0.12)'
+                    : `0 8px 32px ${typeGlow}`,
+                  transition: 'transform 0.2s, box-shadow 0.2s',
                 }}
+                onMouseOver={e => { if (!isBooked) e.currentTarget.style.transform = 'translateY(-3px)'; }}
+                onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
               >
-                {/* Header stripe */}
-                <div style={{ height: 4, background: `linear-gradient(90deg, ${typeColor}, ${typeColor}88)` }} />
+                {/* Top colour stripe */}
+                <div style={{ height: 3, background: `linear-gradient(90deg, ${typeColor}, ${typeColor}55)` }} />
 
-                {/* Already booked ribbon */}
+                {/* BOOKED diagonal ribbon */}
                 {isBooked && (
-                  <div style={{ position: 'absolute', top: 16, right: -28, background: '#10b981', color: '#fff', fontSize: '0.7rem', fontWeight: 700, padding: '0.2rem 2.5rem', transform: 'rotate(45deg)', transformOrigin: 'center', zIndex: 2, letterSpacing: '0.05em' }}>
+                  <div style={{
+                    position: 'absolute', top: 18, right: -30,
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    color: '#fff', fontSize: '0.65rem', fontWeight: 800,
+                    padding: '0.22rem 2.8rem', transform: 'rotate(45deg)',
+                    letterSpacing: '0.1em', zIndex: 10,
+                    boxShadow: '0 2px 8px rgba(16,185,129,0.4)',
+                  }}>
                     BOOKED
                   </div>
                 )}
 
-                {/* Card top */}
-                <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'rgba(0,0,0,0.15)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                    <span style={{ padding: '0.25rem 0.7rem', borderRadius: '9999px', fontSize: '0.72rem', fontWeight: 700, backgroundColor: `${typeColor}22`, color: typeColor, border: `1px solid ${typeColor}44`, letterSpacing: '0.06em' }}>
-                      {typeLabel}
-                    </span>
-                    {isFull ? (
-                      <span style={{ fontSize: '0.78rem', color: '#ef4444', fontWeight: 700, background: 'rgba(239,68,68,0.1)', padding: '0.2rem 0.6rem', borderRadius: '9999px', border: '1px solid rgba(239,68,68,0.3)' }}>● FULL</span>
-                    ) : slotsLeft !== null ? (
-                      <span style={{ fontSize: '0.78rem', color: slotsLeft <= 5 ? '#f59e0b' : '#10b981', fontWeight: 600 }}>{slotsLeft} slots left</span>
-                    ) : (
-                      <span style={{ fontSize: '0.78rem', color: '#10b981', fontWeight: 600 }}>Open</span>
-                    )}
-                  </div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.3 }}>{match.title}</h3>
-                  {match.age_category && match.age_category !== 'Open (All Ages)' && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.4rem', fontSize: '0.75rem', color: '#a78bfa', fontWeight: 600 }}>
-                      <Tag size={12} /> {match.age_category}
-                    </span>
-                  )}
-                </div>
+                {/* ── Card Body ── */}
+                <div style={{ padding: '1.25rem 1.5rem 1.5rem' }}>
 
-                {/* Card body */}
-                <div style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', color: 'var(--text-secondary)' }}>
-                    <Calendar size={15} />
-                    <span style={{ fontSize: '0.875rem' }}>{new Date(match.date).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  {/* Row 1: Type badge + slots status */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {/* Match type */}
+                      <span style={{
+                        padding: '0.22rem 0.75rem',
+                        borderRadius: 9999,
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        letterSpacing: '0.08em',
+                        backgroundColor: `${typeColor}20`,
+                        color: typeColor,
+                        border: `1px solid ${typeColor}50`,
+                        textTransform: 'uppercase',
+                      }}>
+                        {match.match_type}
+                      </span>
+                      {/* Age category */}
+                      {ageCategory && (
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                          padding: '0.22rem 0.65rem',
+                          borderRadius: 9999,
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          backgroundColor: 'rgba(167,139,250,0.12)',
+                          color: '#a78bfa',
+                          border: '1px solid rgba(167,139,250,0.3)',
+                        }}>
+                          <Tag size={10} />
+                          {ageCategory}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Slot status pill */}
+                    {isFull ? (
+                      <span style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: 700, background: 'rgba(239,68,68,0.1)', padding: '0.2rem 0.65rem', borderRadius: 9999, border: '1px solid rgba(239,68,68,0.25)' }}>
+                        ● FULL
+                      </span>
+                    ) : slotsLeft !== null && slotsLeft <= 5 ? (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', color: '#f59e0b', fontWeight: 700 }}>
+                        <Zap size={11} fill="#f59e0b" /> {slotsLeft} left
+                      </span>
+                    ) : slotsLeft !== null ? (
+                      <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>{slotsLeft} slots left</span>
+                    ) : null}
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', color: 'var(--text-secondary)' }}>
-                    <MapPin size={15} />
-                    <span style={{ fontSize: '0.875rem' }}>{match.venue || '—'}</span>
+
+                  {/* Match title */}
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', lineHeight: 1.3, marginBottom: '1rem' }}>
+                    {match.title}
+                  </h3>
+
+                  {/* Info rows */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'rgba(255,255,255,0.55)', fontSize: '0.84rem' }}>
+                      <Calendar size={14} style={{ flexShrink: 0 }} />
+                      <span>{new Date(match.date).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'rgba(255,255,255,0.55)', fontSize: '0.84rem' }}>
+                      <MapPin size={14} style={{ flexShrink: 0 }} />
+                      <span>{match.venue || '—'}</span>
+                    </div>
                   </div>
+
+                  {/* Slot progress bar */}
                   {match.total_slots > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', color: 'var(--text-secondary)' }}>
-                      <Users size={15} />
-                      <span style={{ fontSize: '0.875rem' }}>{match.booked_slots || 0} / {match.total_slots} slots filled</span>
-                      {/* progress bar */}
-                      <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 9999, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${Math.min(100, ((match.booked_slots || 0) / match.total_slots) * 100)}%`, background: isFull ? '#ef4444' : typeColor, transition: 'width 0.4s ease', borderRadius: 9999 }} />
+                    <div style={{ marginBottom: '1rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.4rem' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <Users size={11} /> {match.booked_slots || 0} / {match.total_slots} filled
+                        </span>
+                        <span>{Math.round(fillPct)}%</span>
+                      </div>
+                      <div style={{ height: 5, background: 'rgba(255,255,255,0.08)', borderRadius: 9999, overflow: 'hidden' }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${fillPct}%`,
+                          background: isFull
+                            ? 'linear-gradient(90deg, #ef4444, #dc2626)'
+                            : fillPct > 70
+                              ? 'linear-gradient(90deg, #f59e0b, #d97706)'
+                              : `linear-gradient(90deg, ${typeColor}, ${typeColor}aa)`,
+                          borderRadius: 9999,
+                          transition: 'width 0.5s ease',
+                        }} />
                       </div>
                     </div>
                   )}
+
+                  {/* Description */}
                   {match.description && (
-                    <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', padding: '0.65rem 0.875rem', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', lineHeight: 1.5 }}>
+                    <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', padding: '0.6rem 0.75rem', background: 'rgba(255,255,255,0.04)', borderRadius: 10, lineHeight: 1.5 }}>
                       {match.description}
                     </p>
                   )}
 
-                  {/* Footer */}
-                  <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <IndianRupee size={18} color="var(--brand-primary)" />
-                      <span style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--brand-primary)', lineHeight: 1 }}>
+                  {/* Divider */}
+                  <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '0 -0.25rem 1rem' }} />
+
+                  {/* Footer: Price + Actions */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                    {/* Price */}
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--brand-primary)', fontWeight: 700 }}>₹</span>
+                      <span style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--brand-primary)', lineHeight: 1 }}>
                         {match.price_per_slot > 0 ? match.price_per_slot : '—'}
                       </span>
-                      {match.price_per_slot > 0 && <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', alignSelf: 'flex-end', marginBottom: 2 }}>/slot</span>}
+                      {match.price_per_slot > 0 && (
+                        <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.35)', marginBottom: 2 }}>/slot</span>
+                      )}
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      {/* Share button */}
+                    {/* Buttons */}
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      {/* Share */}
                       <button
                         onClick={() => handleShare(match)}
                         title="Share"
-                        style={{ width: 40, height: 40, borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)', cursor: 'pointer', transition: 'all 0.15s' }}
-                        onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#fff'; }}
-                        onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                        style={{
+                          width: 38, height: 38, borderRadius: 10,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: 'rgba(255,255,255,0.07)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          color: 'rgba(255,255,255,0.5)',
+                          cursor: 'pointer', transition: 'all 0.15s',
+                          flexShrink: 0,
+                        }}
+                        onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.13)'; e.currentTarget.style.color = '#fff'; }}
+                        onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
                       >
-                        <Share2 size={16} />
+                        <Share2 size={15} />
                       </button>
 
-                      {/* Book button */}
+                      {/* Book / Booked button */}
                       {isBooked ? (
-                        <button disabled style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.65rem 1.25rem', borderRadius: 'var(--radius-md)', background: 'rgba(16,185,129,0.12)', color: '#10b981', border: '1px solid rgba(16,185,129,0.3)', fontWeight: 700, fontSize: '0.875rem', cursor: 'default' }}>
-                          <CheckCircle2 size={16} /> Booked
+                        <button disabled style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                          padding: '0.6rem 1.1rem', borderRadius: 10,
+                          background: 'rgba(16,185,129,0.12)',
+                          color: '#10b981',
+                          border: '1px solid rgba(16,185,129,0.3)',
+                          fontWeight: 700, fontSize: '0.84rem', cursor: 'default',
+                        }}>
+                          <CheckCircle2 size={15} /> Booked
                         </button>
                       ) : (
                         <button
@@ -262,26 +355,32 @@ const MatchBookings = () => {
                           disabled={isFull || isLoading}
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                            padding: '0.65rem 1.25rem', borderRadius: 'var(--radius-md)',
-                            background: isFull ? 'rgba(255,255,255,0.06)' : 'var(--brand-primary)',
-                            color: isFull ? 'var(--text-secondary)' : '#121A3F',
-                            fontWeight: 700, fontSize: '0.875rem', border: 'none',
+                            padding: '0.6rem 1.1rem', borderRadius: 10,
+                            background: isFull
+                              ? 'rgba(255,255,255,0.06)'
+                              : isLoading
+                                ? 'rgba(249,203,26,0.7)'
+                                : 'var(--brand-primary)',
+                            color: isFull ? 'rgba(255,255,255,0.3)' : '#121A3F',
+                            fontWeight: 700, fontSize: '0.84rem',
+                            border: 'none',
                             cursor: isFull || isLoading ? 'not-allowed' : 'pointer',
                             transition: 'all 0.15s',
-                            opacity: isLoading ? 0.7 : 1,
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           {isLoading ? (
-                            <>Processing…</>
+                            'Processing…'
                           ) : isFull ? (
                             'Fully Booked'
                           ) : (
-                            <><ShieldCheck size={16} /> Book Slot — ₹{match.price_per_slot}</>
+                            <><ShieldCheck size={15} /> Book — ₹{match.price_per_slot}</>
                           )}
                         </button>
                       )}
                     </div>
                   </div>
+
                 </div>
               </motion.div>
             );
