@@ -182,29 +182,15 @@ const MatchBookings = () => {
                 onMouseOver={e => { if (!isBooked) e.currentTarget.style.transform = 'translateY(-3px)'; }}
                 onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
               >
-                {/* Top colour stripe */}
-                <div style={{ height: 3, background: `linear-gradient(90deg, ${typeColor}, ${typeColor}55)` }} />
-
-                {/* BOOKED diagonal ribbon */}
-                {isBooked && (
-                  <div style={{
-                    position: 'absolute', top: 18, right: -30,
-                    background: 'linear-gradient(135deg, #10b981, #059669)',
-                    color: '#fff', fontSize: '0.65rem', fontWeight: 800,
-                    padding: '0.22rem 2.8rem', transform: 'rotate(45deg)',
-                    letterSpacing: '0.1em', zIndex: 10,
-                    boxShadow: '0 2px 8px rgba(16,185,129,0.4)',
-                  }}>
-                    BOOKED
-                  </div>
-                )}
+                {/* Top colour stripe — turns green when booked */}
+                <div style={{ height: 3, background: isBooked ? 'linear-gradient(90deg, #10b981, #059669)' : `linear-gradient(90deg, ${typeColor}, ${typeColor}55)` }} />
 
                 {/* ── Card Body ── */}
                 <div style={{ padding: '1.25rem 1.5rem 1.5rem' }}>
 
-                  {/* Row 1: Type badge + slots status */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {/* Row 1: Type badge + age category + booked badge | slots status */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.875rem', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                       {/* Match type */}
                       <span style={{
                         padding: '0.22rem 0.75rem',
@@ -235,21 +221,40 @@ const MatchBookings = () => {
                           {ageCategory}
                         </span>
                       )}
+                      {/* Booked badge — inline, no overlap */}
+                      {isBooked && (
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                          padding: '0.22rem 0.65rem',
+                          borderRadius: 9999,
+                          fontSize: '0.68rem',
+                          fontWeight: 800,
+                          letterSpacing: '0.05em',
+                          backgroundColor: 'rgba(16,185,129,0.15)',
+                          color: '#10b981',
+                          border: '1px solid rgba(16,185,129,0.4)',
+                        }}>
+                          <CheckCircle2 size={11} /> BOOKED
+                        </span>
+                      )}
                     </div>
 
-                    {/* Slot status pill */}
-                    {isFull ? (
-                      <span style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: 700, background: 'rgba(239,68,68,0.1)', padding: '0.2rem 0.65rem', borderRadius: 9999, border: '1px solid rgba(239,68,68,0.25)' }}>
-                        ● FULL
-                      </span>
-                    ) : slotsLeft !== null && slotsLeft <= 5 ? (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', color: '#f59e0b', fontWeight: 700 }}>
-                        <Zap size={11} fill="#f59e0b" /> {slotsLeft} left
-                      </span>
-                    ) : slotsLeft !== null ? (
-                      <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>{slotsLeft} slots left</span>
-                    ) : null}
+                    {/* Slot status pill — always visible, no overlap */}
+                    <div style={{ flexShrink: 0 }}>
+                      {isFull ? (
+                        <span style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: 700, background: 'rgba(239,68,68,0.1)', padding: '0.2rem 0.65rem', borderRadius: 9999, border: '1px solid rgba(239,68,68,0.25)' }}>
+                          ● FULL
+                        </span>
+                      ) : slotsLeft !== null && slotsLeft <= 5 ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', color: '#f59e0b', fontWeight: 700 }}>
+                          <Zap size={11} fill="#f59e0b" /> {slotsLeft} left
+                        </span>
+                      ) : slotsLeft !== null ? (
+                        <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 600 }}>{slotsLeft} slots left</span>
+                      ) : null}
+                    </div>
                   </div>
+
 
                   {/* Match title */}
                   <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fff', lineHeight: 1.3, marginBottom: '1rem' }}>
