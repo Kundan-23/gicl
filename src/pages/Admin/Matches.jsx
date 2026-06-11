@@ -192,6 +192,8 @@ const Matches = () => {
   const [expandedId, setExpandedId] = useState(null);
   const [squads, setSquads] = useState([]);
   const [squadsLoading, setSquadsLoading] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -214,6 +216,17 @@ const Matches = () => {
       setSquads(r.data?.squads || []);
     } catch { setSquads([]); }
     finally { setSquadsLoading(false); }
+  };
+
+  const loadBookings = async (matchId) => {
+    if (expandedId === matchId) { setExpandedId(null); return; }
+    setExpandedId(matchId);
+    setBookingsLoading(true);
+    try {
+      const r = await adminAPI.getMatchBookings(matchId);
+      setBookings(r.data?.bookings || []);
+    } catch { setBookings([]); }
+    finally { setBookingsLoading(false); }
   };
 
   const handleApproveSquad = async (squadId, matchId) => {
@@ -320,10 +333,12 @@ const Matches = () => {
                         onMouseOver={e => { if (!isExpanded) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'; }}
                         onMouseOut={e => { if (!isExpanded) e.currentTarget.style.backgroundColor = 'transparent'; }}
                       >
-                        <td style={{ ...tdStyle, fontWeight: 700, cursor: isPractice ? 'pointer' : 'default' }}
-                          onClick={() => isPractice && loadSquads(m.id)}>
+                        <td
+                          style={{ ...tdStyle, fontWeight: 700, cursor: 'pointer' }}
+                          onClick={() => isPractice ? loadSquads(m.id) : loadBookings(m.id)}
+                        >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            {isPractice && <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', color: '#a78bfa' }} />}
+                            <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', color: isPractice ? '#a78bfa' : '#3b82f6', flexShrink: 0 }} />
                             {m.title || m.opponent}
                           </div>
                         </td>
@@ -351,66 +366,87 @@ const Matches = () => {
                         </td>
                       </tr>
 
-                      {/* ── Expanded Squad Panel ── */}
+                      {/* ── Expanded Panel ── */}
                       {isExpanded && (
                         <tr>
-                          <td colSpan={8} style={{ padding: '0 1.25rem 1.25rem', backgroundColor: 'rgba(167,139,250,0.04)', borderBottom: '2px solid rgba(167,139,250,0.2)' }}>
+                          <td colSpan={8} style={{ padding: '0 1.25rem 1.25rem', backgroundColor: isPractice ? 'rgba(167,139,250,0.04)' : 'rgba(59,130,246,0.04)', borderBottom: `2px solid ${isPractice ? 'rgba(167,139,250,0.2)' : 'rgba(59,130,246,0.2)'}` }}>
                             <div style={{ padding: '1rem', borderRadius: 'var(--radius-lg)', background: 'rgba(0,0,0,0.2)' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                                <h4 style={{ margin: 0, color: '#a78bfa', fontSize: '0.95rem', fontWeight: 700 }}>🏏 Coach Squad Submissions</h4>
+                                <h4 style={{ margin: 0, color: isPractice ? '#a78bfa' : '#3b82f6', fontSize: '0.95rem', fontWeight: 700 }}>
+                                  {isPractice ? '🏏 Coach Squad Submissions' : '🎫 Player Bookings'}
+                                </h4>
                                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                                   Slots: <strong style={{ color: isFull ? '#ef4444' : '#10b981' }}>{m.booked_slots || 0} / {m.total_slots || '∞'}</strong>
                                   {!isFull && m.total_slots > 0 && <span style={{ color: '#a78bfa', marginLeft: '0.5rem' }}>({slotsLeft} remaining)</span>}
                                 </span>
                               </div>
 
-                              {squadsLoading ? (
-                                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>Loading squads...</p>
-                              ) : squads.length === 0 ? (
-                                <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>No squad submissions yet for this match.</p>
-                              ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                                  {squads.map(sq => {
-                                    const statusColor = sq.status === 'approved' ? '#10b981' : sq.status === 'rejected' ? '#ef4444' : '#f59e0b';
-                                    return (
-                                      <div key={sq.id} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '0.875rem 1rem', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.04)', border: `1px solid ${statusColor}33` }}>
-                                        <div style={{ flex: 1 }}>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
-                                            <span style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-primary)' }}>
-                                              Coach: {sq.coach?.first_name} {sq.coach?.last_name}
-                                            </span>
-                                            <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '9999px', background: `${statusColor}22`, color: statusColor, border: `1px solid ${statusColor}44`, fontWeight: 700, textTransform: 'uppercase' }}>
-                                              {sq.status || 'pending'}
-                                            </span>
+                              {/* ─ Squad Panel (Practice / Intro Match) ─ */}
+                              {isPractice && (
+                                squadsLoading ? (
+                                  <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>Loading squads...</p>
+                                ) : squads.length === 0 ? (
+                                  <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>No squad submissions yet.</p>
+                                ) : (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {squads.map(sq => {
+                                      const statusColor = sq.status === 'approved' ? '#10b981' : sq.status === 'rejected' ? '#ef4444' : '#f59e0b';
+                                      return (
+                                        <div key={sq.id} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '0.875rem 1rem', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.04)', border: `1px solid ${statusColor}33` }}>
+                                          <div style={{ flex: 1 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.4rem' }}>
+                                              <span style={{ fontWeight: 700, fontSize: '0.875rem', color: 'var(--text-primary)' }}>Coach: {sq.coach?.first_name} {sq.coach?.last_name}</span>
+                                              <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '9999px', background: `${statusColor}22`, color: statusColor, border: `1px solid ${statusColor}44`, fontWeight: 700, textTransform: 'uppercase' }}>{sq.status || 'pending'}</span>
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                              <strong>Players ({sq.players?.length || 0}):</strong>{' '}
+                                              {sq.players?.length > 0 ? sq.players.map(p => `${p.first_name} ${p.last_name} (${p.gicl_id})`).join(', ') : 'No players listed'}
+                                            </div>
                                           </div>
-                                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                            <strong>Players ({sq.players?.length || 0}):</strong>{' '}
-                                            {sq.players?.length > 0
-                                              ? sq.players.map(p => `${p.first_name} ${p.last_name} (${p.gicl_id})`).join(', ')
-                                              : 'No players listed'}
-                                          </div>
+                                          {sq.status === 'pending' && (
+                                            <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem', flexShrink: 0 }}>
+                                              <button onClick={() => handleApproveSquad(sq.id, m.id)} disabled={isFull}
+                                                style={{ padding: '0.4rem 0.9rem', borderRadius: 'var(--radius-md)', background: isFull ? 'rgba(100,100,100,0.2)' : 'rgba(16,185,129,0.15)', color: isFull ? '#666' : '#10b981', border: `1px solid ${isFull ? '#333' : 'rgba(16,185,129,0.4)'}`, fontWeight: 700, fontSize: '0.78rem', cursor: isFull ? 'not-allowed' : 'pointer' }}>
+                                                ✓ Approve
+                                              </button>
+                                              <button onClick={() => handleRejectSquad(sq.id, m.id)}
+                                                style={{ padding: '0.4rem 0.9rem', borderRadius: 'var(--radius-md)', background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}>
+                                                ✗ Reject
+                                              </button>
+                                            </div>
+                                          )}
                                         </div>
-                                        {sq.status === 'pending' && (
-                                          <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem', flexShrink: 0 }}>
-                                            <button
-                                              onClick={() => handleApproveSquad(sq.id, m.id)}
-                                              disabled={isFull}
-                                              style={{ padding: '0.4rem 0.9rem', borderRadius: 'var(--radius-md)', background: isFull ? 'rgba(100,100,100,0.2)' : 'rgba(16,185,129,0.15)', color: isFull ? '#666' : '#10b981', border: `1px solid ${isFull ? '#333' : 'rgba(16,185,129,0.4)'}`, fontWeight: 700, fontSize: '0.78rem', cursor: isFull ? 'not-allowed' : 'pointer' }}
-                                            >
-                                              ✓ Approve
-                                            </button>
-                                            <button
-                                              onClick={() => handleRejectSquad(sq.id, m.id)}
-                                              style={{ padding: '0.4rem 0.9rem', borderRadius: 'var(--radius-md)', background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)', fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer' }}
-                                            >
-                                              ✗ Reject
-                                            </button>
-                                          </div>
-                                        )}
+                                      );
+                                    })}
+                                  </div>
+                                )
+                              )}
+
+                              {/* ─ Bookings Panel (League / Friendly / Tournament) ─ */}
+                              {!isPractice && (
+                                bookingsLoading ? (
+                                  <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>Loading bookings...</p>
+                                ) : bookings.length === 0 ? (
+                                  <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem' }}>No player bookings yet for this match.</p>
+                                ) : (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto auto', gap: '0.5rem 1rem', padding: '0.5rem 0.75rem', fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                      <span>Player</span><span>GICL ID</span><span>Amount Paid</span><span>Payment ID</span>
+                                    </div>
+                                    {bookings.map((bk, bi) => (
+                                      <div key={bk.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto auto', gap: '0.5rem 1rem', padding: '0.65rem 0.75rem', borderRadius: 'var(--radius-md)', background: bi % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'transparent', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--text-primary)' }}>{bk.player?.first_name} {bk.player?.last_name}</span>
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{bk.player?.gicl_id || '—'}</span>
+                                        <span style={{ fontSize: '0.875rem', color: '#10b981', fontWeight: 700 }}>₹{bk.amount_paid}</span>
+                                        <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>{bk.razorpay_payment_id ? bk.razorpay_payment_id.slice(0,16) + '…' : '—'}</span>
                                       </div>
-                                    );
-                                  })}
-                                </div>
+                                    ))}
+                                    <div style={{ marginTop: '0.5rem', padding: '0.65rem 0.75rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
+                                      <span style={{ color: 'var(--text-secondary)' }}>Total Bookings: <strong style={{ color: 'var(--text-primary)' }}>{bookings.length}</strong></span>
+                                      <span style={{ color: 'var(--text-secondary)' }}>Total Collected: <strong style={{ color: '#10b981' }}>₹{bookings.reduce((s, b) => s + (b.amount_paid || 0), 0)}</strong></span>
+                                    </div>
+                                  </div>
+                                )
                               )}
                             </div>
                           </td>

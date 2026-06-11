@@ -59,6 +59,7 @@ export const playerAPI = {
   
   // Match Bookings
   getAvailableMatches:  ()     => API.get('/player/available-matches'),
+  getMyBookings:        ()     => API.get('/player/my-bookings'),
   createBookingOrder:   (data) => API.post('/player/book-match/order', data),
   verifyBookingPayment: (data) => API.post('/player/book-match/verify', data),
 };

@@ -48,6 +48,11 @@ router.get('/matches/:id/squads',                       ctrl.getMatchSquads);
 router.put('/squads/:squadId/approve',                  ctrl.approveSquad);
 router.put('/squads/:squadId/reject',                   ctrl.rejectSquad);
 
+// Match Player Bookings (League / Friendly / Tournament)
+const { getMatchBookings } = require('../controllers/matchBookingController');
+router.get('/matches/:id/bookings',                     getMatchBookings);
+
+
 // Config
 router.get('/config',                                   ctrl.getConfig);
 router.put('/config',                                   ctrl.updateConfig);

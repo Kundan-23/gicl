@@ -72,6 +72,7 @@ router.get('/id-card',                          playerController.downloadIdCard)
 // Match Bookings
 const matchBookingController = require('../controllers/matchBookingController');
 router.get('/available-matches',              matchBookingController.getAvailableMatches);
+router.get('/my-bookings',                    matchBookingController.getMyBookings);
 router.post('/book-match/order',              matchBookingController.createBookingOrder);
 router.post('/book-match/verify',             matchBookingController.verifyBookingPayment);
 
