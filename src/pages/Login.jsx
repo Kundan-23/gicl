@@ -164,20 +164,13 @@ const Login = () => {
 
           if (!p) { navigate('/dashboard', { replace: true }); return; }
 
-          // Not paid yet → back to payment
-          if (p.payment_status !== 'paid') {
+          // Not paid yet → back to payment step
+          if (p.payment_status !== 'paid' || !p.is_dashboard_unlocked) {
             navigate('/onboarding/payment', { replace: true });
             return;
           }
 
-          // Paid but dashboard not unlocked yet → still in onboarding
-          if (!p.is_dashboard_unlocked) {
-            navigate('/onboarding/payment', { replace: true });
-            return;
-          }
-
-          // Check which onboarding steps are still incomplete
-          // Step 4: cricket profile — check battingStyle or bowlingStyle
+          // Paid, but cricket profile is incomplete (step 4)
           const hasStep4 = p.batting_style || p.bowling_style || p.height || p.weight;
           if (!hasStep4) {
             navigate('/onboarding/step4', { replace: true });
