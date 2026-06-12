@@ -2,15 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { adminAPI } from '../../services/adminAPI';
 import { Plus, Pencil, Trash2, X, Camera, ChevronDown } from 'lucide-react';
 import Swal from 'sweetalert2';
+import 'react-phone-number-input/style.css';
+import PhoneInput from 'react-phone-number-input';
 
 const BATTING_STYLES = ['Right-hand Bat', 'Left-hand Bat'];
 const BOWLING_STYLES = ['Right-arm Fast', 'Right-arm Medium Fast', 'Right-arm Medium', 'Right-arm Off Spin', 'Right-arm Leg Spin', 'Left-arm Fast', 'Left-arm Medium', 'Left-arm Orthodox', 'Left-arm Chinaman', 'None'];
 const BLOOD_GROUPS   = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 const JERSEY_SIZES   = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 const GENDERS        = ['Male', 'Female', 'Other'];
-
-const thStyle = { padding: '0.85rem 1.25rem', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' };
-const tdStyle = { padding: '1rem 1.25rem', fontSize: '0.875rem', color: 'var(--text-primary)', whiteSpace: 'nowrap' };
 
 const EMPTY_FORM = {
   first_name: '', last_name: '', email: '', whatsapp: '', password: '',
@@ -26,9 +25,30 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
   const [form, setForm]       = useState(coach ? { ...EMPTY_FORM, ...coach, password: '' } : { ...EMPTY_FORM });
   const [saving, setSaving]   = useState(false);
   const [photoPreview, setPhotoPreview] = useState(coach?.profile_photo_url || null);
+  const [pincodeState, setPincodeState] = useState({ loading: false, stateName: '', error: '' });
   const photoRef = useRef();
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  useEffect(() => {
+    if (form.zip_code?.length === 6) {
+      const fetchLocation = async () => {
+        setPincodeState({ loading: true, stateName: '', error: '' });
+        try {
+          const res = await fetch(`https://api.postalpincode.in/pincode/${form.zip_code}`);
+          const data = await res.json();
+          if (data[0].Status === 'Success') {
+            setPincodeState({ loading: false, stateName: data[0].PostOffice[0].State, error: '' });
+          } else {
+            setPincodeState({ loading: false, stateName: '', error: 'Invalid Pincode' });
+          }
+        } catch {
+          setPincodeState({ loading: false, stateName: '', error: 'Lookup failed' });
+        }
+      };
+      fetchLocation();
+    }
+  }, [form.zip_code]);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -131,7 +151,12 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
               <input required type="email" style={inp} value={form.email} onChange={e => set('email', e.target.value)} placeholder="coach@example.com" disabled={!!coach} />
             </div>
             <div style={{ ...grid2, marginBottom: '0.875rem' }}>
-              <div style={fgrp}><label style={lbl}>WhatsApp</label><input type="tel" style={inp} value={form.whatsapp} onChange={e => set('whatsapp', e.target.value)} placeholder="+91 XXXXXXXXXX" /></div>
+              <div style={fgrp}>
+                <label style={lbl}>WhatsApp</label>
+                <div style={{ ...inp, padding: '0.25rem 0.5rem' }}>
+                  <PhoneInput international defaultCountry="IN" value={form.whatsapp} onChange={v => set('whatsapp', v)} style={{ '--PhoneInput-color--focus': 'transparent' }} />
+                </div>
+              </div>
               <div style={fgrp}><label style={lbl}>{coach ? 'New Password (blank = no change)' : 'Password *'}</label><input required={!coach} type="password" style={inp} value={form.password} onChange={e => set('password', e.target.value)} placeholder={coach ? 'Leave blank to keep' : 'Min 8 characters'} minLength={coach ? 0 : 8} /></div>
             </div>
           </div>
@@ -162,7 +187,9 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
             </div>
             <div style={{ marginBottom: '0.875rem' }}>
               <label style={lbl}>Emergency Contact Phone</label>
-              <input type="tel" style={inp} value={form.emergency_contact} onChange={e => set('emergency_contact', e.target.value)} placeholder="+91 XXXXXXXXXX" />
+              <div style={{ ...inp, padding: '0.25rem 0.5rem' }}>
+                <PhoneInput international defaultCountry="IN" value={form.emergency_contact} onChange={v => set('emergency_contact', v)} style={{ '--PhoneInput-color--focus': 'transparent' }} />
+              </div>
             </div>
           </div>
 
@@ -180,7 +207,13 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
             <div style={{ ...grid3, marginBottom: '0.875rem' }}>
               <div style={fgrp}><label style={lbl}>City</label><input style={inp} value={form.city} onChange={e => set('city', e.target.value)} placeholder="City" /></div>
               <div style={fgrp}><label style={lbl}>Country</label><input style={inp} value={form.country} onChange={e => set('country', e.target.value)} placeholder="India" /></div>
-              <div style={fgrp}><label style={lbl}>Pincode</label><input type="tel" style={inp} value={form.zip_code} onChange={e => set('zip_code', e.target.value)} placeholder="400001" /></div>
+              <div style={fgrp}>
+                <label style={lbl}>Pincode</label>
+                <input type="tel" style={inp} value={form.zip_code} onChange={e => set('zip_code', e.target.value)} placeholder="400001" maxLength={6} />
+                {pincodeState.loading && <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'block', marginTop: '0.25rem' }}>🔍 Detecting...</span>}
+                {pincodeState.stateName && !pincodeState.loading && <span style={{ fontSize: '0.78rem', color: 'var(--success)', display: 'block', marginTop: '0.25rem', fontWeight: 600 }}>📍 {pincodeState.stateName}</span>}
+                {pincodeState.error && <span style={{ fontSize: '0.78rem', color: 'var(--error)', display: 'block', marginTop: '0.25rem' }}>⚠️ {pincodeState.error}</span>}
+              </div>
             </div>
           </div>
 
@@ -225,7 +258,12 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
             <p style={secTitle}>🔗 Other Details</p>
             <div style={{ ...grid2 }}>
               <div style={fgrp}><label style={lbl}>Instagram Link</label><input style={inp} value={form.instagram_link} onChange={e => set('instagram_link', e.target.value)} placeholder="@handle or URL" /></div>
-              <div style={fgrp}><label style={lbl}>Referred By (Phone)</label><input type="tel" style={inp} value={form.referred_by_phone} onChange={e => set('referred_by_phone', e.target.value)} placeholder="+91 XXXXXXXXXX" /></div>
+              <div style={fgrp}>
+                <label style={lbl}>Referred By (Phone)</label>
+                <div style={{ ...inp, padding: '0.25rem 0.5rem' }}>
+                  <PhoneInput international defaultCountry="IN" value={form.referred_by_phone} onChange={v => set('referred_by_phone', v)} style={{ '--PhoneInput-color--focus': 'transparent' }} />
+                </div>
+              </div>
             </div>
           </div>
 

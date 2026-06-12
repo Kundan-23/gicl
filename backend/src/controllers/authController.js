@@ -156,7 +156,8 @@ exports.login = asyncHandler(async (req, res) => {
 
   // Check player/coach status (never block admin)
   if (role !== 'admin' && (role === 'player' || role === 'coach') && user.status === 'Disabled') {
-    return res.status(403).json({ success: false, message: 'Your account has been disabled. Contact support.' });
+    const reasonMsg = user.status_reason ? ` Reason: ${user.status_reason}` : '';
+    return res.status(403).json({ success: false, message: `Your account has been disabled.${reasonMsg}` });
   }
 
   const tokenPayload = { id: user.id, email: user.email, role };

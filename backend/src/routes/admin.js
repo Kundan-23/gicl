@@ -16,6 +16,7 @@ router.get('/stats',                                    ctrl.getStats);
 // Players
 router.get('/players',                                  ctrl.getPlayers);
 router.get('/players/:id',                              ctrl.getPlayerDetail);
+router.put('/players/:id',                              ctrl.updatePlayer);
 router.put('/players/:id/status',                       ctrl.updatePlayerStatus);
 router.put('/players/:id/approve-docs',                 ctrl.approveDocs);
 router.put('/players/:id/assign-coach',                 ctrl.assignCoach);

@@ -69,18 +69,41 @@ exports.getPlayerDetail = asyncHandler(async (req, res) => {
 
 // ─── PUT /api/admin/players/:id/status ───────────────────────────
 exports.updatePlayerStatus = asyncHandler(async (req, res) => {
-  const { status } = req.body;
-  const { error } = await supabase.from('players').update({ status }).eq('id', req.params.id);
+  const { status, reason } = req.body;
+  const { error } = await supabase.from('players').update({ status, status_reason: reason || '' }).eq('id', req.params.id);
   if (error) {
     if (error.message?.includes('column') && error.message?.includes('schema cache')) {
       return res.status(400).json({
         success: false,
-        message: `Database column 'status' is missing on the 'players' table. Please run this SQL in Supabase → SQL Editor:\n\nALTER TABLE players ADD COLUMN IF NOT EXISTS status text DEFAULT 'Active';`
+        message: `Database column 'status' or 'status_reason' is missing. Please run the SQL migration.`
       });
     }
     throw new Error(error.message);
   }
   res.json({ success: true, message: `Player status updated to ${status}.` });
+});
+
+// ─── PUT /api/admin/players/:id ──────────────────────────────────
+exports.updatePlayer = asyncHandler(async (req, res) => {
+  // Extract all updatable fields from req.body
+  const updatableFields = [
+    'first_name', 'last_name', 'email', 'phone', 'whatsapp', 'dob',
+    'gender', 'blood_group', 'emergency_contact', 'emergency_contact_name',
+    'address_line1', 'address_line2', 'city', 'country', 'zip_code',
+    'jersey_size', 'batting_style', 'bowling_style', 'height', 'weight',
+    'player_tier', 'docs_approved'
+  ];
+  
+  const payload = {};
+  for (const field of updatableFields) {
+    if (req.body[field] !== undefined) {
+      payload[field] = req.body[field];
+    }
+  }
+
+  const { error } = await supabase.from('players').update(payload).eq('id', req.params.id);
+  if (error) throw new Error(error.message);
+  res.json({ success: true, message: 'Player details updated successfully.' });
 });
 
 // ─── PUT /api/admin/players/:id/approve-docs ─────────────────────

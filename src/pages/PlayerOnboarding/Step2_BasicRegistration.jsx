@@ -7,6 +7,8 @@ import { useFormStore } from '../../store/useFormStore';
 import { useConfig } from '../../context/ConfigContext';
 import { playerAPI, publicAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import 'react-phone-number-input/style.css';
+import PhoneInput, { isValidPhoneNumber } from 'react-phone-number-input';
 
 const Step2_BasicRegistration = () => {
   const navigate = useNavigate();
@@ -332,11 +334,22 @@ const Step2_BasicRegistration = () => {
           <Controller
             name="whatsapp"
             control={control}
-            rules={{ required: 'Required' }}
+            rules={{ 
+              required: 'Required',
+              validate: val => (val && isValidPhoneNumber(val)) || 'Invalid phone number'
+            }}
             render={({ field }) => (
               <div className="form-group">
                 <label className="form-label">WhatsApp Number *</label>
-                <input {...field} className="form-input" />
+                <div className="form-input" style={{ padding: '0.25rem 0.5rem' }}>
+                  <PhoneInput
+                    international
+                    defaultCountry="IN"
+                    value={field.value}
+                    onChange={field.onChange}
+                    style={{ '--PhoneInput-color--focus': 'transparent' }}
+                  />
+                </div>
                 {errors.whatsapp && <span className="form-error">{errors.whatsapp.message}</span>}
               </div>
             )}
@@ -359,11 +372,22 @@ const Step2_BasicRegistration = () => {
             <Controller
               name="emergencyContact"
               control={control}
-              rules={{ required: 'Required' }}
+              rules={{ 
+                required: 'Required',
+                validate: val => (val && isValidPhoneNumber(val)) || 'Invalid phone number'
+              }}
               render={({ field }) => (
                 <div className="form-group">
                   <label className="form-label">Emergency Phone *</label>
-                  <input {...field} className="form-input" placeholder="+91" />
+                  <div className="form-input" style={{ padding: '0.25rem 0.5rem' }}>
+                    <PhoneInput
+                      international
+                      defaultCountry="IN"
+                      value={field.value}
+                      onChange={field.onChange}
+                      style={{ '--PhoneInput-color--focus': 'transparent' }}
+                    />
+                  </div>
                   {errors.emergencyContact && <span className="form-error">{errors.emergencyContact.message}</span>}
                 </div>
               )}

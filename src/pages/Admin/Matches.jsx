@@ -10,8 +10,8 @@ const labelStyle = { display: 'block', fontSize: '0.8rem', color: 'var(--text-se
 
 const MATCH_TYPES = ['League', 'Friendly', 'Tournament', 'Practice', 'Intro Match'];
 const MATCH_TYPE_COLORS = { League: '#3b82f6', Friendly: '#10b981', Tournament: '#f59e0b', Practice: '#a78bfa', 'Intro Match': '#f97316' };
-const AGE_CATEGORIES = ['Open (All Ages)', 'Under 10', 'Under 12', 'Under 14', 'Under 16', 'Under 18', 'Under 19', 'Under 21', 'Under 23', 'Senior (25+)', 'Masters (35+)', 'Veterans (45+)'];
-const EMPTY = { title: '', date: '', venue: '', match_type: 'League', age_category: 'Open (All Ages)', description: '', price_per_slot: 0, total_slots: 0 };
+const AGE_CATEGORIES = ['U-13', 'U-15', 'U-17', 'U-19', 'U-22', 'Open', '35+', '40+'];
+const EMPTY = { title: '', date: '', venue: '', match_type: 'League', base_age: 'U-13', gender: 'Boys', description: '', price_per_slot: 0, total_slots: 0 };
 
 // Custom dark-themed dropdown
 const DarkSelect = ({ value, onChange, options }) => {
@@ -80,15 +80,34 @@ const DarkSelect = ({ value, onChange, options }) => {
 };
 
 const MatchModal = ({ match, onClose, onSave }) => {
-  const [form, setForm] = useState(match ? {
-    title: match.title || match.opponent || '', 
-    dateOnly: match.date ? new Date(match.date).toISOString().slice(0, 10) : '',
-    timeOnly: match.date ? new Date(match.date).toISOString().slice(11, 16) : '',
-    venue: match.venue || match.location || '', match_type: match.match_type || 'League',
-    age_category: match.age_category || 'Open (All Ages)',
-    description: match.description || '',
-    price_per_slot: match.price_per_slot || 0, total_slots: match.total_slots || 0,
-  } : { ...EMPTY, dateOnly: '', timeOnly: '' });
+  const [form, setForm] = useState({ ...EMPTY, dateOnly: '', timeOnly: '' });
+  
+  useEffect(() => {
+    if (match) {
+      let base_age = 'U-13';
+      let gender = 'Boys';
+      if (match.age_category) {
+        const parts = match.age_category.split(' - ');
+        if (parts.length === 2) {
+          base_age = parts[0];
+          gender = parts[1];
+        } else {
+          base_age = match.age_category;
+        }
+      }
+      let dateOnly = '';
+      let timeOnly = '';
+      if (match.date) {
+        const d = new Date(match.date);
+        dateOnly = d.toISOString().split('T')[0];
+        timeOnly = d.toTimeString().substring(0, 5);
+      }
+      setForm({ ...EMPTY, ...match, dateOnly, timeOnly, base_age, gender });
+    } else {
+      setForm({ ...EMPTY, dateOnly: '', timeOnly: '' });
+    }
+  }, [match]);
+
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('General'); // 'General' | 'Date' | 'Time'
 
@@ -102,8 +121,15 @@ const MatchModal = ({ match, onClose, onSave }) => {
       if (form.dateOnly && form.timeOnly) {
         payload.date = `${form.dateOnly}T${form.timeOnly}:00`;
       }
+      
+      // Combine base_age and gender into age_category
+      payload.age_category = `${form.base_age} - ${form.gender}`;
+      
       delete payload.dateOnly;
       delete payload.timeOnly;
+      delete payload.base_age;
+      delete payload.gender;
+      
       await onSave(payload); 
     }
     finally { setSaving(false); }
@@ -155,17 +181,50 @@ const MatchModal = ({ match, onClose, onSave }) => {
                 />
               </div>
               {/* Age Category */}
-              <div>
-                <label style={labelStyle}>Age Category</label>
-                <select
-                  value={form.age_category}
-                  onChange={e => set('age_category', e.target.value)}
-                  style={{ ...inputStyle, cursor: 'pointer' }}
-                >
-                  {AGE_CATEGORIES.map(cat => (
-                    <option key={cat} value={cat} style={{ backgroundColor: '#1a2340', color: '#fff' }}>{cat}</option>
-                  ))}
-                </select>
+              {/* Age Category & Gender */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={labelStyle}>Age Category</label>
+                  <select
+                    value={form.base_age}
+                    onChange={e => {
+                      const newAge = e.target.value;
+                      const isU = newAge.startsWith('U-');
+                      setForm(f => ({ 
+                        ...f, 
+                        base_age: newAge, 
+                        gender: isU ? 'Boys' : 'Males' // default for selection
+                      }));
+                    }}
+                    style={{ ...inputStyle, cursor: 'pointer' }}
+                  >
+                    {AGE_CATEGORIES.map(cat => (
+                      <option key={cat} value={cat} style={{ backgroundColor: '#1a2340', color: '#fff' }}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>Gender</label>
+                  <select
+                    value={form.gender}
+                    onChange={e => set('gender', e.target.value)}
+                    style={{ ...inputStyle, cursor: 'pointer' }}
+                  >
+                    {form.base_age?.startsWith('U-') ? (
+                      <>
+                        <option value="Boys" style={{ backgroundColor: '#1a2340', color: '#fff' }}>Boys</option>
+                        <option value="Girls" style={{ backgroundColor: '#1a2340', color: '#fff' }}>Girls</option>
+                        <option value="Mixed" style={{ backgroundColor: '#1a2340', color: '#fff' }}>Mixed</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="Males" style={{ backgroundColor: '#1a2340', color: '#fff' }}>Males</option>
+                        <option value="Females" style={{ backgroundColor: '#1a2340', color: '#fff' }}>Females</option>
+                        <option value="Mixed" style={{ backgroundColor: '#1a2340', color: '#fff' }}>Mixed</option>
+                      </>
+                    )}
+                  </select>
+                </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>

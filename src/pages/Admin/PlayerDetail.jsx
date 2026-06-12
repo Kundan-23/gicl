@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../services/adminAPI';
-import { ArrowLeft, User, Mail, Phone, FileText, CreditCard, Users, DollarSign, CheckCircle, XCircle, UserCheck } from 'lucide-react';
+import { ArrowLeft, User, Mail, Phone, FileText, CreditCard, Users, DollarSign, CheckCircle, XCircle, UserCheck, Pencil, X } from 'lucide-react';
 import Swal from 'sweetalert2';
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
 
 const Section = ({ title, icon: Icon, children }) => (
   <div style={{ backgroundColor: 'var(--bg-surface)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-subtle)', marginBottom: '1.5rem', overflow: 'hidden' }}>
@@ -21,6 +23,50 @@ const InfoRow = ({ label, value }) => (
   </div>
 );
 
+const inputStyle = { width: '100%', padding: '0.6rem', backgroundColor: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontSize: '0.875rem' };
+const labelStyle = { display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem', fontWeight: 500 };
+
+const EditPlayerModal = ({ player, onClose, onSave }) => {
+  const [form, setForm] = useState(player);
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    await onSave(form);
+    setSaving(false);
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div onClick={onClose} style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }} />
+      <div style={{ position: 'relative', backgroundColor: 'var(--bg-surface)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-subtle)', padding: '2rem', width: '100%', maxWidth: 600, maxHeight: '90vh', overflowY: 'auto', boxShadow: 'var(--shadow-lg)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2 className="heading-2">Edit Player</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex' }}><X size={22} /></button>
+        </div>
+        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem', gridTemplateColumns: '1fr 1fr' }}>
+          <div><label style={labelStyle}>First Name</label><input required value={form.first_name || ''} onChange={e => setForm({...form, first_name: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Last Name</label><input required value={form.last_name || ''} onChange={e => setForm({...form, last_name: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Email</label><input type="email" value={form.email || ''} onChange={e => setForm({...form, email: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Phone</label><PhoneInput defaultCountry="IN" value={form.phone || ''} onChange={val => setForm({...form, phone: val})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>WhatsApp</label><PhoneInput defaultCountry="IN" value={form.whatsapp || ''} onChange={val => setForm({...form, whatsapp: val})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Date of Birth</label><input type="date" value={form.dob ? form.dob.substring(0,10) : ''} onChange={e => setForm({...form, dob: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Gender</label><select value={form.gender || ''} onChange={e => setForm({...form, gender: e.target.value})} style={inputStyle}><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+          <div><label style={labelStyle}>Player Tier</label><select value={form.player_tier || ''} onChange={e => setForm({...form, player_tier: e.target.value})} style={inputStyle}><option value="">Select</option><option value="U-13">U-13</option><option value="U-17">U-17</option><option value="U-22">U-22</option><option value="Open">Open</option></select></div>
+          <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Address Line 1</label><input value={form.address_line1 || ''} onChange={e => setForm({...form, address_line1: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>City</label><input value={form.city || ''} onChange={e => setForm({...form, city: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>ZIP Code</label><input value={form.zip_code || ''} onChange={e => setForm({...form, zip_code: e.target.value})} style={inputStyle} /></div>
+          <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
+            <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
+            <button type="submit" disabled={saving} className="btn-primary">{saving ? 'Saving...' : 'Save Changes'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 const PlayerDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -29,6 +75,7 @@ const PlayerDetail = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCoach, setSelectedCoach] = useState('');
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -132,6 +179,17 @@ const PlayerDetail = () => {
     }
   };
 
+  const handleSaveEdit = async (formData) => {
+    try {
+      await adminAPI.updatePlayer(id, formData);
+      Swal.fire({ icon: 'success', title: 'Player Updated', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      setIsEditing(false);
+      load();
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to update player.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
+    }
+  };
+
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', color: 'var(--text-secondary)' }}>
       Loading player…
@@ -155,6 +213,12 @@ const PlayerDetail = () => {
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem' }}>
           <button
+            onClick={() => setIsEditing(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.07)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', transition: 'all 0.15s' }}
+          >
+            <Pencil size={16} /> Edit
+          </button>
+          <button
             onClick={handleToggleStatus}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: 'var(--radius-md)', background: isActive ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', color: isActive ? '#ef4444' : '#10b981', border: `1px solid ${isActive ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`, fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', transition: 'all 0.15s' }}
           >
@@ -163,6 +227,8 @@ const PlayerDetail = () => {
           </button>
         </div>
       </div>
+      
+      {isEditing && <EditPlayerModal player={player} onClose={() => setIsEditing(false)} onSave={handleSaveEdit} />}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
         {/* Profile card */}
