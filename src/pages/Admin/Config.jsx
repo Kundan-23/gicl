@@ -173,6 +173,11 @@ const Config = () => {
   // Tab 5 — Registration T&C
   const [regTerms, setRegTerms] = useState('');
 
+  // Tab 6 — Training
+  const [basicVideos, setBasicVideos] = useState([]);
+  const [advanceFee, setAdvanceFee] = useState(499);
+  const [newBasicVideo, setNewBasicVideo] = useState({ id: '', title: '', url: '' });
+
   // ─── Load config on mount ──────────────────────────────────────────────────
   useEffect(() => {
     const load = async () => {
@@ -218,6 +223,10 @@ const Config = () => {
 
         // Tab 5
         if (cfg.registration_terms !== undefined) setRegTerms(cfg.registration_terms || '');
+
+        // Tab 6
+        if (Array.isArray(cfg.basic_training_videos)) setBasicVideos(cfg.basic_training_videos);
+        if (cfg.advance_training_fee !== undefined) setAdvanceFee(cfg.advance_training_fee);
       } catch (err) {
         Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to load config.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
       } finally { setLoading(false); }
@@ -443,6 +452,7 @@ const Config = () => {
           { key: 'appearance', label: 'Appearance' },
           { key: 'player', label: 'Player Options' },
           { key: 'terms', label: 'Registration T&C' },
+          { key: 'training', label: 'Training Videos' },
         ].map(tab => (
           <TabBtn key={tab.key} label={tab.label} active={activeTab === tab.key} onClick={() => setActiveTab(tab.key)} />
         ))}
@@ -872,6 +882,80 @@ const Config = () => {
             {regTerms.length} characters
           </p>
         </Section>
+      )}
+
+      {/* ─── TAB 6: Training ────────────────────────────────────────────── */}
+      {activeTab === 'training' && (
+        <>
+          <Section
+            title="Basic Training Videos"
+            description="Players must watch these completely before their dashboard unlocks."
+            onSave={() => save('basicVideos', { basic_training_videos: basicVideos })}
+            saving={savingSection === 'basicVideos'}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+              {basicVideos.map((vid, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: '0.8rem', padding: '1rem', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 'var(--radius-md)' }}>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <input
+                      style={inputStyle}
+                      value={vid.title}
+                      onChange={e => {
+                        const newVids = [...basicVideos];
+                        newVids[idx].title = e.target.value;
+                        setBasicVideos(newVids);
+                      }}
+                      placeholder="Video Title"
+                    />
+                    <input
+                      style={inputStyle}
+                      value={vid.url}
+                      onChange={e => {
+                        const newVids = [...basicVideos];
+                        newVids[idx].url = e.target.value;
+                        setBasicVideos(newVids);
+                      }}
+                      placeholder="Video URL (Vimeo/YouTube)"
+                    />
+                  </div>
+                  <button onClick={() => setBasicVideos(basicVideos.filter((_, i) => i !== idx))} style={{ background: 'none', color: '#f87171', border: 'none', cursor: 'pointer', padding: '0.5rem' }}>
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <input style={inputStyle} value={newBasicVideo.title} onChange={e => setNewBasicVideo({ ...newBasicVideo, title: e.target.value })} placeholder="New Title" />
+              <input style={inputStyle} value={newBasicVideo.url} onChange={e => setNewBasicVideo({ ...newBasicVideo, url: e.target.value })} placeholder="New URL" />
+              <button 
+                onClick={() => {
+                  if (newBasicVideo.title && newBasicVideo.url) {
+                    setBasicVideos([...basicVideos, { id: 'v' + Date.now(), title: newBasicVideo.title, url: newBasicVideo.url }]);
+                    setNewBasicVideo({ id: '', title: '', url: '' });
+                  }
+                }}
+                style={{ ...saveBtnStyle(false), padding: '0.7rem 1.2rem', whiteSpace: 'nowrap' }}
+              >
+                <Plus size={16} /> Add Video
+              </button>
+            </div>
+          </Section>
+
+          <Section
+            title="Advance Training Unlock Fee"
+            description="Fee required to unlock advanced training videos uploaded by coaches (₹)."
+            onSave={() => save('advanceFee', { advance_training_fee: Number(advanceFee) })}
+            saving={savingSection === 'advanceFee'}
+          >
+            <input
+              type="number"
+              value={advanceFee}
+              onChange={e => setAdvanceFee(e.target.value)}
+              style={{ ...inputStyle, maxWidth: '200px' }}
+            />
+          </Section>
+        </>
       )}
     </div>
   );

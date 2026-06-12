@@ -94,14 +94,13 @@ exports.verifyPayment = asyncHandler(async (req, res) => {
     }
   }
 
-  // Update player: mark paid, unlock dashboard
+  // Update player: mark paid
   const { data: player, error } = await supabase
     .from('players')
     .update({
       payment_status:        'paid',
       payment_id:            razorpay_payment_id,
       plan:                  planId,
-      is_dashboard_unlocked: true,
     })
     .eq('id', req.user.id)
     .select('referred_by_id, referral_balance')
@@ -123,8 +122,60 @@ exports.verifyPayment = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    message: 'Payment verified. Dashboard unlocked!',
+    message: 'Payment verified. Please complete your training to unlock the dashboard.',
     paymentId: razorpay_payment_id,
   });
+});
+
+// ─── POST /api/payment/create-advance-order ────────────────────────
+exports.createAdvanceOrder = asyncHandler(async (req, res) => {
+  const { data: config } = await supabase.from('app_config').select('advance_training_fee').eq('id', 1).single();
+  const fee = config?.advance_training_fee || 499;
+  const amountInPaise = Math.round(fee * 100);
+  const shortId = req.user.id.replace(/-/g, '').slice(0, 16);
+  const receipt = `gicl_adv_${shortId}_${Date.now().toString().slice(-8)}`;
+
+  let order;
+  try {
+    order = await razorpay.orders.create({
+      amount:   amountInPaise,
+      currency: 'INR',
+      receipt,
+      notes: { playerId: req.user.id, type: 'advance_training' },
+    });
+  } catch (rzpErr) {
+    return res.status(502).json({ success: false, message: 'Razorpay order creation failed.' });
+  }
+
+  res.json({
+    success: true,
+    orderId: order.id,
+    amount: order.amount,
+    currency: order.currency,
+    keyId: process.env.RAZORPAY_KEY_ID,
+  });
+});
+
+// ─── POST /api/payment/verify-advance ───────────────────────────────
+exports.verifyAdvancePayment = asyncHandler(async (req, res) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+  const expectedSignature = crypto
+    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+    .digest('hex');
+
+  if (expectedSignature !== razorpay_signature) {
+    return res.status(400).json({ success: false, message: 'Verification failed.' });
+  }
+
+  const { error } = await supabase
+    .from('players')
+    .update({ has_unlocked_advance_training: true })
+    .eq('id', req.user.id);
+
+  if (error) throw new Error('Failed to unlock advance training: ' + error.message);
+
+  res.json({ success: true, message: 'Advance Training Unlocked!' });
 });
 

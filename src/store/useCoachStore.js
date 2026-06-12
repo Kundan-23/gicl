@@ -62,11 +62,23 @@ export const useCoachStore = create(
 
       // ── My Uploads ───────────────────────────────────────────────────────
       myUploads: [],
+      uploadsLoading: false,
+
+      fetchMyUploads: async () => {
+        set({ uploadsLoading: true });
+        try {
+          const res = await coachAPI.getMyUploads();
+          set({ myUploads: res.data?.uploads || [] });
+        } catch (e) {
+          console.error('fetchMyUploads error', e);
+        } finally {
+          set({ uploadsLoading: false });
+        }
+      },
 
       addUpload: async (title, url) => {
         await coachAPI.addUpload({ title, url });
-        // Optimistic update — re-fetch profile for latest uploads list
-        get().fetchProfile();
+        get().fetchMyUploads();
       },
 
       // ── Teams (custom squad groups - saved locally & to DB via profile) ──

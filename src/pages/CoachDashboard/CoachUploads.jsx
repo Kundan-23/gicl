@@ -1,22 +1,34 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useCoachStore } from '../../store/useCoachStore';
-import { Video, PlaySquare } from 'lucide-react';
+import { Upload, Link as LinkIcon, Trash2, CheckCircle, Clock, FileVideo, Video, PlaySquare } from 'lucide-react';
 
 const CoachUploads = () => {
-  const { profile, addUpload } = useCoachStore();
-  const myUploads = profile?.my_uploads || [];
+  const { profile, myUploads, uploadsLoading, addUpload, fetchMyUploads } = useCoachStore();
   
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadUrl, setUploadUrl] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState('approved'); // 'approved' | 'pending' | 'rejected'
 
-  const handleUpload = () => {
-    if (uploadTitle.trim() && uploadUrl.trim()) {
-      addUpload(uploadTitle, uploadUrl);
+  useEffect(() => {
+    fetchMyUploads();
+  }, [fetchMyUploads]);
+
+  const handleUpload = async () => {
+    if (!uploadTitle.trim() || !uploadUrl.trim()) {
+      alert("Please enter title and URL.");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      await addUpload(uploadTitle, uploadUrl);
       setUploadTitle('');
       setUploadUrl('');
-    } else {
-      alert("Please provide both title and URL");
+    } catch (e) {
+      alert('Upload failed');
+    } finally {
+      setIsUploading(false);
     }
   };
 

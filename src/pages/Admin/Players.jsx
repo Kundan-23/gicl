@@ -29,6 +29,7 @@ const Players = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [payFilter, setPayFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
 
@@ -39,7 +40,7 @@ const Players = () => {
     const load = async () => {
       setLoading(true);
       try {
-        const res = await adminAPI.getPlayers({ search: search || undefined, payment: payFilter || undefined, page, limit: PAGE_SIZE });
+        const res = await adminAPI.getPlayers({ search: search || undefined, payment: payFilter || undefined, status: statusFilter || undefined, page, limit: PAGE_SIZE });
         setPlayers(res.data?.players || res.data || []);
       } catch (err) {
         Swal.fire({
@@ -52,7 +53,7 @@ const Players = () => {
     };
     const t = setTimeout(load, 300);
     return () => clearTimeout(t);
-  }, [search, payFilter, page]);
+  }, [search, payFilter, statusFilter, page]);
 
   const total = players.length;
 
@@ -146,6 +147,17 @@ const Players = () => {
             <option value="paid">Paid</option>
             <option value="unpaid">Unpaid</option>
             <option value="pending">Pending</option>
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
+            style={{ padding: '0.65rem 2.5rem 0.65rem 0.875rem', backgroundColor: 'rgba(0,0,0,0.2)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', fontSize: '0.875rem', appearance: 'none', backgroundImage: "url(\"data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e\")", backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1.25em' }}
+          >
+            <option value="">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Pending">Pending</option>
+            <option value="Disabled">Disabled</option>
           </select>
 
           {/* Export Button */}

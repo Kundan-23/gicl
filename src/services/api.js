@@ -71,6 +71,7 @@ export const coachAPI = {
   getVideos:    ()           => API.get('/coach/videos'),
   reviewVideo:  (id, data)   => API.post(`/coach/videos/${id}/review`, data),
   addUpload:    (data)       => API.post('/coach/uploads', data),
+  getMyUploads: ()           => API.get('/coach/uploads'),
   getMatches:   ()           => API.get('/coach/matches'),
   getReferrals: ()           => API.get('/coach/referrals'),
   // Slots & Scheduling
@@ -120,6 +121,14 @@ export const adminAPI = {
 export const paymentAPI = {
   createOrder:   (planId) => API.post('/payment/create-order', { planId }),
   verifyPayment: (data)   => API.post('/payment/verify', data),
+  createAdvanceOrder: () => API.post('/payment/create-advance-order'),
+  verifyAdvancePayment: (data) => API.post('/payment/verify-advance', data)
+};
+
+export const trainingAPI = {
+  getTraining: () => API.get('/player/training'),
+  markWatched: (videoId) => API.post('/player/training/watch', { videoId }),
+  submitAttempt: (url) => API.post('/player/training/submit-attempt', { url })
 };
 
 // ─── Public ────────────────────────────────────────────────

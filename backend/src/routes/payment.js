@@ -18,5 +18,7 @@ const verifySchema = z.object({
 
 router.post('/create-order', authenticate, authorize('player'), validate(createOrderSchema), paymentController.createOrder);
 router.post('/verify',       authenticate, authorize('player'), validate(verifySchema),      paymentController.verifyPayment);
+router.post('/create-advance-order', authenticate, authorize('player'), paymentController.createAdvanceOrder);
+router.post('/verify-advance',       authenticate, authorize('player'), validate(verifySchema), paymentController.verifyAdvancePayment);
 
 module.exports = router;

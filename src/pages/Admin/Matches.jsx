@@ -90,6 +90,7 @@ const MatchModal = ({ match, onClose, onSave }) => {
     price_per_slot: match.price_per_slot || 0, total_slots: match.total_slots || 0,
   } : { ...EMPTY, dateOnly: '', timeOnly: '' });
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('General'); // 'General' | 'Date' | 'Time'
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -116,70 +117,97 @@ const MatchModal = ({ match, onClose, onSave }) => {
           <h2 className="heading-2">{match ? 'Edit Match' : 'Schedule Match'}</h2>
           <button onClick={onClose} style={{ background: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex' }}><X size={22} /></button>
         </div>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
-            <label style={labelStyle}>Title / Event Name *</label>
-            <input required value={form.title} onChange={e => set('title', e.target.value)} style={inputStyle} placeholder="e.g. Sunday Practice Slot" />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <div>
-              <label style={labelStyle}>Date *</label>
-              <input required type="date" value={form.dateOnly} onChange={e => set('dateOnly', e.target.value)} style={inputStyle} />
-            </div>
-            <div>
-              <label style={labelStyle}>Time *</label>
-              <input required type="time" value={form.timeOnly} onChange={e => set('timeOnly', e.target.value)} style={inputStyle} />
-            </div>
-          </div>
-          <div>
-              <label style={labelStyle}>Match Type</label>
-              <DarkSelect
-                value={form.match_type}
-                options={MATCH_TYPES}
-                onChange={(val) => {
-                  set('match_type', val);
-                  if (val === 'Practice' || val === 'Intro Match') set('price_per_slot', 0);
-                }}
-              />
-            </div>
-          {/* Age Category */}
-          <div>
-            <label style={labelStyle}>Age Category</label>
-            <select
-              value={form.age_category}
-              onChange={e => set('age_category', e.target.value)}
-              style={{ ...inputStyle, cursor: 'pointer' }}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
+          {['General', 'Date', 'Time'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                padding: '0.6rem 1rem', background: 'none', border: 'none',
+                borderBottom: activeTab === tab ? '2px solid var(--brand-primary)' : '2px solid transparent',
+                color: activeTab === tab ? 'var(--brand-primary)' : 'var(--text-secondary)',
+                fontWeight: activeTab === tab ? 700 : 500, fontSize: '0.9rem',
+                cursor: 'pointer', transition: 'all 0.15s', marginBottom: '-1px'
+              }}
             >
-              {AGE_CATEGORIES.map(cat => (
-                <option key={cat} value={cat} style={{ backgroundColor: '#1a2340', color: '#fff' }}>{cat}</option>
-              ))}
-            </select>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          
+          {activeTab === 'General' && (
+            <>
+              <div>
+                <label style={labelStyle}>Title / Event Name *</label>
+                <input required value={form.title} onChange={e => set('title', e.target.value)} style={inputStyle} placeholder="e.g. Sunday Practice Slot" />
+              </div>
+              <div>
+                <label style={labelStyle}>Match Type</label>
+                <DarkSelect
+                  value={form.match_type}
+                  options={MATCH_TYPES}
+                  onChange={(val) => {
+                    set('match_type', val);
+                    if (val === 'Practice' || val === 'Intro Match') set('price_per_slot', 0);
+                  }}
+                />
+              </div>
+              {/* Age Category */}
+              <div>
+                <label style={labelStyle}>Age Category</label>
+                <select
+                  value={form.age_category}
+                  onChange={e => set('age_category', e.target.value)}
+                  style={{ ...inputStyle, cursor: 'pointer' }}
+                >
+                  {AGE_CATEGORIES.map(cat => (
+                    <option key={cat} value={cat} style={{ backgroundColor: '#1a2340', color: '#fff' }}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={labelStyle}>Price per Slot (₹)</label>
+                  <input
+                    type="number" min="0"
+                    value={form.price_per_slot}
+                    onChange={e => set('price_per_slot', Number(e.target.value))}
+                    disabled={form.match_type === 'Practice' || form.match_type === 'Intro Match'}
+                    style={{ ...inputStyle, opacity: (form.match_type === 'Practice' || form.match_type === 'Intro Match') ? 0.5 : 1 }}
+                    placeholder="0 for free"
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Total Slots</label>
+                  <input type="number" min="0" value={form.total_slots} onChange={e => set('total_slots', Number(e.target.value))} style={inputStyle} placeholder="0 for unlimited" />
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Venue</label>
+                <input value={form.venue} onChange={e => set('venue', e.target.value)} style={inputStyle} placeholder="Ground / location" />
+              </div>
+              <div>
+                <label style={labelStyle}>Description</label>
+                <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} placeholder="Optional notes…" />
+              </div>
+            </>
+          )}
+
+          {activeTab === 'Date' && (
             <div>
-              <label style={labelStyle}>Price per Slot (₹)</label>
-              <input
-                type="number" min="0"
-                value={form.price_per_slot}
-                onChange={e => set('price_per_slot', Number(e.target.value))}
-                disabled={form.match_type === 'Practice' || form.match_type === 'Intro Match'}
-                style={{ ...inputStyle, opacity: (form.match_type === 'Practice' || form.match_type === 'Intro Match') ? 0.5 : 1 }}
-                placeholder="0 for free"
-              />
+              <label style={labelStyle}>Select Date *</label>
+              <input required type="date" value={form.dateOnly} onChange={e => set('dateOnly', e.target.value)} style={{ ...inputStyle, fontSize: '1.2rem', padding: '1rem' }} />
             </div>
+          )}
+
+          {activeTab === 'Time' && (
             <div>
-              <label style={labelStyle}>Total Slots</label>
-              <input type="number" min="0" value={form.total_slots} onChange={e => set('total_slots', Number(e.target.value))} style={inputStyle} placeholder="0 for unlimited" />
+              <label style={labelStyle}>Select Time *</label>
+              <input required type="time" value={form.timeOnly} onChange={e => set('timeOnly', e.target.value)} style={{ ...inputStyle, fontSize: '1.2rem', padding: '1rem' }} />
             </div>
-          </div>
-          <div>
-            <label style={labelStyle}>Venue</label>
-            <input value={form.venue} onChange={e => set('venue', e.target.value)} style={inputStyle} placeholder="Ground / location" />
-          </div>
-          <div>
-            <label style={labelStyle}>Description</label>
-            <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} placeholder="Optional notes…" />
-          </div>
+          )}
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
             <button type="button" onClick={onClose} style={{ padding: '0.65rem 1.25rem', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.07)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
             <button type="submit" disabled={saving} style={{ padding: '0.65rem 1.5rem', borderRadius: 'var(--radius-md)', background: 'var(--brand-primary)', color: '#121A3F', fontWeight: 700, cursor: saving ? 'wait' : 'pointer', border: 'none' }}>

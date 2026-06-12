@@ -1,119 +1,223 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useFormStore } from '../../store/useFormStore';
-import { useCoachStore } from '../../store/useCoachStore';
-import { PlayCircle, CheckCircle, Upload, Lock, Video, CreditCard, Unlock } from 'lucide-react';
-
-const mockBasicTutorials = [
-  { id: 1, title: 'Basic Stance & Grip', duration: '5:20', watched: false },
-  { id: 2, title: 'Front Foot Defense', duration: '8:45', watched: false },
-  { id: 3, title: 'Running Between Wickets', duration: '4:15', watched: false }
-];
-
-const mockAdvanceTutorials = [
-  { id: 4, title: 'Advanced Sweep Shot', duration: '10:20' },
-  { id: 5, title: 'Reverse Swing Mechanics', duration: '12:45' },
-  { id: 6, title: 'Reading the Googly', duration: '8:15' }
-];
+import { PlayCircle, CheckCircle, Upload, Lock, Video, CreditCard, Unlock, AlertTriangle } from 'lucide-react';
+import ReactPlayer from 'react-player';
+import Swal from 'sweetalert2';
+import { trainingAPI, paymentAPI } from '../../services/api';
 
 const Tutorials = () => {
   const { dashboardState, unlockDashboard } = useFormStore();
-  const coachUploads = useCoachStore(state => state.dashboardData?.myUploads || []);
   
+  const [loading, setLoading] = useState(true);
+  const [basicVideos, setBasicVideos] = useState([]);
+  const [advanceFee, setAdvanceFee] = useState(499);
   const [watchedIds, setWatchedIds] = useState([]);
-  const [attemptLink, setAttemptLink] = useState('');
+  const [hasUnlockedAdvance, setHasUnlockedAdvance] = useState(false);
+  const [advanceVideos, setAdvanceVideos] = useState([]);
   
-  // Mock State for Advance Tutorials
-  const [isEligibleForAdvance, setIsEligibleForAdvance] = useState(false); // Simulates coach remark
-  const [hasPaidForAdvance, setHasPaidForAdvance] = useState(false); // Simulates payment
+  const [attemptLink, setAttemptLink] = useState('');
+  const [activeVideo, setActiveVideo] = useState(null); // id of basic video currently playing
+  const [isDashboardUnlocked, setIsDashboardUnlocked] = useState(dashboardState?.isDashboardUnlocked || false);
 
-  const allBasicTutorials = [...mockBasicTutorials];
+  useEffect(() => {
+    if (!document.getElementById('razorpay-script')) {
+      const script = document.createElement('script');
+      script.id = 'razorpay-script';
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+    fetchTrainingData();
+  }, []);
 
-  const approvedCoachVideos = coachUploads
-    .filter(u => u.status === 'approved')
-    .map(u => ({ id: u.id, title: u.title, duration: 'Coach Upload', isCoach: true, url: u.url }));
-
-  const allAdvanceTutorials = [
-    ...approvedCoachVideos,
-    ...mockAdvanceTutorials
-  ];
-
-  const allWatched = allBasicTutorials.every(t => watchedIds.includes(t.id));
-
-  const markWatched = (id) => {
-    if (!watchedIds.includes(id)) {
-      setWatchedIds([...watchedIds, id]);
+  const fetchTrainingData = async () => {
+    try {
+      const res = await trainingAPI.getTraining();
+      const d = res.data;
+      setBasicVideos(Array.isArray(d.basic_training_videos) ? d.basic_training_videos : []);
+      setAdvanceFee(d.advance_training_fee || 499);
+      setWatchedIds(Array.isArray(d.training_progress) ? d.training_progress : []);
+      setHasUnlockedAdvance(d.has_unlocked_advance_training || false);
+      setIsDashboardUnlocked(d.is_dashboard_unlocked || false);
+      if (d.is_dashboard_unlocked && !dashboardState?.isDashboardUnlocked) {
+        unlockDashboard();
+      }
+      setAdvanceVideos(Array.isArray(d.advance_videos) ? d.advance_videos : []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleUploadAttempt = () => {
-    if (!allWatched) {
-      alert("Please watch all Basic Tutorials before submitting your attempt.");
+  const safeBasicVideos = Array.isArray(basicVideos) ? basicVideos : [];
+  const safeWatchedIds = Array.isArray(watchedIds) ? watchedIds : [];
+  const allBasicWatched = safeBasicVideos.length > 0 && safeBasicVideos.every(v => v?.id && safeWatchedIds.includes(v.id));
+
+  const handleVideoProgress = (id, state) => {
+    // If we wanted ultra strict seeking-prevention, we'd do it here. 
+    // ReactPlayer handles standard play. We will mark watched on ended.
+  };
+
+  const handleVideoEnded = async (id) => {
+    if (!watchedIds.includes(id)) {
+      const newWatched = [...watchedIds, id];
+      setWatchedIds(newWatched);
+      try {
+        await trainingAPI.markWatched(id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    setActiveVideo(null);
+  };
+
+  const handleUploadAttempt = async () => {
+    if (!allBasicWatched) {
+      Swal.fire({ icon: 'error', title: 'Oops', text: 'Please watch all basic videos completely first.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
       return;
     }
-    if (attemptLink.trim().length > 5) {
-      alert("Attempt submitted successfully! Your dashboard is now fully unlocked.");
+    if (attemptLink.trim().length < 5) {
+      Swal.fire({ icon: 'error', title: 'Wait', text: 'Please enter a valid video link.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      return;
+    }
+    try {
+      await trainingAPI.submitAttempt(attemptLink);
+      Swal.fire({ icon: 'success', title: 'Success!', text: 'Attempt submitted. Dashboard fully unlocked!', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      setIsDashboardUnlocked(true);
       unlockDashboard();
-    } else {
-      alert("Please enter a valid link to your attempt video.");
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to submit attempt.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     }
   };
 
-  const handleMockPayment = () => {
-    alert("Redirecting to Razorpay... Payment Successful!");
-    setHasPaidForAdvance(true);
+  const handlePayment = async () => {
+    if (!window.Razorpay) {
+      Swal.fire({ icon: 'error', text: 'Razorpay failed to load.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      return;
+    }
+    try {
+      const { data } = await paymentAPI.createAdvanceOrder();
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        order_id: data.orderId,
+        name: 'GICL Advance Training',
+        description: 'Unlock premium coach uploads',
+        handler: async function (response) {
+          try {
+            await paymentAPI.verifyAdvancePayment(response);
+            Swal.fire({ icon: 'success', title: 'Unlocked!', text: 'Advance Training Videos are now available.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+            setHasUnlockedAdvance(true);
+            fetchTrainingData();
+          } catch (err) {
+            Swal.fire({ icon: 'error', text: 'Payment verification failed.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+          }
+        },
+        theme: { color: '#F9CB1A' },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      Swal.fire({ icon: 'error', text: 'Failed to initiate payment.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+    }
   };
+
+  if (loading) {
+    return <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-secondary)' }}>Loading Training Modules...</div>;
+  }
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
       <div style={{ marginBottom: '2rem' }}>
         <h1 className="heading-1">Training Tutorials</h1>
         <p className="text-secondary" style={{ marginTop: '0.5rem' }}>
-          {dashboardState.isDashboardUnlocked 
+          {isDashboardUnlocked 
             ? "Re-watch training materials to perfect your game." 
             : "You must complete the Basic Tutorials and upload your attempt to unlock the full dashboard."}
         </p>
       </div>
 
-      {!dashboardState.isDashboardUnlocked && (
+      {!isDashboardUnlocked && (
         <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--error)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <Lock color="var(--error)" />
-          <p style={{ color: 'var(--error)', fontWeight: 500, fontSize: '0.875rem' }}>Full dashboard access is restricted. Watch the videos and submit your attempt below to unlock Matches and Referrals.</p>
+          <p style={{ color: 'var(--error)', fontWeight: 500, fontSize: '0.875rem' }}>Full dashboard access is restricted. Watch the videos completely and submit your attempt below to unlock Matches and Referrals.</p>
         </div>
       )}
 
       {/* --- Basic Tutorials Section --- */}
-      <h2 className="heading-2" style={{ marginBottom: '1.5rem', color: 'var(--brand-primary)' }}>Basic Tutorials</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+        <h2 className="heading-2" style={{ color: 'var(--brand-primary)' }}>Basic Tutorials</h2>
+      </div>
+
+      {!isDashboardUnlocked && (
+        <div style={{ backgroundColor: 'rgba(249, 203, 26, 0.1)', border: '1px solid var(--brand-primary)', padding: '1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <AlertTriangle color="var(--brand-primary)" />
+          <p style={{ color: 'var(--text-primary)', fontWeight: 500, fontSize: '0.875rem' }}>Warning: If you leave the video midway, you will have to rewatch the whole video. Skipping is disabled.</p>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-        {allBasicTutorials.map(tutorial => {
-          const isWatched = watchedIds.includes(tutorial.id);
+        {safeBasicVideos.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No basic training videos added yet.</p>}
+        {safeBasicVideos.map((tutorial, idx) => {
+          if (!tutorial || !tutorial.url) return null; // Defensive check
+          const isWatched = safeWatchedIds.includes(tutorial.id);
+          const isPlaying = activeVideo === tutorial.id;
+
           return (
-            <div key={tutorial.id} style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: `1px solid ${tutorial.isCoach ? 'var(--brand-primary)' : 'var(--bg-surface-elevated)'}` }}>
-              <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', position: 'relative' }}>
-                <PlayCircle size={48} color={tutorial.isCoach ? 'var(--brand-primary)' : 'var(--brand-accent)'} opacity={0.8} />
-                {tutorial.isCoach && (
-                  <span style={{ position: 'absolute', top: 10, left: 10, backgroundColor: 'var(--brand-primary)', color: 'var(--bg-color)', fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <Video size={12} /> Coach Video
-                  </span>
+            <div key={tutorial.id || idx} style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--bg-surface-elevated)' }}>
+              <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', position: 'relative', overflow: 'hidden' }}>
+                
+                {isPlaying ? (
+                  <ReactPlayer 
+                    url={tutorial.url} 
+                    playing={true}
+                    controls={false} /* Disabled controls to enforce watching */
+                    width="100%" 
+                    height="100%" 
+                    onEnded={() => handleVideoEnded(tutorial.id)}
+                    config={{
+                      youtube: { playerVars: { disablekb: 1, rel: 0, modestbranding: 1 } },
+                    }}
+                    onContextMenu={e => e.preventDefault()}
+                  />
+                ) : (
+                  <>
+                    <PlayCircle size={48} color="var(--brand-primary)" opacity={0.8} style={{ cursor: 'pointer', zIndex: 10 }} onClick={() => setActiveVideo(tutorial.id)} />
+                    {isWatched && (
+                      <span style={{ position: 'absolute', top: 10, right: 10, backgroundColor: 'var(--success)', color: 'var(--bg-color)', fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <CheckCircle size={12} /> Watched
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
               <h3 className="heading-3" style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{tutorial.title}</h3>
-              <p className="text-small" style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Duration: {tutorial.duration}</p>
               
               <button 
                 className={isWatched ? "btn-secondary" : "btn-primary"} 
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                onClick={() => markWatched(tutorial.id)}
-                disabled={isWatched}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}
+                onClick={() => {
+                  if (isPlaying) {
+                    setActiveVideo(null); // Pause
+                  } else {
+                    setActiveVideo(tutorial.id);
+                  }
+                }}
               >
-                {isWatched ? <><CheckCircle size={18} color="var(--success)" /> Watched</> : "Mark as Watched"}
+                {isWatched 
+                  ? <><CheckCircle size={18} color="var(--success)" /> Rewatch</> 
+                  : (isPlaying ? "Stop Watching" : "Play Video")
+                }
               </button>
             </div>
           )
         })}
       </div>
 
-      {!dashboardState.isDashboardUnlocked && (
+      {!isDashboardUnlocked && (
         <div style={{ backgroundColor: 'var(--bg-surface)', padding: '2rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--brand-primary)', marginBottom: '3rem' }}>
           <h2 className="heading-2" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Upload color="var(--brand-primary)" /> Upload Your Attempt
@@ -129,16 +233,16 @@ const Tutorials = () => {
               placeholder="https://..." 
               value={attemptLink}
               onChange={(e) => setAttemptLink(e.target.value)}
-              disabled={!allWatched}
+              disabled={!allBasicWatched}
             />
-            {!allWatched && <span className="form-error" style={{ marginTop: '0.5rem', display: 'block' }}>You must watch all basic videos first.</span>}
+            {!allBasicWatched && <span className="form-error" style={{ marginTop: '0.5rem', display: 'block' }}>You must completely watch all basic videos first.</span>}
           </div>
 
           <button 
             className="btn-primary" 
             style={{ marginTop: '1rem' }}
             onClick={handleUploadAttempt}
-            disabled={!allWatched || attemptLink.trim().length === 0}
+            disabled={!allBasicWatched || attemptLink.trim().length === 0}
           >
             Submit & Unlock Dashboard
           </button>
@@ -150,63 +254,42 @@ const Tutorials = () => {
       
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 className="heading-2" style={{ color: 'var(--brand-accent)' }}>Advance Tutorials</h2>
-        
-        {/* Mock Dev Toggle for Eligibility */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-surface-elevated)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)' }}>
-          <span className="text-small" style={{ color: 'var(--text-secondary)' }}>Dev: Coach Remark Toggle</span>
-          <input 
-            type="checkbox" 
-            checked={isEligibleForAdvance} 
-            onChange={(e) => setIsEligibleForAdvance(e.target.checked)} 
-            style={{ accentColor: 'var(--brand-primary)' }}
-          />
-        </div>
       </div>
 
-      {!isEligibleForAdvance ? (
-        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '2rem', borderRadius: 'var(--radius-xl)', textAlign: 'center', border: '1px dashed var(--bg-surface-elevated)' }}>
-          <Lock size={48} color="var(--text-secondary)" style={{ margin: '0 auto 1rem auto', opacity: 0.5 }} />
-          <h3 className="heading-3">Locked by Coach</h3>
-          <p className="text-secondary" style={{ marginTop: '0.5rem', maxWidth: '400px', margin: '0.5rem auto 0' }}>
-            Advance tutorials are locked until your coach reviews your basic attempts and marks you as eligible.
-          </p>
-        </div>
-      ) : !hasPaidForAdvance ? (
+      {!hasUnlockedAdvance ? (
         <div style={{ backgroundColor: 'var(--bg-surface)', padding: '2rem', borderRadius: 'var(--radius-xl)', textAlign: 'center', border: '1px solid var(--brand-accent)' }}>
           <Unlock size={48} color="var(--brand-accent)" style={{ margin: '0 auto 1rem auto' }} />
-          <h3 className="heading-3">You are Eligible!</h3>
+          <h3 className="heading-3">Unlock Premium Coach Content</h3>
           <p className="text-secondary" style={{ marginTop: '0.5rem', maxWidth: '500px', margin: '0.5rem auto 1.5rem' }}>
-            Congratulations! Your coach has unlocked Advance Tutorials for you. A small one-time fee is required to access this premium content.
+            Pay a small one-time fee to unlock exclusive advanced training videos uploaded directly by expert coaches.
           </p>
-          <button className="btn-primary" onClick={handleMockPayment} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', width: 'auto', padding: '0.75rem 2rem' }}>
-            <CreditCard size={20} /> Pay ₹499 to Unlock
+          <button className="btn-primary" onClick={handlePayment} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', width: 'auto', padding: '0.75rem 2rem' }}>
+            <CreditCard size={20} /> Pay ₹{advanceFee} to Unlock
           </button>
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-          {allAdvanceTutorials.map(tutorial => (
-            <div key={tutorial.id} style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: `1px solid ${tutorial.isCoach ? 'var(--brand-primary)' : 'var(--brand-accent)'}` }}>
+          {advanceVideos.length === 0 && <p style={{ color: 'var(--text-secondary)' }}>No advanced videos available right now.</p>}
+          {advanceVideos.map((tutorial, idx) => {
+            if (!tutorial || !tutorial.url) return null;
+            return (
+            <div key={tutorial.id || idx} style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: `1px solid var(--brand-primary)` }}>
               <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', position: 'relative' }}>
-                <PlayCircle size={48} color={tutorial.isCoach ? 'var(--brand-primary)' : 'var(--brand-accent)'} opacity={0.8} />
-                {tutorial.isCoach && (
-                  <span style={{ position: 'absolute', top: 10, left: 10, backgroundColor: 'var(--brand-primary)', color: 'var(--bg-color)', fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <Video size={12} /> Coach Video
-                  </span>
-                )}
+                <ReactPlayer 
+                  url={tutorial.url} 
+                  controls={true}
+                  width="100%" 
+                  height="100%" 
+                  light={true} // Shows thumbnail before playing
+                />
+                <span style={{ position: 'absolute', top: 10, left: 10, backgroundColor: 'var(--brand-primary)', color: 'var(--bg-color)', fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.25rem', pointerEvents: 'none' }}>
+                  <Video size={12} /> Coach Video
+                </span>
               </div>
               <h3 className="heading-3" style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{tutorial.title}</h3>
-              <p className="text-small" style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Duration: {tutorial.duration}</p>
-              {tutorial.url && tutorial.isCoach ? (
-                <a href={tutorial.url} target="_blank" rel="noreferrer" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--bg-color)', backgroundColor: 'var(--brand-primary)', padding: '0.75rem', borderRadius: 'var(--radius-md)', textDecoration: 'none', fontWeight: 600 }}>
-                  <PlayCircle size={18} /> Watch on Link
-                </a>
-              ) : (
-                <button className="btn-secondary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--brand-accent)', borderColor: 'var(--brand-accent)' }}>
-                  <PlayCircle size={18} /> Watch Now
-                </button>
-              )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

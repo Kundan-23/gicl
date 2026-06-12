@@ -10,6 +10,7 @@ router.get('/players',           coachController.getPlayers);
 router.get('/videos',            coachController.getVideos);
 router.post('/videos/:id/review', coachController.reviewVideo);
 router.post('/uploads',          coachController.addUpload);
+router.get('/uploads',           coachController.getMyUploads);
 router.get('/matches',           coachController.getMatches);
 router.get('/referrals',         coachController.getReferrals);
 

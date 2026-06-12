@@ -46,6 +46,12 @@ async function migrate() {
     `CREATE TABLE IF NOT EXISTS cashout_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), player_id uuid NOT NULL REFERENCES players(id) ON DELETE CASCADE, amount numeric NOT NULL, upi_id text, bank_name text, account_no text, ifsc_code text, method text NOT NULL DEFAULT 'upi', status text NOT NULL DEFAULT 'pending', admin_note text, created_at timestamptz NOT NULL DEFAULT now(), resolved_at timestamptz)`,
     `CREATE INDEX IF NOT EXISTS idx_cashout_player ON cashout_requests(player_id)`,
     `CREATE INDEX IF NOT EXISTS idx_referrals_ref ON referrals(referrer_id)`,
+    `ALTER TABLE app_config ADD COLUMN IF NOT EXISTS basic_training_videos jsonb DEFAULT '[]'::jsonb`,
+    `ALTER TABLE app_config ADD COLUMN IF NOT EXISTS advance_training_fee numeric DEFAULT 499`,
+    `ALTER TABLE players ADD COLUMN IF NOT EXISTS training_progress jsonb DEFAULT '[]'::jsonb`,
+    `ALTER TABLE players ADD COLUMN IF NOT EXISTS training_attempt_url text DEFAULT ''`,
+    `ALTER TABLE players ADD COLUMN IF NOT EXISTS has_unlocked_advance_training boolean DEFAULT false`,
+    `CREATE TABLE IF NOT EXISTS coach_video_uploads (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), coach_id uuid REFERENCES coaches(id) ON DELETE CASCADE, title text NOT NULL, url text NOT NULL, duration text, status text DEFAULT 'pending', rejection_reason text, reviewed_at timestamptz, created_at timestamptz DEFAULT now())`
   ];
 
   for (const sql of statements) {

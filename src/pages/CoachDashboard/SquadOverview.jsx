@@ -38,10 +38,10 @@ const SquadOverview = () => {
       age,
       photo:        p.profile_photo_url || null,
       battingStyle: p.batting_style || '—',
-      bowlingStyle: p.bowling_style || '—',
       category:     ag?.cat   || 'Open',
       subCategory:  ag?.sub   || 'Open',
       color:        ag?.color || 'var(--brand-accent)',
+      attemptUrl:   p.training_attempt_url || null,
     };
   });
 
@@ -134,10 +134,15 @@ const SquadOverview = () => {
                     <p className="text-small text-secondary" style={{ marginBottom: '0.4rem' }}>
                       {player.subCategory}{player.age ? ` | Age: ${player.age}` : ''}
                     </p>
-                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
                       <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--bg-color)', padding: '0.2rem 0.45rem', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}>{player.battingStyle}</span>
                       <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--bg-color)', padding: '0.2rem 0.45rem', borderRadius: 'var(--radius-sm)', color: 'var(--text-secondary)' }}>{player.bowlingStyle}</span>
                     </div>
+                    {player.attemptUrl && (
+                      <span style={{ display: 'inline-block', fontSize: '0.7rem', backgroundColor: 'rgba(249, 203, 26, 0.1)', color: 'var(--brand-primary)', padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>
+                        Attempt Submitted
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -189,6 +194,12 @@ const SquadOverview = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: 'var(--bg-surface-elevated)', borderRadius: 'var(--radius-sm)' }}>
                   <span className="text-secondary">Bowling</span><span style={{ fontWeight: 600 }}>{selectedPlayer.bowlingStyle}</span>
                 </div>
+                {selectedPlayer.attemptUrl && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', backgroundColor: 'rgba(249, 203, 26, 0.1)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(249, 203, 26, 0.3)' }}>
+                    <span style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>Training Attempt</span>
+                    <a href={selectedPlayer.attemptUrl} target="_blank" rel="noreferrer" style={{ color: '#fff', backgroundColor: 'var(--brand-primary)', padding: '0.3rem 0.8rem', borderRadius: 'var(--radius-sm)', textDecoration: 'none', fontSize: '0.8rem', fontWeight: 600 }}>View Video</a>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>

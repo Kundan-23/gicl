@@ -12,7 +12,7 @@ exports.getProfile = asyncHandler(async (req, res) => {
 exports.getPlayers = asyncHandler(async (req, res) => {
   const { data: players, error } = await supabase
     .from('players')
-    .select('id, gicl_id, first_name, last_name, email, whatsapp, city, plan, payment_status, docs_approved, batting_style, bowling_style, profile_photo_url')
+    .select('id, gicl_id, first_name, last_name, email, whatsapp, city, plan, payment_status, docs_approved, batting_style, bowling_style, profile_photo_url, training_attempt_url')
     .eq('allocated_coach_id', req.user.id)
     .order('first_name', { ascending: true });
   if (error) throw new Error(error.message);
@@ -57,12 +57,29 @@ exports.addUpload = asyncHandler(async (req, res) => {
   const { title, url } = req.body;
   if (!title || !url) return res.status(400).json({ success: false, message: 'Title and URL are required.' });
 
-  const { data: coach } = await supabase.from('coaches').select('my_uploads').eq('id', req.user.id).single();
-  const uploads = coach?.my_uploads || [];
-  uploads.push({ id: uuidv4(), title, url, status: 'Pending', date: new Date().toISOString() });
+  const { error } = await supabase
+    .from('coach_video_uploads')
+    .insert({
+      coach_id: req.user.id,
+      title,
+      url,
+      status: 'pending'
+    });
 
-  await supabase.from('coaches').update({ my_uploads: uploads }).eq('id', req.user.id);
+  if (error) throw new Error(error.message);
+
   res.json({ success: true, message: 'Upload submitted for admin review.' });
+});
+
+exports.getMyUploads = asyncHandler(async (req, res) => {
+  const { data, error } = await supabase
+    .from('coach_video_uploads')
+    .select('*')
+    .eq('coach_id', req.user.id)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(error.message);
+  res.json({ success: true, uploads: data || [] });
 });
 
 exports.getMatches = asyncHandler(async (req, res) => {

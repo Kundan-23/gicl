@@ -30,7 +30,7 @@ exports.getStats = asyncHandler(async (req, res) => {
 
 // ─── GET /api/admin/players ───────────────────────────────────────
 exports.getPlayers = asyncHandler(async (req, res) => {
-  const { search, plan, payment, page = 1, limit = 50 } = req.query;
+  const { search, plan, payment, status, page = 1, limit = 50 } = req.query;
   const offset = (page - 1) * limit;
 
   let query = supabase
@@ -42,6 +42,7 @@ exports.getPlayers = asyncHandler(async (req, res) => {
   if (search) query = query.or(`email.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,gicl_id.ilike.%${search}%`);
   if (plan)    query = query.eq('plan', plan);
   if (payment) query = query.eq('payment_status', payment);
+  if (status)  query = query.eq('status', status);
 
   const { data: players, count, error } = await query;
   if (error) throw new Error(error.message);
@@ -497,6 +498,7 @@ exports.updateConfig = asyncHandler(async (req, res) => {
     'age_groups', 'clubs', 'referral_level1', 'referral_level2', 'referral_level3plus',
     'referral_min_cashout', 'max_squad_size', 'match_team_size',
     'banners', 'ad_banners', 'landing_bg_image', 'registration_terms',
+    'basic_training_videos', 'advance_training_fee'
   ];
   const updateData = {};
   for (const key of allowed) {

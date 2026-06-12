@@ -4,11 +4,17 @@ const { z }   = require('zod');
 const { authenticate, authorize } = require('../middlewares/auth');
 const validate       = require('../middlewares/validate');
 const playerController = require('../controllers/playerController');
+const trainingController = require('../controllers/trainingController');
 
 const router = express.Router();
 
 // All player routes require authentication + player role
 router.use(authenticate, authorize('player'));
+
+// ─── Training Routes ───
+router.get('/training', trainingController.getTrainingData);
+router.post('/training/watch', trainingController.markVideoWatched);
+router.post('/training/submit-attempt', trainingController.submitAttempt);
 
 // Multer: memory storage for Supabase upload
 const upload = multer({
