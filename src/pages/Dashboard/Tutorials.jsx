@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useFormStore } from '../../store/useFormStore';
 import { PlayCircle, CheckCircle, Upload, Lock, Video, CreditCard, Unlock, AlertTriangle, ExternalLink } from 'lucide-react';
-import ReactPlayer from 'react-player';
+import ReactPlayerRaw from 'react-player';
+const ReactPlayer = ReactPlayerRaw.default || ReactPlayerRaw;
 import Swal from 'sweetalert2';
 import { trainingAPI, paymentAPI } from '../../services/api';
 
