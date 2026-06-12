@@ -39,7 +39,7 @@ const Players = () => {
     const load = async () => {
       setLoading(true);
       try {
-        const res = await adminAPI.getPlayers({ search: search || undefined, payment_status: payFilter || undefined, page, limit: PAGE_SIZE });
+        const res = await adminAPI.getPlayers({ search: search || undefined, payment: payFilter || undefined, page, limit: PAGE_SIZE });
         setPlayers(res.data?.players || res.data || []);
       } catch (err) {
         Swal.fire({

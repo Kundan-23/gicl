@@ -81,12 +81,14 @@ const DarkSelect = ({ value, onChange, options }) => {
 
 const MatchModal = ({ match, onClose, onSave }) => {
   const [form, setForm] = useState(match ? {
-    title: match.title || match.opponent || '', date: match.date ? match.date.slice(0, 16) : '',
+    title: match.title || match.opponent || '', 
+    dateOnly: match.date ? new Date(match.date).toISOString().slice(0, 10) : '',
+    timeOnly: match.date ? new Date(match.date).toISOString().slice(11, 16) : '',
     venue: match.venue || match.location || '', match_type: match.match_type || 'League',
     age_category: match.age_category || 'Open (All Ages)',
     description: match.description || '',
     price_per_slot: match.price_per_slot || 0, total_slots: match.total_slots || 0,
-  } : { ...EMPTY });
+  } : { ...EMPTY, dateOnly: '', timeOnly: '' });
   const [saving, setSaving] = useState(false);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -94,7 +96,15 @@ const MatchModal = ({ match, onClose, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    try { await onSave({ ...form }); }
+    try { 
+      const payload = { ...form };
+      if (form.dateOnly && form.timeOnly) {
+        payload.date = `${form.dateOnly}T${form.timeOnly}:00`;
+      }
+      delete payload.dateOnly;
+      delete payload.timeOnly;
+      await onSave(payload); 
+    }
     finally { setSaving(false); }
   };
 
@@ -113,10 +123,15 @@ const MatchModal = ({ match, onClose, onSave }) => {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
-              <label style={labelStyle}>Date & Time *</label>
-              <input required type="datetime-local" value={form.date} onChange={e => set('date', e.target.value)} style={inputStyle} />
+              <label style={labelStyle}>Date *</label>
+              <input required type="date" value={form.dateOnly} onChange={e => set('dateOnly', e.target.value)} style={inputStyle} />
             </div>
             <div>
+              <label style={labelStyle}>Time *</label>
+              <input required type="time" value={form.timeOnly} onChange={e => set('timeOnly', e.target.value)} style={inputStyle} />
+            </div>
+          </div>
+          <div>
               <label style={labelStyle}>Match Type</label>
               <DarkSelect
                 value={form.match_type}
