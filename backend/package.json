@@ -20,6 +20,7 @@
     "nodemon": "^3.1.14"
   },
   "dependencies": {
+    "@sparticuz/chromium": "^149.0.0",
     "@supabase/supabase-js": "^2.107.0",
     "axios": "^1.17.0",
     "bcryptjs": "^3.0.3",
@@ -35,6 +36,7 @@
     "multer": "^2.1.1",
     "nodemailer": "^8.0.10",
     "puppeteer": "^25.1.0",
+    "puppeteer-core": "^25.1.0",
     "qrcode": "^1.5.4",
     "razorpay": "^2.9.6",
     "uuid": "^14.0.0",
