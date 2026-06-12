@@ -12,20 +12,10 @@ const DashboardLayout = () => {
   const { resetForm, dashboardState, basicInfo } = useFormStore();
   const { isDashboardUnlocked } = dashboardState;
   const { banners, ad_banners: adBanners } = useConfig();
-  const [isDownloading, setIsDownloading] = useState(false);
 
   const handleLogout = () => {
     resetForm();
     navigate('/');
-  };
-
-  const handleDownloadCard = () => {
-    setIsDownloading(true);
-    // Simulate PDF generation and download
-    setTimeout(() => {
-      alert(`GICL Membership Card for ${basicInfo.firstName || 'Player'} has been downloaded successfully as a PDF!`);
-      setIsDownloading(false);
-    }, 1500);
   };
 
   const navLinks = isDashboardUnlocked 
@@ -98,7 +88,7 @@ const DashboardLayout = () => {
         className="sidebar-desktop"
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <img src="/logo/logo.png" alt="GICL Logo" style={{ height: '56px', width: 'auto', maxWidth: '200px', objectFit: 'contain' }} />
+          <img src="/logo/logo.png" alt="GICL Logo" style={{ maxWidth: '100%', maxHeight: '80px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
           <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', color: 'var(--text-secondary)', flexShrink: 0 }} className="close-btn-mobile">
             <X size={24} />
           </button>
@@ -149,18 +139,6 @@ const DashboardLayout = () => {
               </div>
             ))}
           </div>
-
-          {isDashboardUnlocked && (
-            <button 
-              onClick={handleDownloadCard}
-              disabled={isDownloading}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', color: 'var(--brand-accent)', background: 'none', fontWeight: 600, border: '1px solid var(--brand-accent)', borderRadius: 'var(--radius-md)', opacity: isDownloading ? 0.7 : 1 }}
-
-            >
-              <User size={20} />
-              {isDownloading ? 'Generating PDF...' : 'Download ID Card'}
-            </button>
-          )}
 
           <button 
             onClick={handleLogout}
