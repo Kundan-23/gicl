@@ -542,12 +542,47 @@ exports.listCoachUploads = asyncHandler(async (req, res) => {
 
 // PUT /api/admin/coach-uploads/:id/approve
 exports.approveCoachUpload = asyncHandler(async (req, res) => {
+  // 1. Fetch the video details
+  const { data: video, error: fetchErr } = await supabase
+    .from('coach_video_uploads')
+    .select('*')
+    .eq('id', req.params.id)
+    .single();
+  if (fetchErr || !video) throw new Error(fetchErr ? fetchErr.message : 'Video not found');
+
+  // 2. Fetch current config to get advance videos array
+  const { data: config, error: configErr } = await supabase
+    .from('app_config')
+    .select('advance_training_videos')
+    .eq('id', 1)
+    .single();
+  if (configErr) throw new Error(configErr.message);
+
+  let advanceVideos = config.advance_training_videos || [];
+  
+  // Create the new video object
+  const newAdvanceVideo = {
+    id: 'adv_' + Date.now(),
+    title: video.title,
+    url: video.url,
+    coach_id: video.coach_id
+  };
+
+  // 3. Update app_config
+  const { error: configUpdateErr } = await supabase
+    .from('app_config')
+    .update({ advance_training_videos: [...advanceVideos, newAdvanceVideo] })
+    .eq('id', 1);
+  if (configUpdateErr) throw new Error(configUpdateErr.message);
+
+  // 4. Mark the upload as approved
   const { error } = await supabase
     .from('coach_video_uploads')
-    .update({ status: 'approved', reviewed_at: new Date().toISOString() })
+    .update({ status: 'approved' })
     .eq('id', req.params.id);
   if (error) throw new Error(error.message);
-  res.json({ success: true, message: 'Video approved.' });
+
+  res.json({ success: true, message: 'Video approved and added to Advanced Tutorials.' });
 });
 
 // PUT /api/admin/coach-uploads/:id/reject
@@ -556,7 +591,7 @@ exports.rejectCoachUpload = asyncHandler(async (req, res) => {
   if (!adminNote) return res.status(400).json({ success: false, message: 'Rejection reason required.' });
   const { error } = await supabase
     .from('coach_video_uploads')
-    .update({ status: 'rejected', rejection_reason: adminNote, reviewed_at: new Date().toISOString() })
+    .update({ status: 'rejected', reject_reason: adminNote })
     .eq('id', req.params.id);
   if (error) throw new Error(error.message);
   res.json({ success: true, message: 'Video rejected.' });
