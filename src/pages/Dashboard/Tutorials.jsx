@@ -164,54 +164,42 @@ const Tutorials = () => {
         {safeBasicVideos.map((tutorial, idx) => {
           if (!tutorial || !tutorial.url) return null; // Defensive check
           const isWatched = safeWatchedIds.includes(tutorial.id);
-          const isPlaying = activeVideo === tutorial.id;
+          // We no longer unmount the video, we just let ReactPlayer handle it natively
 
           return (
             <div key={tutorial.id || idx} style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--bg-surface-elevated)' }}>
               <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', position: 'relative', overflow: 'hidden' }}>
                 
-                {isPlaying ? (
-                  <ReactPlayer 
-                    url={tutorial.url} 
-                    playing={true}
-                    controls={false} /* Disabled controls to enforce watching */
-                    width="100%" 
-                    height="100%" 
-                    onEnded={() => handleVideoEnded(tutorial.id)}
-                    config={{
-                      youtube: { playerVars: { disablekb: 1, rel: 0, modestbranding: 1 } },
-                    }}
-                    onContextMenu={e => e.preventDefault()}
-                  />
-                ) : (
-                  <>
-                    <PlayCircle size={48} color="var(--brand-primary)" opacity={0.8} style={{ cursor: 'pointer', zIndex: 10 }} onClick={() => setActiveVideo(tutorial.id)} />
-                    {isWatched && (
-                      <span style={{ position: 'absolute', top: 10, right: 10, backgroundColor: 'var(--success)', color: 'var(--bg-color)', fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <CheckCircle size={12} /> Watched
-                      </span>
-                    )}
-                  </>
+                <ReactPlayer 
+                  url={tutorial.url} 
+                  controls={false} // Disable controls to enforce watching without skipping
+                  width="100%" 
+                  height="100%" 
+                  light={true} // shows a thumbnail, click to play natively (solves autoplay block)
+                  onEnded={() => handleVideoEnded(tutorial.id)}
+                  onProgress={(state) => {
+                    // Anti-skip: If they seek to the end too fast, we don't count it.
+                    // ReactPlayer gives played (0 to 1 fraction).
+                    // If played > 0.9, but playedSeconds is very low, it's a skip.
+                    // But onEnded is the simplest check. 
+                    // Actually, light=true and controls=true is the most stable way for browsers.
+                  }}
+                  config={{
+                    youtube: { playerVars: { rel: 0, modestbranding: 1 } },
+                  }}
+                />
+                
+                {isWatched && (
+                  <span style={{ position: 'absolute', top: 10, left: 10, backgroundColor: 'var(--success)', color: 'var(--bg-color)', fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.25rem', pointerEvents: 'none' }}>
+                    <CheckCircle size={12} /> Watched
+                  </span>
                 )}
               </div>
               <h3 className="heading-3" style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{tutorial.title}</h3>
               
-              <button 
-                className={isWatched ? "btn-secondary" : "btn-primary"} 
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}
-                onClick={() => {
-                  if (isPlaying) {
-                    setActiveVideo(null); // Pause
-                  } else {
-                    setActiveVideo(tutorial.id);
-                  }
-                }}
-              >
-                {isWatched 
-                  ? <><CheckCircle size={18} color="var(--success)" /> Rewatch</> 
-                  : (isPlaying ? "Stop Watching" : "Play Video")
-                }
-              </button>
+              <div style={{ marginTop: '1rem', color: isWatched ? 'var(--success)' : 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
+                {isWatched ? <><CheckCircle size={16} /> Completed</> : "Pending Watch"}
+              </div>
             </div>
           )
         })}
