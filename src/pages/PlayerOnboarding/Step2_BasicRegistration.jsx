@@ -477,8 +477,8 @@ const Step2_BasicRegistration = () => {
             rules={{ required: 'Required' }}
             render={({ field }) => (
               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label">Address line 1 *</label>
-                <input {...field} className="form-input" placeholder="123 Test Street" />
+                <label className="form-label">Flat no, Wing name, Build name, Sector *</label>
+                <input {...field} className="form-input" placeholder="Flat no, Wing name, Build name, Sector" />
                 {errors.addressLine1 && <span className="form-error">{errors.addressLine1.message}</span>}
               </div>
             )}
@@ -489,8 +489,8 @@ const Step2_BasicRegistration = () => {
             control={control}
             render={({ field }) => (
               <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label">Address line 2 (optional)</label>
-                <input {...field} className="form-input" placeholder="" />
+                <label className="form-label">Area and Address (optional)</label>
+                <input {...field} className="form-input" placeholder="Area and Address" />
               </div>
             )}
           />

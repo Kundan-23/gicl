@@ -216,11 +216,11 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
           <div style={sec}>
             <p style={secTitle}>📍 Address</p>
             <div style={{ marginBottom: '0.875rem' }}>
-              <label style={lbl}>Address Line 1</label>
+              <label style={lbl}>Flat no, Wing name, Build name, Sector</label>
               <input style={inp} value={form.address_line1} onChange={e => set('address_line1', e.target.value)} placeholder="Building, Street" />
             </div>
             <div style={{ marginBottom: '0.875rem' }}>
-              <label style={lbl}>Address Line 2</label>
+              <label style={lbl}>Area and Address</label>
               <input style={inp} value={form.address_line2} onChange={e => set('address_line2', e.target.value)} placeholder="Area, Landmark (optional)" />
             </div>
             <div style={{ ...grid3, marginBottom: '0.875rem' }}>
