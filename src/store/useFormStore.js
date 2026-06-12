@@ -32,6 +32,7 @@ export const useFormStore = create(
         instagramApproved: false,
         acceptedTerms: false,
         giclId: '', // Auto-generated
+        manualIdCardUrl: '', // Admin uploaded ID card
       },
       updateBasicInfo: (data) => set((state) => ({ basicInfo: { ...state.basicInfo, ...data } })),
 

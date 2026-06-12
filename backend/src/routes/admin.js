@@ -62,6 +62,9 @@ router.post('/config/ad-banner/upload', upload.single('file'), ctrl.uploadAdBann
 router.post('/config/id-card-signature/upload', upload.single('file'), ctrl.uploadIdCardSignature);
 router.post('/config/sponsor-logo/upload/:slot', upload.single('file'), ctrl.uploadSponsorLogo);
 
+// Manual ID Card Upload
+router.post('/players/:id/id-card', upload.single('file'), ctrl.uploadPlayerIdCard);
+
 // Coach Video Uploads
 router.get('/coach-uploads',                            ctrl.listCoachUploads);
 router.put('/coach-uploads/:id/approve',                ctrl.approveCoachUpload);

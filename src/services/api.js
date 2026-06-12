@@ -115,6 +115,9 @@ export const adminAPI = {
   listCoachUploads:   ()               => API.get('/admin/coach-uploads'),
   approveCoachUpload: (id, coachId)    => API.put(`/admin/coach-uploads/${id}/approve`, { coachId }),
   rejectCoachUpload:  (id, coachId, reason) => API.put(`/admin/coach-uploads/${id}/reject`, { coachId, reason }),
+
+  // Player ID Card
+  uploadPlayerIdCard: (id, file)       => { const f = new FormData(); f.append('file', file); return API.post(`/admin/players/${id}/id-card`, f, { headers: { 'Content-Type': 'multipart/form-data' } }); },
 };
 
 // ─── Payment ───────────────────────────────────────────────

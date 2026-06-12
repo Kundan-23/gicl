@@ -684,3 +684,34 @@ exports.uploadSponsorLogo = asyncHandler(async (req, res) => {
   const { data: { publicUrl } } = sb.storage.from('banners').getPublicUrl(path);
   res.json({ success: true, url: `${publicUrl}?t=${Date.now()}` }); // Cache buster
 });
+
+// ─── Upload Player ID Card (Admin) ─────────────────────────────────────────
+exports.uploadPlayerIdCard = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
+  
+  const { createClient } = require('@supabase/supabase-js');
+  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  
+  const ext = req.file.mimetype.split('/')[1] || 'pdf';
+  const path = `player_${id}_${Date.now()}.${ext}`;
+  
+  const { error: uploadError } = await sb.storage.from('id-cards').upload(path, req.file.buffer, { 
+    contentType: req.file.mimetype, 
+    upsert: true 
+  });
+  
+  if (uploadError) throw new Error(uploadError.message);
+  
+  const { data: { publicUrl } } = sb.storage.from('id-cards').getPublicUrl(path);
+  
+  // Update the player record
+  const { error: updateError } = await sb
+    .from('players')
+    .update({ manual_id_card_url: publicUrl })
+    .eq('id', id);
+    
+  if (updateError) throw new Error(updateError.message);
+  
+  res.json({ success: true, url: publicUrl });
+});

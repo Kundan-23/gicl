@@ -38,6 +38,7 @@ const PlayerDashboard = () => {
           whatsapp:         p.whatsapp          || basicInfo.whatsapp,
           bloodGroup:       p.blood_group       || basicInfo.bloodGroup,
           parentName:       p.parent_name       || basicInfo.parentName,
+          manualIdCardUrl:  p.manual_id_card_url || basicInfo.manualIdCardUrl,
           addressLine1:     p.address_line1     || basicInfo.addressLine1,
           city:             p.city              || basicInfo.city,
           state:            p.city              || basicInfo.state,
@@ -102,101 +103,12 @@ const PlayerDashboard = () => {
     } finally { setPhotoUploading(false); }
   };
 
-  const [downloadingId, setDownloadingId] = useState(false);
-
-  const handleDownloadIdCard = async () => {
-    setDownloadingId(true);
-    try {
-      Swal.fire({ icon: 'info', title: 'Generating PDF...', text: 'Please wait a moment.', showConfirmButton: false, allowOutsideClick: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
-
-      const res = await playerAPI.downloadIdCard();
-      const d = res.data.cardData;
-
-      if (!d || !d.frontBg) {
-        throw new Error('Server is still updating. Please wait 1-2 minutes and try again.');
-      }
-
-      // A5 dimensions in mm
-      const W = 148;
-      const H = 210;
-
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [W, H] });
-
-      // Helper: load image as HTMLImageElement (for jsPDF addImage)
-      const loadImg = (src) => new Promise((resolve, reject) => {
-        if (!src) return resolve(null);
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => resolve(img);
-        img.onerror = () => resolve(null); // gracefully skip missing images
-        img.src = src;
-      });
-
-      // Load all images in parallel
-      const [frontImg, backImg, photoImg, sigImg] = await Promise.all([
-        loadImg(d.frontBg),
-        loadImg(d.backBg),
-        loadImg(d.photoUrl),
-        loadImg(d.signatureUrl),
-      ]);
-
-      // ===== PAGE 1: FRONT =====
-      if (frontImg) pdf.addImage(frontImg, 'PNG', 0, 0, W, H);
-
-      // Photo box (positioned to match the white square on the template)
-      if (photoImg) {
-        pdf.addImage(photoImg, 'JPEG', 22, 125, 37, 40);
-      }
-
-      // Text overlay: GICL ID, Name, Blood Group, Age
-      // Positioned to the right of the photo box
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(13);
-      pdf.setTextColor(212, 175, 55); // Gold #D4AF37
-
-      pdf.text(d.giclId, 67, 133);
-      pdf.text(d.name, 67, 143);
-      pdf.text(d.bloodGroup, 67, 153);
-      pdf.text(d.age, 67, 163);
-
-      // ===== PAGE 2: BACK =====
-      pdf.addPage([W, H], 'portrait');
-      if (backImg) pdf.addImage(backImg, 'PNG', 0, 0, W, H);
-
-      // Emergency Contact text
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(12);
-      pdf.setTextColor(255, 255, 255);
-      pdf.text(`${d.parentName}`, W / 2, 96, { align: 'center' });
-      pdf.text(`${d.emergency}`, W / 2, 103, { align: 'center' });
-
-      // Address (gold text)
-      if (d.address) {
-        pdf.setFontSize(11);
-        pdf.setTextColor(212, 175, 55);
-        const addressLines = pdf.splitTextToSize(d.address, 110);
-        pdf.text(addressLines, W / 2, 128, { align: 'center' });
-      }
-
-      // Signature
-      if (sigImg) {
-        pdf.addImage(sigImg, 'PNG', 50, 155, 48, 20);
-      }
-
-      // Save
-      pdf.save(`GICL_ID_Card_${d.giclId || 'Player'}.pdf`);
-
-      Swal.fire({ icon: 'success', title: 'Downloaded!', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
-    } catch (err) {
-      console.error(err);
-      let errorMsg = 'Failed to generate PDF. Please try again later.';
-      if (err.response && err.response.data && err.response.data.message) {
-        errorMsg = err.response.data.message;
-      }
-      Swal.fire({ icon: 'error', title: 'Download failed', text: errorMsg, background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
-    } finally {
-      setDownloadingId(false);
+  const handleDownloadIdCard = () => {
+    if (!basicInfo.manualIdCardUrl) {
+      return Swal.fire({ icon: 'info', title: 'Not Available', text: 'Your ID card has not been uploaded yet.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     }
+    // Open in new tab to view/download
+    window.open(basicInfo.manualIdCardUrl, '_blank');
   };
 
   // Show spinner while waiting for API — prevents flash redirect
@@ -266,14 +178,16 @@ const PlayerDashboard = () => {
             {basicInfo.giclId && (
               <button 
                 onClick={handleDownloadIdCard}
-                disabled={downloadingId}
+                disabled={!basicInfo.manualIdCardUrl}
                 style={{ 
                   marginTop: '1rem', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', 
-                  backgroundColor: 'var(--brand-primary)', color: '#121A3F', fontWeight: 700, 
-                  border: 'none', cursor: downloadingId ? 'wait' : 'pointer', fontSize: '0.85rem'
+                  backgroundColor: basicInfo.manualIdCardUrl ? 'var(--brand-primary)' : 'rgba(255,255,255,0.1)', 
+                  color: basicInfo.manualIdCardUrl ? '#121A3F' : 'var(--text-secondary)', 
+                  fontWeight: 700, border: 'none', cursor: basicInfo.manualIdCardUrl ? 'pointer' : 'not-allowed', 
+                  fontSize: '0.85rem'
                 }}
               >
-                {downloadingId ? 'Generating PDF...' : '⬇ Download ID Card'}
+                {basicInfo.manualIdCardUrl ? '⬇ Download ID Card' : 'ID Card Pending...'}
               </button>
             )}
           </div>

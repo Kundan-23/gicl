@@ -219,6 +219,31 @@ const PlayerDetail = () => {
     }
   };
 
+  const fileInputRef = React.useRef(null);
+  const [uploadingIdCard, setUploadingIdCard] = useState(false);
+
+  const handleUploadIdCard = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Must be PDF or Image
+    if (!['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) {
+      return Swal.fire({ icon: 'error', title: 'Invalid File', text: 'Please upload a PDF, JPG, or PNG.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+    }
+
+    setUploadingIdCard(true);
+    try {
+      await adminAPI.uploadPlayerIdCard(id, file);
+      Swal.fire({ icon: 'success', title: 'Uploaded!', text: 'ID Card has been saved.', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      load(); // Reload player data to get the new manual_id_card_url
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Upload Failed', text: err.response?.data?.message || 'Failed to upload ID card.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
+    } finally {
+      setUploadingIdCard(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', color: 'var(--text-secondary)' }}>
       Loading player…
@@ -240,7 +265,17 @@ const PlayerDetail = () => {
           <h1 className="heading-1">{player.first_name} {player.last_name}</h1>
           <p style={{ fontFamily: 'monospace', color: 'var(--brand-primary)', fontWeight: 700, fontSize: '0.9rem' }}>{player.gicl_id}</p>
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem' }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <input type="file" ref={fileInputRef} onChange={handleUploadIdCard} accept=".pdf,image/png,image/jpeg" style={{ display: 'none' }} />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingIdCard}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: 'var(--radius-md)', background: player.manual_id_card_url ? 'rgba(16,185,129,0.1)' : 'var(--brand-primary)', color: player.manual_id_card_url ? '#10b981' : '#121A3F', border: `1px solid ${player.manual_id_card_url ? 'rgba(16,185,129,0.3)' : 'var(--brand-primary)'}`, fontWeight: 600, fontSize: '0.875rem', cursor: uploadingIdCard ? 'wait' : 'pointer', transition: 'all 0.15s' }}
+          >
+            <FileText size={16} /> 
+            {uploadingIdCard ? 'Uploading...' : player.manual_id_card_url ? 'Replace ID Card' : 'Upload ID Card'}
+          </button>
+
           <button
             onClick={() => setIsEditing(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.07)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', transition: 'all 0.15s' }}
