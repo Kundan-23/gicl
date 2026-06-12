@@ -166,12 +166,17 @@ const Tutorials = () => {
           const isWatched = safeWatchedIds.includes(tutorial.id);
           // We no longer unmount the video, we just let ReactPlayer handle it natively
 
+          let vidUrl = tutorial.url;
+          if (vidUrl && !vidUrl.startsWith('http')) {
+            vidUrl = 'https://' + vidUrl;
+          }
+
           return (
             <div key={tutorial.id || idx} style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--bg-surface-elevated)' }}>
               <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', position: 'relative', overflow: 'hidden' }}>
                 
                 <ReactPlayer 
-                  url={tutorial.url} 
+                  url={vidUrl} 
                   controls={false} // Disable controls to enforce watching without skipping
                   width="100%" 
                   height="100%" 
