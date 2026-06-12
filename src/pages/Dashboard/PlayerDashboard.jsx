@@ -120,8 +120,25 @@ const PlayerDashboard = () => {
 
       Swal.fire({ icon: 'info', title: 'Generating PDF...', text: 'Please wait a moment.', showConfirmButton: false, allowOutsideClick: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
 
-      await html2pdf().set(opt).from(htmlString).save();
+      // Create a temporary container that is visually hidden but part of the DOM layout
+      const container = document.createElement('div');
+      container.innerHTML = htmlString;
+      container.style.position = 'absolute';
+      container.style.top = '0px';
+      container.style.left = '-10000px'; 
+      container.style.width = '559px';
+      container.style.zIndex = '-9999';
+      document.body.appendChild(container);
+
+      // Give base64 images a moment to render in the DOM
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Target the actual wrapper element returned from the backend
+      const targetElement = container.firstElementChild || container;
+
+      await html2pdf().set(opt).from(targetElement).save();
       
+      document.body.removeChild(container);
       Swal.fire({ icon: 'success', title: 'Downloaded!', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     } catch (err) {
       console.error(err);

@@ -53,22 +53,11 @@ async function generateIdCardPDF(player, signatureUrl = null) {
   const backBg = getLocalImageBase64('id_card_back.png');
 
   const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
+<div id="id-card-container" style="font-family: 'Inter', sans-serif; background: white; width: 559px; position: relative;">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+    #id-card-container * { margin: 0; padding: 0; box-sizing: border-box; }
     
-    body { 
-      font-family: 'Inter', sans-serif; 
-      background: white; 
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-    .page {
+    #id-card-container .page {
       width: 559px;
       height: 794px; /* A5 Size Portrait at 96DPI */
       position: relative;
@@ -199,8 +188,7 @@ async function generateIdCardPDF(player, signatureUrl = null) {
   </div>
 </div>
 
-</body>
-</html>`;
+</div>`;
 
   return html;
 }
