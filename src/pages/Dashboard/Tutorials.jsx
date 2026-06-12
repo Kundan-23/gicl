@@ -172,7 +172,7 @@ const Tutorials = () => {
             vidUrl = 'https://' + vidUrl;
           }
 
-          const isSupported = ReactPlayer.canPlay(vidUrl);
+          const isSupported = vidUrl ? vidUrl.match(/(youtube\.com|youtu\.be|vimeo\.com|soundcloud\.com|twitch\.tv|dailymotion\.com|facebook\.com|wistia\.com|\.mp4|\.webm|\.ogg)/i) !== null : false;
           const hasClickedExternal = clickedExternalIds.includes(tutorial.id);
 
           return (
