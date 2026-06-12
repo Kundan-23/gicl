@@ -300,12 +300,7 @@ exports.downloadIdCard = asyncHandler(async (req, res) => {
   const signatureUrl = cfg?.id_card_signature_url || null;
 
   const { generateIdCardPDF } = require('../utils/pdf');
-  const pdfBuffer = await generateIdCardPDF(player, signatureUrl);
+  const html = await generateIdCardPDF(player, signatureUrl);
 
-  res.set({
-    'Content-Type': 'application/pdf',
-    'Content-Disposition': `attachment; filename=GICL_Card_${player.gicl_id}.pdf`,
-    'Content-Length': pdfBuffer.length,
-  });
-  res.end(pdfBuffer);
+  res.json({ success: true, html });
 });

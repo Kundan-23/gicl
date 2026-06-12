@@ -212,22 +212,7 @@ async function generateIdCardPDF(player, signatureUrl = null) {
 </body>
 </html>`;
 
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  });
-
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: 'networkidle0' });
-
-  const pdfBuffer = await page.pdf({
-    format: 'A5',          // 148mm x 210mm
-    printBackground: true,
-    margin: { top: '0', right: '0', bottom: '0', left: '0' },
-  });
-
-  await browser.close();
-  return Buffer.from(pdfBuffer);
+  return html;
 }
 
 module.exports = { generateIdCardPDF };

@@ -55,7 +55,7 @@ export const playerAPI = {
   uploadBirthCert:    (file)   => { const f = new FormData(); f.append('file', file); return API.post('/player/upload/birth-cert',    f, { headers: { 'Content-Type': 'multipart/form-data' } }); },
   getMatches:         ()       => API.get('/player/matches'),
   getReferrals:       ()       => API.get('/player/referrals'),
-  downloadIdCard:     ()       => API.get('/player/id-card', { responseType: 'blob' }),
+  downloadIdCard:     ()       => API.get('/player/id-card'),
   
   // Match Bookings
   getAvailableMatches:  ()     => API.get('/player/available-matches'),

@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Navigate } from 'react-router-dom';
+import html2pdf from 'html2pdf.js';
 import { useFormStore } from '../../store/useFormStore';
 import { playerAPI } from '../../services/api';
 import Swal from 'sweetalert2';
@@ -107,33 +108,42 @@ const PlayerDashboard = () => {
     setDownloadingId(true);
     try {
       const res = await playerAPI.downloadIdCard();
-      const blob = new Blob([res.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      link.download = `GICL_ID_Card_${basicInfo.giclId || 'Player'}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      }, 1000);
+      const htmlString = res.data.html;
 
-      Swal.fire({ icon: 'success', title: 'Opening PDF...', text: 'If it did not download automatically, please check your popup blocker.', timer: 2000, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      // Create a hidden iframe to hold the HTML with its styles intact
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.width = '148mm';
+      iframe.style.height = '210mm';
+      iframe.style.left = '-9999px';
+      document.body.appendChild(iframe);
+
+      iframe.contentDocument.open();
+      iframe.contentDocument.write(htmlString);
+      iframe.contentDocument.close();
+
+      // Wait a moment for base64 images to render in the iframe
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const opt = {
+        margin:       0,
+        filename:     `GICL_ID_Card_${basicInfo.giclId || 'Player'}.pdf`,
+        image:        { type: 'jpeg', quality: 1.0 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a5', orientation: 'portrait' }
+      };
+
+      Swal.fire({ icon: 'info', title: 'Generating PDF...', text: 'Please wait a moment.', showConfirmButton: false, allowOutsideClick: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+
+      await html2pdf().set(opt).from(iframe.contentDocument.body).save();
+      
+      document.body.removeChild(iframe);
+      Swal.fire({ icon: 'success', title: 'Downloaded!', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     } catch (err) {
       console.error(err);
-      let errorMsg = 'Ensure your profile is complete and try again.';
-      if (err.response && err.response.data && err.response.data instanceof Blob) {
-        try {
-          const text = await err.response.data.text();
-          const json = JSON.parse(text);
-          if (json.message) errorMsg = json.message;
-        } catch(e) {}
-      } else if (err.message) {
-        errorMsg = err.message;
+      let errorMsg = 'Failed to generate PDF. Please try again later.';
+      if (err.response && err.response.data && err.response.data.message) {
+        errorMsg = err.response.data.message;
       }
       Swal.fire({ icon: 'error', title: 'Download failed', text: errorMsg, background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
     } finally {
