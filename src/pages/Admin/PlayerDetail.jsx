@@ -73,7 +73,7 @@ const PlayerDetail = () => {
 
   // ── Status toggle with disable-reason prompt ─────────────────────
   const handleToggleStatus = async () => {
-    const isActive = player.is_active !== false;
+    const isActive = player.status !== 'Disabled';
 
     if (isActive) {
       // Disabling — ask for reason
@@ -91,8 +91,8 @@ const PlayerDetail = () => {
       });
       if (!isConfirmed || !reason) return;
       try {
-        await adminAPI.updatePlayerStatus(id, 'inactive');
-        setPlayer(prev => ({ ...prev, is_active: false }));
+        await adminAPI.updatePlayerStatus(id, 'Disabled');
+        setPlayer(prev => ({ ...prev, status: 'Disabled' }));
         Swal.fire({ icon: 'success', title: 'Player disabled', text: reason, timer: 2000, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
       } catch (err) {
         Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to update status.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
@@ -109,8 +109,8 @@ const PlayerDetail = () => {
       });
       if (!isConfirmed) return;
       try {
-        await adminAPI.updatePlayerStatus(id, 'active');
-        setPlayer(prev => ({ ...prev, is_active: true }));
+        await adminAPI.updatePlayerStatus(id, 'Active');
+        setPlayer(prev => ({ ...prev, status: 'Active' }));
         Swal.fire({ icon: 'success', title: 'Player enabled', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
       } catch (err) {
         Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to update status.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
@@ -140,7 +140,7 @@ const PlayerDetail = () => {
 
   if (!player) return null;
 
-  const isActive = player.is_active !== false;
+  const isActive = player.status !== 'Disabled';
 
   return (
     <div>

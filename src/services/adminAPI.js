@@ -27,7 +27,7 @@ export const adminAPI = {
   // Players
   getPlayers:           (params)      => API.get('/admin/players', { params }),
   getPlayerDetail:      (id)          => API.get(`/admin/players/${id}`),
-  updatePlayerStatus:   (id, status)  => API.put(`/admin/players/${id}/toggle-status`, { status }),
+  updatePlayerStatus:   (id, status)  => API.put(`/admin/players/${id}/status`, { status }),
   approveDocs:          (id)          => API.put(`/admin/players/${id}/approve-docs`),
   assignCoach:          (id, coachId) => API.put(`/admin/players/${id}/assign-coach`, { coachId }),
   deletePlayer:         (id)          => API.delete(`/admin/players/${id}`),
