@@ -110,34 +110,30 @@ const PlayerDashboard = () => {
       const res = await playerAPI.downloadIdCard();
       const htmlString = res.data.html;
 
-      // Create a hidden iframe to hold the HTML with its styles intact
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'absolute';
-      iframe.style.width = '148mm';
-      iframe.style.height = '210mm';
-      iframe.style.left = '-9999px';
-      document.body.appendChild(iframe);
-
-      iframe.contentDocument.open();
-      iframe.contentDocument.write(htmlString);
-      iframe.contentDocument.close();
-
-      // Wait a moment for base64 images to render in the iframe
-      await new Promise(resolve => setTimeout(resolve, 800));
-
       const opt = {
         margin:       0,
         filename:     `GICL_ID_Card_${basicInfo.giclId || 'Player'}.pdf`,
         image:        { type: 'jpeg', quality: 1.0 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a5', orientation: 'portrait' }
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'px', format: [559, 794], orientation: 'portrait' } // Use exact px size of the A5 container
       };
 
       Swal.fire({ icon: 'info', title: 'Generating PDF...', text: 'Please wait a moment.', showConfirmButton: false, allowOutsideClick: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
 
-      await html2pdf().set(opt).from(iframe.contentDocument.body).save();
+      // Create a temporary div offscreen, because passing string directly sometimes struggles with font loading
+      const container = document.createElement('div');
+      container.innerHTML = htmlString;
+      container.style.position = 'absolute';
+      container.style.top = '-10000px';
+      container.style.left = '-10000px';
+      document.body.appendChild(container);
+
+      // Give fonts and base64 a tiny moment to parse
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      await html2pdf().set(opt).from(container).save();
       
-      document.body.removeChild(iframe);
+      document.body.removeChild(container);
       Swal.fire({ icon: 'success', title: 'Downloaded!', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     } catch (err) {
       console.error(err);
