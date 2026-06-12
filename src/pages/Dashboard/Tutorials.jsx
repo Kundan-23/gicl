@@ -20,6 +20,8 @@ const Tutorials = () => {
   const [attemptLink, setAttemptLink] = useState('');
   const [activeVideo, setActiveVideo] = useState(null); // id of basic video currently playing
   const [isDashboardUnlocked, setIsDashboardUnlocked] = useState(dashboardState?.isDashboardUnlocked || false);
+  const [attemptStatus, setAttemptStatus] = useState(null);
+  const [allocatedCoachId, setAllocatedCoachId] = useState(null);
   const [clickedExternalIds, setClickedExternalIds] = useState([]);
 
   useEffect(() => {
@@ -42,6 +44,8 @@ const Tutorials = () => {
       setWatchedIds(Array.isArray(d.training_progress) ? d.training_progress : []);
       setHasUnlockedAdvance(d.has_unlocked_advance_training || false);
       setIsDashboardUnlocked(d.is_dashboard_unlocked || false);
+      setAttemptStatus(d.training_attempt_status || null);
+      setAllocatedCoachId(d.allocated_coach_id || null);
       if (d.is_dashboard_unlocked && !dashboardState?.isDashboardUnlocked) {
         unlockDashboard();
       }
@@ -86,9 +90,9 @@ const Tutorials = () => {
     }
     try {
       await trainingAPI.submitAttempt(attemptLink);
-      Swal.fire({ icon: 'success', title: 'Success!', text: 'Attempt submitted. Dashboard fully unlocked!', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
-      setIsDashboardUnlocked(true);
-      unlockDashboard();
+      Swal.fire({ icon: 'success', title: 'Success!', text: 'Attempt submitted! Pending coach approval.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      setAttemptStatus('Pending');
+      setAttemptLink('');
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to submit attempt.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     }
@@ -243,30 +247,44 @@ const Tutorials = () => {
           <h2 className="heading-2" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Upload color="var(--brand-primary)" /> Upload Your Attempt
           </h2>
-          <p className="text-body" style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-            Record yourself practicing the techniques shown above and upload the link here.
-          </p>
+          
+          {attemptStatus === 'Pending' ? (
+            <div style={{ backgroundColor: 'rgba(255, 199, 44, 0.1)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--brand-primary)', textAlign: 'center' }}>
+              <h3 style={{ color: 'var(--brand-primary)', marginBottom: '0.5rem' }}>Video Submitted for Approval</h3>
+              {!allocatedCoachId ? (
+                <p style={{ color: 'var(--text-secondary)' }}>Your video is in the queue. Please wait for a coach to be allotted to review your video. Once approved, your dashboard will unlock.</p>
+              ) : (
+                <p style={{ color: 'var(--text-secondary)' }}>Your allotted coach is currently reviewing your video. Once approved, your dashboard will unlock.</p>
+              )}
+            </div>
+          ) : (
+            <>
+              <p className="text-body" style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                Record yourself practicing the techniques shown above and upload the link here.
+              </p>
 
-          <div className="form-group">
-            <label className="form-label">Video Link (YouTube, Instagram, or Drive)</label>
-            <input 
-              className="form-input" 
-              placeholder="https://..." 
-              value={attemptLink}
-              onChange={(e) => setAttemptLink(e.target.value)}
-              disabled={!allBasicWatched}
-            />
-            {!allBasicWatched && <span className="form-error" style={{ marginTop: '0.5rem', display: 'block' }}>You must completely watch all basic videos first.</span>}
-          </div>
+              <div className="form-group">
+                <label className="form-label">Video Link (YouTube, Instagram, or Drive)</label>
+                <input 
+                  className="form-input" 
+                  placeholder="https://..." 
+                  value={attemptLink}
+                  onChange={(e) => setAttemptLink(e.target.value)}
+                  disabled={!allBasicWatched}
+                />
+                {!allBasicWatched && <span className="form-error" style={{ marginTop: '0.5rem', display: 'block' }}>You must completely watch all basic videos first.</span>}
+              </div>
 
-          <button 
-            className="btn-primary" 
-            style={{ marginTop: '1rem' }}
-            onClick={handleUploadAttempt}
-            disabled={!allBasicWatched || attemptLink.trim().length === 0}
-          >
-            Submit & Unlock Dashboard
-          </button>
+              <button 
+                className="btn-primary" 
+                style={{ marginTop: '1rem' }}
+                onClick={handleUploadAttempt}
+                disabled={!allBasicWatched || attemptLink.trim().length === 0}
+              >
+                Submit for Approval
+              </button>
+            </>
+          )}
         </div>
       )}
 

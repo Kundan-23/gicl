@@ -20,35 +20,53 @@ exports.getPlayers = asyncHandler(async (req, res) => {
 });
 
 exports.getVideos = asyncHandler(async (req, res) => {
-  // Get all player IDs allocated to this coach
-  const { data: playerRows } = await supabase
+  // Fetch players allotted to this coach who have submitted a video
+  const { data: players, error } = await supabase
     .from('players')
-    .select('id')
-    .eq('allocated_coach_id', req.user.id);
-
-  if (!playerRows || playerRows.length === 0) {
-    return res.json({ success: true, videos: [] });
-  }
-
-  const playerIds = playerRows.map((p) => p.id);
-  const { data: videos, error } = await supabase
-    .from('player_videos')
-    .select('*, players(first_name, last_name, gicl_id, profile_photo_url)')
-    .in('player_id', playerIds)
-    .order('created_at', { ascending: false });
+    .select('id, first_name, last_name, gicl_id, profile_photo_url, training_attempt_url, training_attempt_status, training_attempt_review, training_attempt_flag')
+    .eq('allocated_coach_id', req.user.id)
+    .not('training_attempt_url', 'is', null);
 
   if (error) throw new Error(error.message);
-  res.json({ success: true, videos: videos || [] });
+
+  // Map to the format the frontend expects for videos
+  const videos = players.map(p => ({
+    id: p.id, // we use player.id as the video ID since it's 1:1
+    player_id: p.id,
+    url: p.training_attempt_url,
+    title: 'Basic Tutorials Attempt',
+    thumbnail: p.profile_photo_url || '/images/default-avatar.png',
+    status: p.training_attempt_status || 'Pending',
+    review_flag: p.training_attempt_flag,
+    review_comment: p.training_attempt_review,
+    playerName: `${p.first_name} ${p.last_name}`,
+    players: {
+      first_name: p.first_name,
+      last_name: p.last_name,
+      gicl_id: p.gicl_id,
+      profile_photo_url: p.profile_photo_url
+    }
+  }));
+
+  res.json({ success: true, videos });
 });
 
 exports.reviewVideo = asyncHandler(async (req, res) => {
   const { flag, comment } = req.body; // flag: 'green'|'yellow'|'red'
+  
+  // Here, req.params.id is actually the player.id because we mapped it that way in getVideos
   const { data, error } = await supabase
-    .from('player_videos')
-    .update({ status: 'Reviewed', review_flag: flag, review_comment: comment, reviewed_by: req.user.id })
+    .from('players')
+    .update({ 
+      training_attempt_status: 'Reviewed', 
+      training_attempt_flag: flag, 
+      training_attempt_review: comment,
+      is_dashboard_unlocked: true // Fully unlock dashboard upon any review submission
+    })
     .eq('id', req.params.id)
-    .select()
+    .select('id, first_name, last_name, training_attempt_url, training_attempt_status, training_attempt_flag, training_attempt_review')
     .single();
+    
   if (error) throw new Error(error.message);
   res.json({ success: true, video: data });
 });

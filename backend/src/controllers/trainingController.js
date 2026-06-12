@@ -13,7 +13,7 @@ exports.getTrainingData = asyncHandler(async (req, res) => {
   // 2. Get player's progress
   const { data: player } = await supabase
     .from('players')
-    .select('training_progress, has_unlocked_advance_training, is_dashboard_unlocked')
+    .select('training_progress, has_unlocked_advance_training, is_dashboard_unlocked, training_attempt_status, allocated_coach_id')
     .eq('id', req.user.id)
     .single();
 
@@ -33,7 +33,9 @@ exports.getTrainingData = asyncHandler(async (req, res) => {
     training_progress: player?.training_progress || [],
     has_unlocked_advance_training: player?.has_unlocked_advance_training || false,
     is_dashboard_unlocked: player?.is_dashboard_unlocked || false,
-    advance_videos
+    advance_videos,
+    training_attempt_status: player?.training_attempt_status || null,
+    allocated_coach_id: player?.allocated_coach_id || null
   });
 });
 
@@ -82,9 +84,10 @@ exports.submitAttempt = asyncHandler(async (req, res) => {
     .from('players')
     .update({ 
       training_attempt_url: url.trim(),
-      is_dashboard_unlocked: true
+      training_attempt_status: 'Pending'
+      // is_dashboard_unlocked is NO LONGER set to true here. Coach will approve it.
     })
     .eq('id', req.user.id);
 
-  res.json({ success: true, message: 'Attempt submitted! Dashboard unlocked.' });
+  res.json({ success: true, message: 'Attempt submitted! Pending coach approval.' });
 });
