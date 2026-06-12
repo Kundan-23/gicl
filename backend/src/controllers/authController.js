@@ -250,7 +250,7 @@ exports.me = asyncHandler(async (req, res) => {
 
   const { data: playerRow } = await supabase
     .from('players')
-    .select('id, email, role, first_name, last_name, gicl_id, is_dashboard_unlocked, payment_status, plan, referral_code, batting_style, bowling_style, height, weight, created_at')
+    .select('id, email, role, first_name, last_name, gicl_id, status, is_dashboard_unlocked, payment_status, plan, referral_code, batting_style, bowling_style, height, weight, created_at')
     .eq('id', id)
     .maybeSingle();
 

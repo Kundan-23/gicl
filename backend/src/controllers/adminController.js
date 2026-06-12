@@ -35,7 +35,7 @@ exports.getPlayers = asyncHandler(async (req, res) => {
 
   let query = supabase
     .from('players')
-    .select('id, gicl_id, first_name, last_name, email, whatsapp, gender, dob, plan, payment_status, docs_approved, is_dashboard_unlocked, referral_code, referral_balance, allocated_coach_id, created_at, profile_photo_url, city, country, batting_style, bowling_style', { count: 'exact' })
+    .select('id, gicl_id, first_name, last_name, email, whatsapp, gender, dob, plan, payment_status, status, docs_approved, is_dashboard_unlocked, referral_code, referral_balance, allocated_coach_id, created_at, profile_photo_url, city, country, batting_style, bowling_style', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + Number(limit) - 1);
 
@@ -70,7 +70,15 @@ exports.getPlayerDetail = asyncHandler(async (req, res) => {
 exports.updatePlayerStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
   const { error } = await supabase.from('players').update({ status }).eq('id', req.params.id);
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.message?.includes('column') && error.message?.includes('schema cache')) {
+      return res.status(400).json({
+        success: false,
+        message: `Database column 'status' is missing on the 'players' table. Please run this SQL in Supabase → SQL Editor:\n\nALTER TABLE players ADD COLUMN IF NOT EXISTS status text DEFAULT 'Active';`
+      });
+    }
+    throw new Error(error.message);
+  }
   res.json({ success: true, message: `Player status updated to ${status}.` });
 });
 
