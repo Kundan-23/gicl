@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useConfig } from '../../context/ConfigContext';
 
 const MobileLayout = () => {
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const location = useLocation();
   const isLanding = location.pathname === '/';
-  const { landing_bg_image: landingBgImage } = useConfig();
+  const { landing_bg_image: landingBgImage, appLogoUrl } = useConfig();
 
   if (isLanding) {
     return (
@@ -56,8 +58,8 @@ const MobileLayout = () => {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-color)' }}>
       {/* Header/Nav */}
-      <header style={{ width: '100%', padding: '1rem', textAlign: 'center', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'center', backgroundColor: 'var(--bg-surface)', position: 'sticky', top: 0, zIndex: 10 }}>
-        <img src="/logo/logo.png" alt="GICL Sports Logo" style={{ height: '48px', objectFit: 'contain' }} />
+      <header style={{ position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <img src={appLogoUrl || "/logo/logo.png"} alt="GICL Sports Logo" style={{ maxWidth: '100%', maxHeight: '48px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
       </header>
 
       {/* Main App Container */}

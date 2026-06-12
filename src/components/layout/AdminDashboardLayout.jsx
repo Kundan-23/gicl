@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, LayoutDashboard, Settings, Users, LogOut, ShieldCheck, UserPlus, Video, Calendar } from 'lucide-react';
+import { useConfig } from '../../context/ConfigContext';
 
 const AdminDashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const { appLogoUrl } = useConfig();
 
   const handleLogout = () => {
     navigate('/admin-login');
@@ -60,10 +62,14 @@ const AdminDashboardLayout = () => {
         className="sidebar-desktop"
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--brand-accent)' }}>
-            <ShieldCheck size={28} />
-            <span style={{ fontSize: '1.25rem', fontWeight: 800 }}>ADMIN</span>
-          </div>
+          {appLogoUrl ? (
+            <img src={appLogoUrl} alt="App Logo" style={{ maxWidth: '100%', maxHeight: '60px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--brand-accent)' }}>
+              <ShieldCheck size={28} />
+              <span style={{ fontSize: '1.25rem', fontWeight: 800 }}>ADMIN</span>
+            </div>
+          )}
           <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', color: 'var(--text-secondary)' }} className="close-btn-mobile">
             <X size={24} />
           </button>

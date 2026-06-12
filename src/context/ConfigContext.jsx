@@ -16,6 +16,7 @@ const DEFAULTS = {
   ad_banners:     [],
   landing_bg_image:   '',
   registration_terms: '',
+  appLogoUrl:         '',
   referral:  { 
     level1: 50, level2: 20, level3plus: 10, minCashout: 500,
     level1Name: 'Level 1', level2Name: 'Level 2', level3Name: 'Level 3+',

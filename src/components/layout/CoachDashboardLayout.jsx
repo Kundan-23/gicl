@@ -3,11 +3,13 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Users, Video, ShieldPlus, CalendarDays, LogOut, Bell, PlaySquare } from 'lucide-react';
 import { useCoachStore } from '../../store/useCoachStore';
+import { useConfig } from '../../context/ConfigContext';
 
 const CoachDashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { profile, fetchProfile, fetchPlayers, fetchVideos, fetchMatches, fetchReferrals, resetCoach } = useCoachStore();
+  const { appLogoUrl } = useConfig();
 
   useEffect(() => {
     fetchProfile();
@@ -79,7 +81,7 @@ const CoachDashboardLayout = () => {
         className="sidebar-desktop"
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <img src="/logo/logo.png" alt="GICL Logo" style={{ height: '32px' }} />
+          <img src={appLogoUrl || "/logo/logo.png"} alt="GICL Logo" style={{ maxWidth: '100%', maxHeight: '80px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
           <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', color: 'var(--text-secondary)' }} className="close-btn-mobile">
             <X size={24} />
           </button>

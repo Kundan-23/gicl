@@ -524,11 +524,15 @@ exports.updateConfig = asyncHandler(async (req, res) => {
     'referral_level1_active', 'referral_level2_active', 'referral_level3plus_active',
     'referral_min_cashout', 'max_squad_size', 'match_team_size',
     'banners', 'ad_banners', 'landing_bg_image', 'registration_terms',
-    'basic_training_videos', 'advance_training_fee', 'id_card_signature_url'
+    'basic_training_videos', 'advance_training_fee', 'app_logo_url'
   ];
   const updateData = {};
   for (const key of allowed) {
-    if (req.body[key] !== undefined) updateData[key] = req.body[key];
+    if (key === 'app_logo_url' && req.body[key] !== undefined) {
+      updateData['id_card_signature_url'] = req.body[key];
+    } else if (req.body[key] !== undefined) {
+      updateData[key] = req.body[key];
+    }
   }
   if (Object.keys(updateData).length === 0) return res.status(400).json({ success: false, message: 'No valid fields.' });
 
@@ -649,13 +653,13 @@ exports.uploadAdBanner = asyncHandler(async (req, res) => {
   res.json({ success: true, url: publicUrl });
 });
 
-// ─── Upload ID Card Signature ───────────────────────────────────────────────
-exports.uploadIdCardSignature = asyncHandler(async (req, res) => {
+// ─── Upload App Logo (Admin) ────────────────────────────────────────────────
+exports.uploadAppLogo = asyncHandler(async (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
   const { createClient } = require('@supabase/supabase-js');
   const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
   const ext = req.file.mimetype.split('/')[1];
-  const path = `id-card/signature_${Date.now()}.${ext}`;
+  const path = `app_logo_${Date.now()}.${ext}`;
   const { error: uploadError } = await sb.storage.from('banners').upload(path, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
   if (uploadError) throw new Error(uploadError.message);
   const { data: { publicUrl } } = sb.storage.from('banners').getPublicUrl(path);

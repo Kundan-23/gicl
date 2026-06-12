@@ -40,7 +40,7 @@ exports.getPublicConfig = asyncHandler(async (req, res) => {
       minCashout: raw.referral_min_cashout ?? 500,
     },
     maxSquadSize: raw.max_squad_size || 20,
-    idCardSignatureUrl: raw.id_card_signature_url || '',
+    appLogoUrl: raw.id_card_signature_url || '',
   };
 
   res.json({ success: true, config });

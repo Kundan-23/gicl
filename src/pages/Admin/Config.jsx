@@ -154,7 +154,7 @@ const Config = () => {
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingAdBanner, setUploadingAdBanner] = useState(false);
   const landingFileRef = useRef();
-  const signatureFileRef = useRef();
+  const appLogoRef = useRef();
   const bannerFileRef = useRef();
   const adBannerFileRef = useRef();
   const sponsor1FileRef = useRef();
@@ -221,7 +221,7 @@ const Config = () => {
 
         // Tab 3
         if (cfg.landing_bg_image) setLandingBg(cfg.landing_bg_image);
-        if (cfg.id_card_signature_url || cfg.idCardSignatureUrl) setIdCardSignature(cfg.id_card_signature_url || cfg.idCardSignatureUrl);
+        if (cfg.app_logo_url || cfg.appLogoUrl) setAppLogo(cfg.app_logo_url || cfg.appLogoUrl);
         if (Array.isArray(cfg.banners)) setBanners(cfg.banners);
         if (Array.isArray(cfg.ad_banners)) setAdBanners(cfg.ad_banners);
 
@@ -335,25 +335,28 @@ const Config = () => {
     await adminAPI.updateConfig({ landing_bg_image: '' });
   };
 
-  // ─── ID Card Signature upload ───────────────────────────────────────────────
-  const handleSignatureUpload = async (e) => {
-    const file = e.target.files[0];
+  // ─── App Logo upload ───────────────────────────────────────────────
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
-    setUploadingSignature(true);
+    if (file.size > 2 * 1024 * 1024) return Swal.fire('Error', 'Image must be under 2MB', 'error');
+
+    setUploadingLogo(true);
     try {
-      const url = await uploadFile(file, '/admin/config/id-card-signature/upload');
-      if (!url) return;
-      setIdCardSignature(url);
-      await adminAPI.updateConfig({ id_card_signature_url: url });
-      Swal.fire({ icon: 'success', title: 'Signature updated!', timer: 1200, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      const url = await uploadFile(file, '/admin/config/app-logo/upload');
+      setAppLogo(url);
+      
+      await adminAPI.updateConfig({ app_logo_url: url });
+      
+      Swal.fire({ icon: 'success', title: 'Uploaded!', text: 'App Logo updated.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'Upload failed', text: err.message, background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
-    } finally { setUploadingSignature(false); if (signatureFileRef.current) signatureFileRef.current.value = ''; }
+      Swal.fire({ icon: 'error', title: 'Failed', text: err.response?.data?.message || 'Could not upload logo' });
+    } finally { setUploadingLogo(false); if (appLogoRef.current) appLogoRef.current.value = ''; }
   };
 
-  const handleClearSignature = async () => {
-    setIdCardSignature('');
-    await adminAPI.updateConfig({ id_card_signature_url: '' });
+  const handleRemoveLogo = async () => {
+    setAppLogo('');
+    await adminAPI.updateConfig({ app_logo_url: '' });
   };
 
   // ─── Dashboard banner upload ──────────────────────────────────────────────
@@ -688,33 +691,33 @@ const Config = () => {
             </div>
           </Section>
 
-          {/* B. ID Card Signature */}
-          <Section title="ID Card Authorized Signature" description="Upload a transparent image of the authorized signature to print on the back of player ID cards. (Max 2MB)">
+          {/* B. App Logo */}
+          <Section title="Sidebar App Logo" description="Upload the main logo for the app. It will appear in the player sidebar. (Max 2MB)">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {idCardSignature && (
+              {appLogo && (
                 <div style={{ position: 'relative', width: '100%', maxWidth: '320px', backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                  <img src={idCardSignature} alt="Signature Preview" style={{ width: '100%', height: 'auto', maxHeight: '80px', objectFit: 'contain' }} />
+                  <img src={appLogo} alt="Logo Preview" style={{ width: '100%', height: 'auto', maxHeight: '80px', objectFit: 'contain' }} />
                 </div>
               )}
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <input ref={signatureFileRef} type="file" accept="image/png, image/jpeg" style={{ display: 'none' }} onChange={handleSignatureUpload} />
+                <input ref={appLogoRef} type="file" accept="image/png, image/jpeg, image/webp" style={{ display: 'none' }} onChange={handleLogoUpload} />
                 <button
-                  onClick={() => signatureFileRef.current?.click()}
-                  disabled={uploadingSignature}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-md)', background: 'var(--brand-primary)', color: '#121A3F', fontWeight: 700, fontSize: '0.85rem', cursor: uploadingSignature ? 'wait' : 'pointer', border: 'none' }}
+                  onClick={() => appLogoRef.current?.click()}
+                  disabled={uploadingLogo}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-md)', background: 'var(--brand-primary)', color: '#121A3F', fontWeight: 700, fontSize: '0.85rem', cursor: uploadingLogo ? 'wait' : 'pointer', border: 'none' }}
                 >
-                  <ImageIcon size={15} /> {uploadingSignature ? 'Uploading…' : 'Upload Signature'}
+                  <ImageIcon size={15} /> {uploadingLogo ? 'Uploading…' : 'Upload App Logo'}
                 </button>
-                {idCardSignature && (
+                {appLogo && (
                   <button
-                    onClick={handleClearSignature}
+                    onClick={handleRemoveLogo}
                     style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-md)', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
                   >
                     <X size={14} /> Clear
                   </button>
                 )}
               </div>
-              {!idCardSignature && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>No signature image set.</p>}
+              {!appLogo && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>No logo image set. Defaults to internal logo.</p>}
             </div>
           </Section>
 
