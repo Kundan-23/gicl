@@ -296,8 +296,11 @@ exports.downloadIdCard = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'GICL ID not yet generated. Please complete your profile.' });
   }
 
+  const { data: cfg } = await supabase.from('app_config').select('id_card_signature_url').eq('id', 1).single();
+  const signatureUrl = cfg?.id_card_signature_url || null;
+
   const { generateIdCardPDF } = require('../utils/pdf');
-  const pdfBuffer = await generateIdCardPDF(player);
+  const pdfBuffer = await generateIdCardPDF(player, signatureUrl);
 
   res.set({
     'Content-Type': 'application/pdf',

@@ -1,31 +1,56 @@
 const puppeteer = require('puppeteer');
+const QRCode = require('qrcode');
+const fs = require('fs');
+const path = require('path');
 
 /**
- * Generate a 2-page GICL Membership ID Card PDF
- * Page 1: Front of card (name, photo, GICL ID, blood group, badge)
- * Page 2: Back of card (emergency contact, address, authorized sign)
+ * Helper to convert local file to base64 data URI
+ */
+function getLocalImageBase64(filename) {
+  try {
+    const filePath = path.join(__dirname, '../../assets', filename);
+    const buffer = fs.readFileSync(filePath);
+    return `data:image/png;base64,${buffer.toString('base64')}`;
+  } catch (err) {
+    console.error(`Missing asset ${filename}:`, err.message);
+    return '';
+  }
+}
+
+/**
+ * Generate a 2-page GICL Membership ID Card PDF in A5 Size
  *
  * @param {Object} player - Full player row from DB
+ * @param {String} signatureUrl - Optional Authorized Signature URL from Admin Config
  * @returns {Promise<Buffer>} - PDF buffer
  */
-async function generateIdCardPDF(player) {
+async function generateIdCardPDF(player, signatureUrl = null) {
   const name       = `${player.first_name || ''} ${player.last_name || ''}`.trim() || 'GICL Player';
   const giclId     = player.gicl_id || 'N/A';
   const bloodGroup = player.blood_group || 'N/A';
-  const dob        = player.dob ? new Date(player.dob).toLocaleDateString('en-IN') : 'N/A';
-  const phone      = player.whatsapp || 'N/A';
+  
+  let age = 'N/A';
+  if (player.dob) {
+    const birthDate = new Date(player.dob);
+    const diff = Date.now() - birthDate.getTime();
+    const ageDate = new Date(diff); 
+    age = Math.abs(ageDate.getUTCFullYear() - 1970) + ' yrs';
+  }
+
+  const role       = (player.role || 'Player').toUpperCase();
   const emergency  = player.emergency_contact || 'N/A';
   const parentName = player.parent_name || 'N/A';
-  const address    = [
-    player.address_line1,
-    player.address_line2,
-    player.city,
-    player.country,
-    player.zip_code,
-  ].filter(Boolean).join(', ') || 'N/A';
   const photoUrl   = player.profile_photo_url || '';
-  const plan       = player.plan || 'Member';
-  const issueDate  = new Date().toLocaleDateString('en-IN');
+
+  // Generate QR Code containing GICL ID
+  const qrDataUrl = await QRCode.toDataURL(`GICL_ID:${giclId}`, {
+    errorCorrectionLevel: 'H',
+    margin: 1,
+    color: { dark: '#000000', light: '#ffffff' }
+  });
+
+  const frontBg = getLocalImageBase64('id_card_front.png');
+  const backBg = getLocalImageBase64('id_card_back.png');
 
   const html = `
 <!DOCTYPE html>
@@ -34,305 +59,154 @@ async function generateIdCardPDF(player) {
   <meta charset="utf-8">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Arial', sans-serif; background: white; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+    
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: white; 
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
 
-    /* ====== PAGE 1: FRONT ====== */
-    .card-front {
+    .page {
       width: 148mm;
-      height: 105mm;
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-      display: flex;
-      flex-direction: column;
-      padding: 6mm;
+      height: 210mm; /* A5 Size Portrait */
       position: relative;
       overflow: hidden;
       page-break-after: always;
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
     }
-    .card-front::before {
-      content: '';
-      position: absolute;
-      top: -20mm;
-      right: -20mm;
-      width: 60mm;
-      height: 60mm;
-      background: rgba(255,215,0,0.08);
-      border-radius: 50%;
-    }
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 0.5mm solid #FFD700;
-      padding-bottom: 3mm;
-      margin-bottom: 4mm;
-    }
-    .org-name {
-      font-size: 14pt;
-      font-weight: 900;
-      color: #FFD700;
-      letter-spacing: 2px;
-    }
-    .org-sub {
-      font-size: 5pt;
-      color: #aaa;
-      letter-spacing: 1px;
-    }
-    .badge {
-      background: linear-gradient(135deg, #FFD700, #FFA500);
-      color: #000;
-      font-size: 6pt;
-      font-weight: 900;
-      padding: 1.5mm 3mm;
-      border-radius: 2mm;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .main-content {
-      display: flex;
-      gap: 5mm;
-      flex: 1;
-    }
-    .photo-section {
-      width: 28mm;
-      flex-shrink: 0;
-    }
+
+    .page.front { background-image: url('${frontBg}'); }
+    .page.back { background-image: url('${backBg}'); }
+
+    /* ====== PAGE 1: FRONT ====== */
     .photo-box {
-      width: 28mm;
-      height: 35mm;
-      border: 0.5mm solid #FFD700;
-      border-radius: 2mm;
-      background: #222;
-      overflow: hidden;
+      position: absolute;
+      top: 61.8%; 
+      left: 16.5%;
+      width: 25%;
+      height: 21.8%;
+      background: #eee;
+      border: 3px solid #D4AF37;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
     .photo-box img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-    .photo-placeholder {
-      color: #555;
-      font-size: 7pt;
-      text-align: center;
-    }
-    .info-section {
-      flex: 1;
+
+    .details-box {
+      position: absolute;
+      top: 61.8%;
+      left: 45%;
+      width: 50%;
+      height: 21.8%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      color: #FFF;
     }
     .player-name {
-      font-size: 13pt;
+      font-size: 16pt;
       font-weight: 900;
-      color: #fff;
+      color: #D4AF37;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 2mm;
     }
-    .info-row {
-      display: flex;
-      gap: 3mm;
-      margin-bottom: 1.5mm;
+    .detail-row {
+      font-size: 11pt;
+      font-weight: 600;
     }
-    .info-item {
-      flex: 1;
-    }
-    .info-label {
-      font-size: 5pt;
-      color: #FFD700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .info-value {
-      font-size: 7pt;
-      color: #fff;
-      font-weight: bold;
-    }
-    .gicl-id-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: linear-gradient(90deg, #FFD700, #FFA500);
-      padding: 2mm 6mm;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .gicl-id-text {
+    .detail-label {
+      color: #A0A0A0;
       font-size: 9pt;
-      font-weight: 900;
-      color: #000;
-      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-right: 5px;
     }
-    .issue-date {
-      font-size: 6pt;
-      color: #333;
+
+    .qr-code {
+      position: absolute;
+      bottom: 11%;
+      right: 12%;
+      width: 16%;
+      height: auto;
+      border: 2px solid #D4AF37;
+      border-radius: 4px;
+      padding: 2px;
+      background: #FFF;
     }
 
     /* ====== PAGE 2: BACK ====== */
-    .card-back {
-      width: 148mm;
-      height: 105mm;
-      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-      padding: 6mm;
-      position: relative;
-      overflow: hidden;
-    }
-    .back-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 0.5mm solid #FFD700;
-      padding-bottom: 2mm;
-      margin-bottom: 4mm;
-    }
-    .back-section-title {
-      font-size: 6pt;
-      color: #FFD700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 1.5mm;
-    }
-    .back-value {
-      font-size: 8pt;
-      color: #fff;
-      margin-bottom: 3mm;
-    }
-    .emergency-grid {
-      display: flex;
-      gap: 8mm;
-      margin-bottom: 4mm;
-    }
-    .emergency-item { flex: 1; }
-    .property-notice {
-      background: rgba(255,215,0,0.1);
-      border: 0.3mm solid #FFD700;
-      border-radius: 1.5mm;
-      padding: 2mm 3mm;
-      font-size: 6pt;
-      color: #FFD700;
-      text-align: center;
-      margin-bottom: 4mm;
-    }
-    .signatures {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      border-top: 0.3mm solid #333;
-      padding-top: 2mm;
-    }
-    .sig-item {
-      text-align: center;
-    }
-    .sig-line {
-      width: 35mm;
-      height: 0.3mm;
-      background: #555;
-      margin-bottom: 1mm;
-    }
-    .sig-label {
-      font-size: 5pt;
-      color: #888;
-      text-transform: uppercase;
-    }
-    .back-gicl-id {
+    .emergency-box {
       position: absolute;
-      bottom: 2mm;
+      top: 48%;
+      left: 10%;
+      width: 80%;
+      text-align: center;
+      color: #FFF;
+      font-size: 13pt;
+      font-weight: 600;
+    }
+    .emergency-name {
+      color: #D4AF37;
+      margin-bottom: 5px;
+    }
+
+    .signature-box {
+      position: absolute;
+      bottom: 12%;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 6pt;
-      color: #555;
-      letter-spacing: 2px;
+      width: 40%;
+      height: 8%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
     }
+    .signature-box img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
   </style>
 </head>
 <body>
 
-<!-- PAGE 1: FRONT -->
-<div class="card-front">
-  <div class="top-bar">
-    <div>
-      <div class="org-name">GICL</div>
-      <div class="org-sub">GLOBAL INDOOR CRICKET LEAGUE</div>
-    </div>
-    <div class="badge">${plan.toUpperCase()} MEMBER</div>
+<div class="page front">
+  <div class="photo-box">
+    ${photoUrl 
+      ? `<img src="${photoUrl}" alt="Photo" />` 
+      : `<span style="color:#888; font-size:10pt;">NO PHOTO</span>`
+    }
+  </div>
+  
+  <div class="details-box">
+    <div class="player-name">${name}</div>
+    <div class="detail-row"><span class="detail-label">ID:</span> ${giclId}</div>
+    <div class="detail-row"><span class="detail-label">ROLE:</span> ${role}</div>
+    <div class="detail-row"><span class="detail-label">BLOOD/AGE:</span> <span style="color:#FF4B4B">${bloodGroup}</span> &nbsp;|&nbsp; ${age}</div>
   </div>
 
-  <div class="main-content">
-    <div class="photo-section">
-      <div class="photo-box">
-        ${photoUrl
-          ? `<img src="${photoUrl}" alt="Player Photo" />`
-          : `<div class="photo-placeholder">PHOTO</div>`
-        }
-      </div>
-    </div>
-    <div class="info-section">
-      <div class="player-name">${name}</div>
-      <div class="info-row">
-        <div class="info-item">
-          <div class="info-label">Date of Birth</div>
-          <div class="info-value">${dob}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Blood Group</div>
-          <div class="info-value" style="color: #FF6B6B;">${bloodGroup}</div>
-        </div>
-      </div>
-      <div class="info-row">
-        <div class="info-item">
-          <div class="info-label">WhatsApp</div>
-          <div class="info-value">${phone}</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="gicl-id-bar">
-    <div class="gicl-id-text">${giclId}</div>
-    <div class="issue-date">Issued: ${issueDate}</div>
-  </div>
+  <img class="qr-code" src="${qrDataUrl}" alt="QR Code" />
 </div>
 
-<!-- PAGE 2: BACK -->
-<div class="card-back">
-  <div class="back-header">
-    <div class="org-name" style="font-size:10pt;">GICL</div>
-    <div class="badge">${plan.toUpperCase()} MEMBER</div>
+<div class="page back">
+  <div class="emergency-box">
+    <div class="emergency-name">${parentName}</div>
+    <div>${emergency}</div>
   </div>
 
-  <div class="emergency-grid">
-    <div class="emergency-item">
-      <div class="back-section-title">Parent / Guardian</div>
-      <div class="back-value">${parentName}</div>
-    </div>
-    <div class="emergency-item">
-      <div class="back-section-title">Emergency Contact</div>
-      <div class="back-value" style="color: #FF6B6B;">${emergency}</div>
-    </div>
+  <div class="signature-box">
+    ${signatureUrl ? `<img src="${signatureUrl}" alt="Signature" />` : ''}
   </div>
-
-  <div>
-    <div class="back-section-title">Address</div>
-    <div class="back-value" style="font-size: 7pt;">${address}</div>
-  </div>
-
-  <div class="property-notice">
-    This card is the property of GICL. If found, please return to the nearest GICL office.
-  </div>
-
-  <div class="signatures">
-    <div class="sig-item">
-      <div class="sig-line"></div>
-      <div class="sig-label">Card Holder Signature</div>
-    </div>
-    <div class="sig-item">
-      <div class="sig-line"></div>
-      <div class="sig-label">Authorized Signatory</div>
-    </div>
-  </div>
-
-  <div class="back-gicl-id">${giclId}</div>
 </div>
 
 </body>
@@ -347,7 +221,7 @@ async function generateIdCardPDF(player) {
   await page.setContent(html, { waitUntil: 'networkidle0' });
 
   const pdfBuffer = await page.pdf({
-    format: 'A6',          // 105mm x 148mm — standard ID card size
+    format: 'A5',          // 148mm x 210mm
     printBackground: true,
     margin: { top: '0', right: '0', bottom: '0', left: '0' },
   });

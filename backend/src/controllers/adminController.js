@@ -524,7 +524,7 @@ exports.updateConfig = asyncHandler(async (req, res) => {
     'referral_level1_active', 'referral_level2_active', 'referral_level3plus_active',
     'referral_min_cashout', 'max_squad_size', 'match_team_size',
     'banners', 'ad_banners', 'landing_bg_image', 'registration_terms',
-    'basic_training_videos', 'advance_training_fee'
+    'basic_training_videos', 'advance_training_fee', 'id_card_signature_url'
   ];
   const updateData = {};
   for (const key of allowed) {
@@ -646,6 +646,19 @@ exports.uploadAdBanner = asyncHandler(async (req, res) => {
   const { error: uploadError } = await sb.storage.from('ad-banners').upload(path, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
   if (uploadError) throw new Error(uploadError.message);
   const { data: { publicUrl } } = sb.storage.from('ad-banners').getPublicUrl(path);
+  res.json({ success: true, url: publicUrl });
+});
+
+// ─── Upload ID Card Signature ───────────────────────────────────────────────
+exports.uploadIdCardSignature = asyncHandler(async (req, res) => {
+  if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
+  const { createClient } = require('@supabase/supabase-js');
+  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const ext = req.file.mimetype.split('/')[1];
+  const path = `id-card/signature_${Date.now()}.${ext}`;
+  const { error: uploadError } = await sb.storage.from('banners').upload(path, req.file.buffer, { contentType: req.file.mimetype, upsert: true });
+  if (uploadError) throw new Error(uploadError.message);
+  const { data: { publicUrl } } = sb.storage.from('banners').getPublicUrl(path);
   res.json({ success: true, url: publicUrl });
 });
 

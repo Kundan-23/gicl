@@ -101,6 +101,36 @@ const PlayerDashboard = () => {
     } finally { setPhotoUploading(false); }
   };
 
+  const [downloadingId, setDownloadingId] = useState(false);
+
+  const handleDownloadIdCard = async () => {
+    setDownloadingId(true);
+    try {
+      const res = await playerAPI.downloadIdCard();
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.download = `GICL_ID_Card_${basicInfo.giclId || 'Player'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+
+      Swal.fire({ icon: 'success', title: 'Opening PDF...', text: 'If it did not download automatically, please check your popup blocker.', timer: 2000, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+    } catch (err) {
+      console.error(err);
+      Swal.fire({ icon: 'error', title: 'Download failed', text: 'Ensure your profile is complete and try again.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
+    } finally {
+      setDownloadingId(false);
+    }
+  };
+
   // Show spinner while waiting for API — prevents flash redirect
   if (!profileLoaded) {
     return (
@@ -165,6 +195,19 @@ const PlayerDashboard = () => {
                 </span>
               )}
             </div>
+            {basicInfo.giclId && (
+              <button 
+                onClick={handleDownloadIdCard}
+                disabled={downloadingId}
+                style={{ 
+                  marginTop: '1rem', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', 
+                  backgroundColor: 'var(--brand-primary)', color: '#121A3F', fontWeight: 700, 
+                  border: 'none', cursor: downloadingId ? 'wait' : 'pointer', fontSize: '0.85rem'
+                }}
+              >
+                {downloadingId ? 'Generating PDF...' : '⬇ Download ID Card'}
+              </button>
+            )}
           </div>
         </div>
 
