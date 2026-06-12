@@ -60,17 +60,17 @@ const Players = () => {
   // ── Excel Export ──────────────────────────────────────────────────
   const handleExport = () => {
     const exportData = players.map(p => ({
-      'Player ID':    p.gicl_id || '',
-      'First Name':   p.first_name || '',
-      'Last Name':    p.last_name || '',
-      'Date of Birth': p.dob || '',
-      'Age':          p.dob ? Math.floor((Date.now() - new Date(p.dob)) / (365.25 * 24 * 3600 * 1000)) : '',
-      'Whatsapp Number': p.whatsapp || '',
-      'Location':     p.city || '',
-      'Pincode':      p.zip_code || '',
-      'Profile Photo Link': p.profile_photo_url || '',
-      'Birth Certificate Link': p.birth_cert_url || '',
-      'Address Proof Link': p.address_proof_url || '',
+      'GICL ID':      p.gicl_id || '',
+      'FIRST NAME':   p.first_name || '',
+      'LAST NAME':    p.last_name || '',
+      'DATE OF BIRTH': p.dob || '',
+      'AGE':          p.dob ? Math.floor((Date.now() - new Date(p.dob)) / (365.25 * 24 * 3600 * 1000)) : '',
+      'WHATSAPP NUMBER': p.whatsapp || '',
+      'LOCATION':     p.city || '',
+      'PINCODE':      p.zip_code || '',
+      'PROFILE PHOTO LINK': p.profile_photo_url || '',
+      'BIRTH CERTIFICATE LINK': p.birth_cert_url || '',
+      'ADDRESS PROOF LINK': p.address_proof_url || '',
     }));
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
