@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCoachStore } from '../../store/useCoachStore';
-import { Video, CheckCircle, MessageSquare } from 'lucide-react';
+import { Video, CheckCircle, MessageSquare, ExternalLink } from 'lucide-react';
+import ReactPlayer from 'react-player';
 
 const VideoScrutiny = () => {
   const { videos = [], submitVideoReview } = useCoachStore();
@@ -101,10 +102,31 @@ const VideoScrutiny = () => {
                 <button onClick={() => setSelectedVideo(null)} style={{ background: 'none', color: 'var(--text-secondary)' }}>Close</button>
               </div>
 
-              {/* Mock Video Player */}
-              <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', overflow: 'hidden' }}>
-                <img src={selectedVideo.thumbnail} alt="Video" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
-                <div style={{ position: 'absolute', width: '48px', height: '48px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▶</div>
+              {/* Actual Video Player */}
+              <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', overflow: 'hidden', position: 'relative' }}>
+                {selectedVideo.url && selectedVideo.url.match(/(youtube\.com|youtu\.be|vimeo\.com|soundcloud\.com|twitch\.tv|dailymotion\.com|facebook\.com|wistia\.com|\.mp4|\.webm|\.ogg)/i) ? (
+                  <ReactPlayer 
+                    url={selectedVideo.url.startsWith('http') ? selectedVideo.url : `https://${selectedVideo.url}`} 
+                    controls 
+                    width="100%" 
+                    height="100%" 
+                    style={{ position: 'absolute', top: 0, left: 0 }}
+                  />
+                ) : (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    <Video size={48} style={{ margin: '0 auto 1rem auto', opacity: 0.5 }} />
+                    <p style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>This video is hosted externally (e.g. Google Drive, Instagram) and cannot be embedded.</p>
+                    <a 
+                      href={selectedVideo.url?.startsWith('http') ? selectedVideo.url : `https://${selectedVideo.url}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="btn-primary"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
+                    >
+                      Watch on External Site <ExternalLink size={16} />
+                    </a>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">

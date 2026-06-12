@@ -30,23 +30,25 @@ exports.getVideos = asyncHandler(async (req, res) => {
   if (error) throw new Error(error.message);
 
   // Map to the format the frontend expects for videos
-  const videos = players.map(p => ({
-    id: p.id, // we use player.id as the video ID since it's 1:1
-    player_id: p.id,
-    url: p.training_attempt_url,
-    title: 'Basic Tutorials Attempt',
-    thumbnail: p.profile_photo_url || '/images/default-avatar.png',
-    status: p.training_attempt_status || 'Pending',
-    review_flag: p.training_attempt_flag,
-    review_comment: p.training_attempt_review,
-    playerName: `${p.first_name} ${p.last_name}`,
-    players: {
-      first_name: p.first_name,
-      last_name: p.last_name,
-      gicl_id: p.gicl_id,
-      profile_photo_url: p.profile_photo_url
-    }
-  }));
+  const videos = players
+    .filter(p => p.training_attempt_url && p.training_attempt_url.trim().length > 0)
+    .map(p => ({
+      id: p.id, // we use player.id as the video ID since it's 1:1
+      player_id: p.id,
+      url: p.training_attempt_url,
+      title: 'Basic Tutorials Attempt',
+      thumbnail: p.profile_photo_url || '/images/default-avatar.png',
+      status: p.training_attempt_status || 'Pending',
+      review_flag: p.training_attempt_flag,
+      review_comment: p.training_attempt_review,
+      playerName: `${p.first_name} ${p.last_name}`,
+      players: {
+        first_name: p.first_name,
+        last_name: p.last_name,
+        gicl_id: p.gicl_id,
+        profile_photo_url: p.profile_photo_url
+      }
+    }));
 
   res.json({ success: true, videos });
 });
