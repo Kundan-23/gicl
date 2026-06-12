@@ -10,7 +10,7 @@ const labelStyle = { display: 'block', fontSize: '0.8rem', color: 'var(--text-se
 
 const MATCH_TYPES = ['League', 'Friendly', 'Tournament', 'Practice', 'Intro Match'];
 const MATCH_TYPE_COLORS = { League: '#3b82f6', Friendly: '#10b981', Tournament: '#f59e0b', Practice: '#a78bfa', 'Intro Match': '#f97316' };
-const AGE_CATEGORIES = ['U-13', 'U-15', 'U-17', 'U-19', 'U-22', 'Open', '35+', '40+'];
+const AGE_CATEGORIES = ['U-13', 'U-15', 'U-17', 'U-19', 'U-22', 'Open', '35+', '40+', '45+', '50+', '55+', '60+', '65+'];
 const EMPTY = { title: '', date: '', venue: '', match_type: 'League', base_age: 'U-13', gender: 'Boys', description: '', price_per_slot: 0, total_slots: 0 };
 
 // Custom dark-themed dropdown
@@ -84,13 +84,15 @@ const MatchModal = ({ match, onClose, onSave }) => {
   
   useEffect(() => {
     if (match) {
-      let base_age = 'U-13';
+      // Split age_category back into base_age and gender if possible
+      let base_age = match.age_category || 'U-13';
       let gender = 'Boys';
       if (match.age_category) {
-        const parts = match.age_category.split(' - ');
-        if (parts.length === 2) {
-          base_age = parts[0];
-          gender = parts[1];
+        // e.g., "U-13 Boys" -> ["U-13", "Boys"]
+        const parts = match.age_category.split(' ');
+        if (parts.length >= 2) {
+          gender = parts.pop();
+          base_age = parts.join(' ');
         } else {
           base_age = match.age_category;
         }
@@ -123,7 +125,7 @@ const MatchModal = ({ match, onClose, onSave }) => {
       }
       
       // Combine base_age and gender into age_category
-      payload.age_category = `${form.base_age} - ${form.gender}`;
+      payload.age_category = `${form.base_age} ${form.gender}`;
       
       delete payload.dateOnly;
       delete payload.timeOnly;
@@ -193,7 +195,7 @@ const MatchModal = ({ match, onClose, onSave }) => {
                       setForm(f => ({ 
                         ...f, 
                         base_age: newAge, 
-                        gender: isU ? 'Boys' : 'Males' // default for selection
+                        gender: isU ? 'Boys' : 'Male' // default for selection
                       }));
                     }}
                     style={{ ...inputStyle, cursor: 'pointer' }}
@@ -218,8 +220,8 @@ const MatchModal = ({ match, onClose, onSave }) => {
                       </>
                     ) : (
                       <>
-                        <option value="Males" style={{ backgroundColor: '#1a2340', color: '#fff' }}>Males</option>
-                        <option value="Females" style={{ backgroundColor: '#1a2340', color: '#fff' }}>Females</option>
+                        <option value="Male" style={{ backgroundColor: '#1a2340', color: '#fff' }}>Male</option>
+                        <option value="Female" style={{ backgroundColor: '#1a2340', color: '#fff' }}>Female</option>
                         <option value="Mixed" style={{ backgroundColor: '#1a2340', color: '#fff' }}>Mixed</option>
                       </>
                     )}

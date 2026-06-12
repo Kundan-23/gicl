@@ -33,7 +33,17 @@ const EditPlayerModal = ({ player, onClose, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
-    await onSave(form);
+    
+    const payload = { ...form };
+    
+    if (typeof payload.balls_selected === 'string') {
+      payload.balls_selected = payload.balls_selected.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    if (typeof payload.field_positions === 'string') {
+      payload.field_positions = payload.field_positions.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    await onSave(payload);
     setSaving(false);
   };
 
@@ -56,7 +66,25 @@ const EditPlayerModal = ({ player, onClose, onSave }) => {
           <div><label style={labelStyle}>Player Tier</label><select value={form.player_tier || ''} onChange={e => setForm({...form, player_tier: e.target.value})} style={inputStyle}><option value="">Select</option><option value="U-13">U-13</option><option value="U-17">U-17</option><option value="U-22">U-22</option><option value="Open">Open</option></select></div>
           <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Address Line 1</label><input value={form.address_line1 || ''} onChange={e => setForm({...form, address_line1: e.target.value})} style={inputStyle} /></div>
           <div><label style={labelStyle}>City</label><input value={form.city || ''} onChange={e => setForm({...form, city: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>District</label><input value={form.district || ''} onChange={e => setForm({...form, district: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>State</label><input value={form.state || ''} onChange={e => setForm({...form, state: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Country</label><input value={form.country || ''} onChange={e => setForm({...form, country: e.target.value})} style={inputStyle} /></div>
           <div><label style={labelStyle}>ZIP Code</label><input value={form.zip_code || ''} onChange={e => setForm({...form, zip_code: e.target.value})} style={inputStyle} /></div>
+          
+          <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem' }}><h4 style={{ color: 'var(--brand-primary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Personal Info</h4></div>
+          <div><label style={labelStyle}>Blood Group</label><input value={form.blood_group || ''} onChange={e => setForm({...form, blood_group: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Parent / Guardian</label><input value={form.parent_name || ''} onChange={e => setForm({...form, parent_name: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Height (cm)</label><input type="number" value={form.height || ''} onChange={e => setForm({...form, height: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Weight (kg)</label><input type="number" value={form.weight || ''} onChange={e => setForm({...form, weight: e.target.value})} style={inputStyle} /></div>
+          
+          <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem' }}><h4 style={{ color: 'var(--brand-primary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Cricket Profile</h4></div>
+          <div><label style={labelStyle}>Batting Style</label><input value={form.batting_style || ''} onChange={e => setForm({...form, batting_style: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Bowling Style</label><input value={form.bowling_style || ''} onChange={e => setForm({...form, bowling_style: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Jersey Size</label><input value={form.jersey_size || ''} onChange={e => setForm({...form, jersey_size: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Jersey Name</label><input value={form.jersey_name || ''} onChange={e => setForm({...form, jersey_name: e.target.value})} style={inputStyle} /></div>
+          <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Ball Types (comma separated)</label><input value={Array.isArray(form.balls_selected) ? form.balls_selected.join(', ') : form.balls_selected || ''} onChange={e => setForm({...form, balls_selected: e.target.value})} style={inputStyle} /></div>
+          <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Field Positions (comma separated)</label><input value={Array.isArray(form.field_positions) ? form.field_positions.join(', ') : form.field_positions || ''} onChange={e => setForm({...form, field_positions: e.target.value})} style={inputStyle} /></div>
+          
           <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
             <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
             <button type="submit" disabled={saving} className="btn-primary">{saving ? 'Saving...' : 'Save Changes'}</button>

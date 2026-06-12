@@ -88,9 +88,10 @@ exports.updatePlayer = asyncHandler(async (req, res) => {
   // Extract all updatable fields from req.body
   const updatableFields = [
     'first_name', 'last_name', 'email', 'phone', 'whatsapp', 'dob',
-    'gender', 'blood_group', 'emergency_contact', 'emergency_contact_name',
-    'address_line1', 'address_line2', 'city', 'country', 'zip_code',
-    'jersey_size', 'batting_style', 'bowling_style', 'height', 'weight',
+    'gender', 'blood_group', 'emergency_contact', 'emergency_contact_name', 'parent_name',
+    'address_line1', 'address_line2', 'city', 'district', 'state', 'country', 'zip_code',
+    'jersey_size', 'jersey_name', 'batting_style', 'bowling_style', 'height', 'weight',
+    'balls_selected', 'field_positions',
     'player_tier', 'docs_approved'
   ];
   
