@@ -32,6 +32,7 @@ export const adminAPI = {
   approveDocs:          (id)          => API.put(`/admin/players/${id}/approve-docs`),
   assignCoach:          (id, coachId) => API.put(`/admin/players/${id}/assign-coach`, { coachId }),
   deletePlayer:         (id)          => API.delete(`/admin/players/${id}`),
+  uploadPlayerIdCard:   (id, file)    => { const f = new FormData(); f.append('file', file); return API.post(`/admin/players/${id}/id-card`, f); },
 
   // Payments
   getPayments:          ()            => API.get('/admin/payments'),
