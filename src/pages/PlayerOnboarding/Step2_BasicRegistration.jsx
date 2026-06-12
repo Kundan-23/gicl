@@ -80,15 +80,29 @@ const Step2_BasicRegistration = () => {
     setPincodeState(s => ({ ...s, loading: true, error: '' }));
     const timer = setTimeout(async () => {
       try {
+        let foundState = '';
         const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
         const json = await res.json();
         if (json[0]?.Status === 'Success' && json[0]?.PostOffice?.length > 0) {
           const po = json[0].PostOffice[0];
-          const stateName = po.State || '';
-          // Auto-fill city if currently blank
+          foundState = po.State || '';
           const currentCity = watch('city');
           if (!currentCity && po.District) setValue('city', po.District);
-          setPincodeState({ loading: false, stateName, stateCode: '', error: '' });
+        } else {
+          // Fallback to Zippopotam
+          const res2 = await fetch(`https://api.zippopotam.us/in/${pin}`);
+          if (res2.ok) {
+            const data2 = await res2.json();
+            if (data2.places && data2.places.length > 0) {
+              foundState = data2.places[0].state;
+              const currentCity = watch('city');
+              if (!currentCity && data2.places[0]['place name']) setValue('city', data2.places[0]['place name']);
+            }
+          }
+        }
+        
+        if (foundState) {
+          setPincodeState({ loading: false, stateName: foundState, stateCode: '', error: '' });
         } else {
           setPincodeState({ loading: false, stateName: '', stateCode: '', error: 'Invalid pincode — check and re-enter' });
         }

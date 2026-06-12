@@ -38,10 +38,30 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
       const fetchLocation = async () => {
         setPincodeState({ loading: true, stateName: '', error: '' });
         try {
+          let foundState = '';
           const res = await fetch(`https://api.postalpincode.in/pincode/${form.zip_code}`);
           const data = await res.json();
-          if (data[0].Status === 'Success') {
-            setPincodeState({ loading: false, stateName: data[0].PostOffice[0].State, error: '' });
+          if (data[0]?.Status === 'Success' && data[0]?.PostOffice?.length > 0) {
+            foundState = data[0].PostOffice[0].State;
+            if (!form.city && data[0].PostOffice[0].District) {
+              setForm(f => ({ ...f, city: data[0].PostOffice[0].District }));
+            }
+          } else {
+            // Fallback to Zippopotam
+            const res2 = await fetch(`https://api.zippopotam.us/in/${form.zip_code}`);
+            if (res2.ok) {
+              const data2 = await res2.json();
+              if (data2.places && data2.places.length > 0) {
+                foundState = data2.places[0].state;
+                if (!form.city && data2.places[0]['place name']) {
+                  setForm(f => ({ ...f, city: data2.places[0]['place name'] }));
+                }
+              }
+            }
+          }
+
+          if (foundState) {
+            setPincodeState({ loading: false, stateName: foundState, error: '' });
           } else {
             setPincodeState({ loading: false, stateName: '', error: 'Invalid Pincode' });
           }
