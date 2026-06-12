@@ -146,11 +146,11 @@ const Config = () => {
 
   // Tab 3 — Appearance
   const [landingBg, setLandingBg] = useState('');
-  const [idCardSignature, setIdCardSignature] = useState('');
+  const [appLogo, setAppLogo] = useState('');
   const [banners, setBanners] = useState([]);
   const [adBanners, setAdBanners] = useState([]);
   const [uploadingLanding, setUploadingLanding] = useState(false);
-  const [uploadingSignature, setUploadingSignature] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingAdBanner, setUploadingAdBanner] = useState(false);
   const landingFileRef = useRef();
