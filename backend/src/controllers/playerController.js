@@ -299,8 +299,8 @@ exports.downloadIdCard = asyncHandler(async (req, res) => {
   const { data: cfg } = await supabase.from('app_config').select('id_card_signature_url').eq('id', 1).single();
   const signatureUrl = cfg?.id_card_signature_url || null;
 
-  const { generateIdCardPDF } = require('../utils/pdf');
-  const html = await generateIdCardPDF(player, signatureUrl);
+  const { buildIdCardData } = require('../utils/pdf');
+  const cardData = await buildIdCardData(player, signatureUrl);
 
-  res.json({ success: true, html });
+  res.json({ success: true, cardData });
 });

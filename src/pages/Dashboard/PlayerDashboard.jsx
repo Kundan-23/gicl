@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Navigate } from 'react-router-dom';
-import html2pdf from 'html2pdf.js';
+import { jsPDF } from 'jspdf';
 import { useFormStore } from '../../store/useFormStore';
 import { playerAPI } from '../../services/api';
 import Swal from 'sweetalert2';
@@ -107,38 +107,81 @@ const PlayerDashboard = () => {
   const handleDownloadIdCard = async () => {
     setDownloadingId(true);
     try {
-      const res = await playerAPI.downloadIdCard();
-      const htmlString = res.data.html;
-
-      const opt = {
-        margin:       0,
-        filename:     `GICL_ID_Card_${basicInfo.giclId || 'Player'}.pdf`,
-        image:        { type: 'jpeg', quality: 1.0 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'px', format: [559, 794], orientation: 'portrait' } 
-      };
-
       Swal.fire({ icon: 'info', title: 'Generating PDF...', text: 'Please wait a moment.', showConfirmButton: false, allowOutsideClick: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
 
-      // Create a temporary container that is visually hidden but part of the DOM layout
-      const container = document.createElement('div');
-      container.innerHTML = htmlString;
-      container.style.position = 'absolute';
-      container.style.top = '0px';
-      container.style.left = '-10000px'; 
-      container.style.width = '559px';
-      container.style.zIndex = '-9999';
-      document.body.appendChild(container);
+      const res = await playerAPI.downloadIdCard();
+      const d = res.data.cardData;
 
-      // Give base64 images a moment to render in the DOM
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // A5 dimensions in mm
+      const W = 148;
+      const H = 210;
 
-      // Target the actual wrapper element returned from the backend
-      const targetElement = container.firstElementChild || container;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [W, H] });
 
-      await html2pdf().set(opt).from(targetElement).save();
-      
-      document.body.removeChild(container);
+      // Helper: load image as HTMLImageElement (for jsPDF addImage)
+      const loadImg = (src) => new Promise((resolve, reject) => {
+        if (!src) return resolve(null);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null); // gracefully skip missing images
+        img.src = src;
+      });
+
+      // Load all images in parallel
+      const [frontImg, backImg, photoImg, sigImg] = await Promise.all([
+        loadImg(d.frontBg),
+        loadImg(d.backBg),
+        loadImg(d.photoUrl),
+        loadImg(d.signatureUrl),
+      ]);
+
+      // ===== PAGE 1: FRONT =====
+      if (frontImg) pdf.addImage(frontImg, 'PNG', 0, 0, W, H);
+
+      // Photo box (positioned to match the white square on the template)
+      if (photoImg) {
+        pdf.addImage(photoImg, 'JPEG', 22, 125, 37, 40);
+      }
+
+      // Text overlay: GICL ID, Name, Blood Group, Age
+      // Positioned to the right of the photo box
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(13);
+      pdf.setTextColor(212, 175, 55); // Gold #D4AF37
+
+      pdf.text(d.giclId, 67, 133);
+      pdf.text(d.name, 67, 143);
+      pdf.text(d.bloodGroup, 67, 153);
+      pdf.text(d.age, 67, 163);
+
+      // ===== PAGE 2: BACK =====
+      pdf.addPage([W, H], 'portrait');
+      if (backImg) pdf.addImage(backImg, 'PNG', 0, 0, W, H);
+
+      // Emergency Contact text
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(12);
+      pdf.setTextColor(255, 255, 255);
+      pdf.text(`${d.parentName}`, W / 2, 96, { align: 'center' });
+      pdf.text(`${d.emergency}`, W / 2, 103, { align: 'center' });
+
+      // Address (gold text)
+      if (d.address) {
+        pdf.setFontSize(11);
+        pdf.setTextColor(212, 175, 55);
+        const addressLines = pdf.splitTextToSize(d.address, 110);
+        pdf.text(addressLines, W / 2, 128, { align: 'center' });
+      }
+
+      // Signature
+      if (sigImg) {
+        pdf.addImage(sigImg, 'PNG', 50, 155, 48, 20);
+      }
+
+      // Save
+      pdf.save(`GICL_ID_Card_${d.giclId || 'Player'}.pdf`);
+
       Swal.fire({ icon: 'success', title: 'Downloaded!', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     } catch (err) {
       console.error(err);
