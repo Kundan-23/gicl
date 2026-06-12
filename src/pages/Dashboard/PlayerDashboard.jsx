@@ -115,25 +115,13 @@ const PlayerDashboard = () => {
         filename:     `GICL_ID_Card_${basicInfo.giclId || 'Player'}.pdf`,
         image:        { type: 'jpeg', quality: 1.0 },
         html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'px', format: [559, 794], orientation: 'portrait' } // Use exact px size of the A5 container
+        jsPDF:        { unit: 'px', format: [559, 794], orientation: 'portrait' } 
       };
 
       Swal.fire({ icon: 'info', title: 'Generating PDF...', text: 'Please wait a moment.', showConfirmButton: false, allowOutsideClick: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
 
-      // Create a temporary div offscreen, because passing string directly sometimes struggles with font loading
-      const container = document.createElement('div');
-      container.innerHTML = htmlString;
-      container.style.position = 'absolute';
-      container.style.top = '-10000px';
-      container.style.left = '-10000px';
-      document.body.appendChild(container);
-
-      // Give fonts and base64 a tiny moment to parse
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      await html2pdf().set(opt).from(container).save();
+      await html2pdf().set(opt).from(htmlString).save();
       
-      document.body.removeChild(container);
       Swal.fire({ icon: 'success', title: 'Downloaded!', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     } catch (err) {
       console.error(err);
