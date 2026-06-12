@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCoachStore } from '../../store/useCoachStore';
 import { Video, CheckCircle, MessageSquare, ExternalLink } from 'lucide-react';
-import ReactPlayer from 'react-player';
+import ReactPlayerRaw from 'react-player';
+const ReactPlayer = ReactPlayerRaw.default || ReactPlayerRaw;
 
 const VideoScrutiny = () => {
   const { videos = [], submitVideoReview } = useCoachStore();
