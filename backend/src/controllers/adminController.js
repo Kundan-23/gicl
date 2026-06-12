@@ -35,7 +35,7 @@ exports.getPlayers = asyncHandler(async (req, res) => {
 
   let query = supabase
     .from('players')
-    .select('id, gicl_id, first_name, last_name, email, whatsapp, gender, dob, plan, payment_status, status, docs_approved, is_dashboard_unlocked, referral_code, referral_balance, allocated_coach_id, created_at, profile_photo_url, city, country, batting_style, bowling_style', { count: 'exact' })
+    .select('id, gicl_id, first_name, last_name, email, whatsapp, gender, dob, plan, payment_status, status, docs_approved, is_dashboard_unlocked, referral_code, referral_balance, allocated_coach_id, created_at, profile_photo_url, city, state, country, zip_code, birth_cert_url, address_proof_url, batting_style, bowling_style', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + Number(limit) - 1);
 
