@@ -125,7 +125,17 @@ const PlayerDashboard = () => {
       Swal.fire({ icon: 'success', title: 'Opening PDF...', text: 'If it did not download automatically, please check your popup blocker.', timer: 2000, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     } catch (err) {
       console.error(err);
-      Swal.fire({ icon: 'error', title: 'Download failed', text: 'Ensure your profile is complete and try again.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
+      let errorMsg = 'Ensure your profile is complete and try again.';
+      if (err.response && err.response.data && err.response.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          if (json.message) errorMsg = json.message;
+        } catch(e) {}
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      Swal.fire({ icon: 'error', title: 'Download failed', text: errorMsg, background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: '#FFD700' });
     } finally {
       setDownloadingId(false);
     }
