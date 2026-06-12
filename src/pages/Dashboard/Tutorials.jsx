@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useFormStore } from '../../store/useFormStore';
-import { PlayCircle, CheckCircle, Upload, Lock, Video, CreditCard, Unlock, AlertTriangle } from 'lucide-react';
+import { PlayCircle, CheckCircle, Upload, Lock, Video, CreditCard, Unlock, AlertTriangle, ExternalLink } from 'lucide-react';
 import ReactPlayer from 'react-player';
 import Swal from 'sweetalert2';
 import { trainingAPI, paymentAPI } from '../../services/api';
@@ -19,6 +19,7 @@ const Tutorials = () => {
   const [attemptLink, setAttemptLink] = useState('');
   const [activeVideo, setActiveVideo] = useState(null); // id of basic video currently playing
   const [isDashboardUnlocked, setIsDashboardUnlocked] = useState(dashboardState?.isDashboardUnlocked || false);
+  const [clickedExternalIds, setClickedExternalIds] = useState([]);
 
   useEffect(() => {
     if (!document.getElementById('razorpay-script')) {
@@ -171,28 +172,43 @@ const Tutorials = () => {
             vidUrl = 'https://' + vidUrl;
           }
 
+          const isSupported = ReactPlayer.canPlay(vidUrl);
+          const hasClickedExternal = clickedExternalIds.includes(tutorial.id);
+
           return (
             <div key={tutorial.id || idx} style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--bg-surface-elevated)' }}>
-              <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: 'var(--radius-md)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', position: 'relative', overflow: 'hidden' }}>
                 
-                <ReactPlayer 
-                  url={vidUrl} 
-                  controls={false} // Disable controls to enforce watching without skipping
-                  width="100%" 
-                  height="100%" 
-                  light={true} // shows a thumbnail, click to play natively (solves autoplay block)
-                  onEnded={() => handleVideoEnded(tutorial.id)}
-                  onProgress={(state) => {
-                    // Anti-skip: If they seek to the end too fast, we don't count it.
-                    // ReactPlayer gives played (0 to 1 fraction).
-                    // If played > 0.9, but playedSeconds is very low, it's a skip.
-                    // But onEnded is the simplest check. 
-                    // Actually, light=true and controls=true is the most stable way for browsers.
-                  }}
-                  config={{
-                    youtube: { playerVars: { rel: 0, modestbranding: 1 } },
-                  }}
-                />
+                {isSupported ? (
+                  <ReactPlayer 
+                    url={vidUrl} 
+                    controls={true} // Enable controls for robust playback
+                    width="100%" 
+                    height="100%" 
+                    onEnded={() => handleVideoEnded(tutorial.id)}
+                    onProgress={(state) => {
+                      // Basic anti-skip logic can be added here if needed, but standard completion is tracked via onEnded
+                    }}
+                    config={{
+                      youtube: { playerVars: { rel: 0, modestbranding: 1 } },
+                    }}
+                  />
+                ) : (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    <Video size={48} style={{ margin: '0 auto 1rem auto', opacity: 0.5 }} />
+                    <p style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>This video is hosted on an external platform that requires direct viewing.</p>
+                    <a 
+                      href={vidUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      onClick={() => setClickedExternalIds(prev => [...prev, tutorial.id])}
+                      className="btn-primary"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
+                    >
+                      Watch on External Site <ExternalLink size={16} />
+                    </a>
+                  </div>
+                )}
                 
                 {isWatched && (
                   <span style={{ position: 'absolute', top: 10, left: 10, backgroundColor: 'var(--success)', color: 'var(--bg-color)', fontSize: '0.7rem', fontWeight: 600, padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.25rem', pointerEvents: 'none' }}>
@@ -202,8 +218,19 @@ const Tutorials = () => {
               </div>
               <h3 className="heading-3" style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{tutorial.title}</h3>
               
-              <div style={{ marginTop: '1rem', color: isWatched ? 'var(--success)' : 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
-                {isWatched ? <><CheckCircle size={16} /> Completed</> : "Pending Watch"}
+              <div style={{ marginTop: '1rem', color: isWatched ? 'var(--success)' : 'var(--text-secondary)', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontWeight: 500 }}>
+                {isWatched ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle size={16} /> Completed</div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>Pending Watch</span>
+                    {!isSupported && hasClickedExternal && (
+                      <button onClick={() => handleVideoEnded(tutorial.id)} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                        Mark as Watched
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )
