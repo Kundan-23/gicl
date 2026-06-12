@@ -284,7 +284,7 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
               <div style={fgrp}>
                 <label style={lbl}>Referred By (Phone)</label>
                 <div style={{ ...inp, padding: '0.25rem 0.5rem' }}>
-                  <PhoneInput international defaultCountry="IN" value={form.referred_by_phone} onChange={v => set('referred_by_phone', v)} style={{ '--PhoneInput-color--focus': 'transparent' }} />
+                  <PhoneInput international defaultCountry="IN" value={form.referred_by_phone} onChange={v => set('referred_by_phone', v)} style={{ ...inp, '--PhoneInput-color--focus': 'transparent' }} />
                 </div>
               </div>
             </div>

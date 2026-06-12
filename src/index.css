@@ -307,3 +307,15 @@ select.form-input {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   position: relative;
 }
+
+/* Fix for PhoneInput internal text color and background */
+.PhoneInputInput {
+  flex: 1;
+  min-width: 0;
+  background: transparent !important;
+  border: none !important;
+  color: var(--text-primary) !important;
+  font-family: inherit;
+  font-size: inherit;
+  outline: none !important;
+}
