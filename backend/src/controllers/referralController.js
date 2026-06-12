@@ -5,7 +5,7 @@ const asyncHandler = require('../utils/asyncHandler');
 async function creditReferralChain(newPlayerId) {
   const { data: cfg } = await supabase
     .from('app_config')
-    .select('referral_level1, referral_level2, referral_level3plus')
+    .select('referral_level1, referral_level2, referral_level3plus, referral_level1_active, referral_level2_active, referral_level3plus_active')
     .eq('id', 1)
     .single();
 
@@ -13,6 +13,12 @@ async function creditReferralChain(newPlayerId) {
     1: cfg?.referral_level1      ?? 50,
     2: cfg?.referral_level2      ?? 20,
     3: cfg?.referral_level3plus  ?? 10,
+  };
+
+  const active = {
+    1: cfg?.referral_level1_active ?? true,
+    2: cfg?.referral_level2_active ?? true,
+    3: cfg?.referral_level3plus_active ?? true,
   };
 
   let currentId = newPlayerId;
@@ -29,7 +35,11 @@ async function creditReferralChain(newPlayerId) {
     level++;
 
     const referrerId = player.referred_by_id;
-    const bonus      = level === 1 ? bonuses[1] : level === 2 ? bonuses[2] : bonuses[3];
+    let bonus = level === 1 ? bonuses[1] : level === 2 ? bonuses[2] : bonuses[3];
+    const isActive = level === 1 ? active[1] : level === 2 ? active[2] : active[3];
+    
+    // If the level is locked (inactive), the bonus is 0 but the chain still progresses
+    if (!isActive) bonus = 0;
 
     const { data: referrer } = await supabase
       .from('players')

@@ -134,7 +134,11 @@ const Config = () => {
   const [savingSection, setSavingSection] = useState(null);
 
   // Tab 1 — Referral
-  const [referral, setReferral] = useState({ level1: '', level2: '', level3: '', minCashout: '' });
+  const [referral, setReferral] = useState({ 
+    level1: '', level2: '', level3: '', minCashout: '',
+    level1Name: 'Level 1', level2Name: 'Level 2', level3Name: 'Level 3+',
+    level1Active: true, level2Active: true, level3Active: true
+  });
 
   // Tab 2 — Plans
   const [plans, setPlans] = useState([]);
@@ -188,7 +192,11 @@ const Config = () => {
 
         // Tab 1
         if (cfg.referral) {
-          setReferral({ level1: cfg.referral.level1 ?? '', level2: cfg.referral.level2 ?? '', level3: cfg.referral.level3 ?? '', minCashout: cfg.referral.minCashout ?? '' });
+          setReferral({ 
+            level1: cfg.referral.level1 ?? '', level2: cfg.referral.level2 ?? '', level3: cfg.referral.level3plus ?? '', minCashout: cfg.referral.minCashout ?? '',
+            level1Name: cfg.referral.level1Name ?? 'Level 1', level2Name: cfg.referral.level2Name ?? 'Level 2', level3Name: cfg.referral.level3Name ?? 'Level 3+',
+            level1Active: cfg.referral.level1Active ?? true, level2Active: cfg.referral.level2Active ?? true, level3Active: cfg.referral.level3Active ?? true
+          });
         } else {
           // Also handle flat keys from backend
           setReferral({
@@ -196,6 +204,12 @@ const Config = () => {
             level2: cfg.referral_level2 ?? '',
             level3: cfg.referral_level3plus ?? '',
             minCashout: cfg.referral_min_cashout ?? '',
+            level1Name: cfg.referral_level1_name ?? 'Level 1',
+            level2Name: cfg.referral_level2_name ?? 'Level 2',
+            level3Name: cfg.referral_level3plus_name ?? 'Level 3+',
+            level1Active: cfg.referral_level1_active ?? true,
+            level2Active: cfg.referral_level2_active ?? true,
+            level3Active: cfg.referral_level3plus_active ?? true,
           });
         }
 
@@ -462,27 +476,61 @@ const Config = () => {
       {activeTab === 'referral' && (
         <Section
           title="Referral Settings"
-          description="Control referral bonus amounts and cashout limits."
+          description="Control referral bonus amounts, custom names, cashout limits, and active states."
           onSave={() => save('referral', {
             referral_level1: Number(referral.level1),
             referral_level2: Number(referral.level2),
             referral_level3plus: Number(referral.level3),
             referral_min_cashout: Number(referral.minCashout),
+            referral_level1_name: referral.level1Name,
+            referral_level2_name: referral.level2Name,
+            referral_level3plus_name: referral.level3Name,
+            referral_level1_active: referral.level1Active,
+            referral_level2_active: referral.level2Active,
+            referral_level3plus_active: referral.level3Active,
           })}
           saving={savingSection === 'referral'}
         >
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: '1rem' }}>
-            {[
-              { key: 'level1', label: 'Level 1 Bonus (₹)' },
-              { key: 'level2', label: 'Level 2 Bonus (₹)' },
-              { key: 'level3', label: 'Level 3+ Bonus (₹)' },
-              { key: 'minCashout', label: 'Min Cashout (₹)' },
-            ].map(({ key, label }) => (
-              <div key={key}>
-                <label style={labelStyle}>{label}</label>
-                <input type="number" min="0" value={referral[key]} onChange={e => setReferral(r => ({ ...r, [key]: e.target.value }))} style={inputStyle} placeholder="0" />
-              </div>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* Level Settings */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: '1.5rem' }}>
+              {[
+                { key: '1', defaultLabel: 'Level 1' },
+                { key: '2', defaultLabel: 'Level 2' },
+                { key: '3', defaultLabel: 'Level 3+' },
+              ].map(({ key, defaultLabel }) => (
+                <div key={key} style={{ padding: '1rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--bg-surface-elevated)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>{defaultLabel} Configuration</h4>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem' }}>
+                      <input 
+                        type="checkbox" 
+                        checked={referral[`level${key}Active`]} 
+                        onChange={e => setReferral(r => ({ ...r, [`level${key}Active`]: e.target.checked }))} 
+                        style={{ width: '1.2rem', height: '1.2rem', accentColor: 'var(--brand-primary)' }}
+                      />
+                      {referral[`level${key}Active`] ? <span style={{ color: 'var(--success)' }}>Active</span> : <span style={{ color: 'var(--error)' }}>Locked</span>}
+                    </label>
+                  </div>
+                  <div style={{ display: 'grid', gap: '0.75rem' }}>
+                    <div>
+                      <label style={labelStyle}>Custom Name</label>
+                      <input type="text" value={referral[`level${key}Name`]} onChange={e => setReferral(r => ({ ...r, [`level${key}Name`]: e.target.value }))} style={inputStyle} placeholder={defaultLabel} />
+                    </div>
+                    <div>
+                      <label style={labelStyle}>Bonus Amount (₹)</label>
+                      <input type="number" min="0" value={referral[`level${key}`]} onChange={e => setReferral(r => ({ ...r, [`level${key}`]: e.target.value }))} style={inputStyle} placeholder="0" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Global Limits */}
+            <div style={{ padding: '1rem', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--bg-surface-elevated)', maxWidth: '300px' }}>
+              <label style={labelStyle}>Min Cashout (₹)</label>
+              <input type="number" min="0" value={referral.minCashout} onChange={e => setReferral(r => ({ ...r, minCashout: e.target.value }))} style={inputStyle} placeholder="500" />
+            </div>
           </div>
         </Section>
       )}

@@ -520,6 +520,8 @@ exports.updateConfig = asyncHandler(async (req, res) => {
   const allowed = [
     'plans', 'jersey_sizes', 'batting_styles', 'bowling_styles', 'ball_types',
     'age_groups', 'clubs', 'referral_level1', 'referral_level2', 'referral_level3plus',
+    'referral_level1_name', 'referral_level2_name', 'referral_level3plus_name',
+    'referral_level1_active', 'referral_level2_active', 'referral_level3plus_active',
     'referral_min_cashout', 'max_squad_size', 'match_team_size',
     'banners', 'ad_banners', 'landing_bg_image', 'registration_terms',
     'basic_training_videos', 'advance_training_fee'

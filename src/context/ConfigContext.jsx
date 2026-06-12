@@ -16,7 +16,11 @@ const DEFAULTS = {
   ad_banners:     [],
   landing_bg_image:   '',
   registration_terms: '',
-  referral:  { level1: 50, level2: 20, level3plus: 10, minCashout: 500 },
+  referral:  { 
+    level1: 50, level2: 20, level3plus: 10, minCashout: 500,
+    level1Name: 'Level 1', level2Name: 'Level 2', level3Name: 'Level 3+',
+    level1Active: true, level2Active: true, level3Active: true
+  },
   maxSquadSize: 20,
 };
 
