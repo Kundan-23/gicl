@@ -212,26 +212,10 @@ async function generateIdCardPDF(player, signatureUrl = null) {
 </body>
 </html>`;
 
-  let browser;
-  try {
-    const chromium = require('@sparticuz/chromium');
-    const puppeteerCore = require('puppeteer-core');
-    
-    browser = await puppeteerCore.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-      ignoreHTTPSErrors: true,
-    });
-  } catch (err) {
-    // Fallback to local puppeteer if sparticuz fails (e.g. on Windows dev machine)
-    const puppeteerLocal = require('puppeteer');
-    browser = await puppeteerLocal.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-    });
-  }
+  const browser = await puppeteer.launch({
+    headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  });
 
   const page = await browser.newPage();
   await page.setContent(html, { waitUntil: 'networkidle0' });
