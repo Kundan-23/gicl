@@ -60,13 +60,14 @@ const Step4_PlayerProfile = () => {
       clubsDetails: Array.isArray(playerProfile.clubsDetails) ? playerProfile.clubsDetails : [],
       ballsSelected: playerProfile.ballsSelected || [],
       fieldPositions: playerProfile.fieldPositions || [],
-      cricketHistory: playerProfile.cricketHistory || [
-        { level: 'International', matches: 0 }, 
-        { level: 'National', matches: 0 }, 
-        { level: 'State', matches: 0 }, 
-        { level: 'District', matches: 0 }, 
-        { level: 'Taluka', matches: 0 }
-      ]
+      cricketHistory: (() => {
+        const defaultOrder = ['Taluka', 'District', 'State', 'National', 'International', 'Other'];
+        const existing = Array.isArray(playerProfile.cricketHistory) ? playerProfile.cricketHistory : [];
+        return defaultOrder.map(level => {
+          const found = existing.find(e => e.level === level);
+          return found ? found : { level, matches: 0 };
+        });
+      })()
     },
     mode: 'onBlur'
   });
@@ -487,33 +488,32 @@ const Step4_PlayerProfile = () => {
           <p className="text-small" style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Enter the number of matches played at each level (Enter 0 if none).</p>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {(playerProfile.cricketHistory || [
-              { level: 'International', matches: 0 }, 
-              { level: 'National', matches: 0 }, 
-              { level: 'State', matches: 0 }, 
-              { level: 'District', matches: 0 }, 
-              { level: 'Taluka', matches: 0 }
-            ]).map((item, index) => (
-              <div key={item.level || index} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--bg-color)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)' }}>
-                <span style={{ fontWeight: 600 }}>{item.level}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span className="text-small" style={{ color: 'var(--text-secondary)' }}>Matches:</span>
-                  <Controller
-                    name={`cricketHistory.${index}.matches`}
-                    control={control}
-                    render={({ field }) => (
-                      <input 
-                        type="number" 
-                        {...field} 
-                        className="form-input" 
-                        style={{ width: '80px', padding: '0.5rem', textAlign: 'center' }} 
-                        min="0"
-                      />
-                    )}
-                  />
+            {watch('cricketHistory')?.map((item, index, arr) => {
+              const show = index === 0 || (arr[index - 1] && Number(arr[index - 1].matches) > 0);
+              if (!show) return null;
+
+              return (
+                <div key={item.level || index} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--bg-color)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)' }}>
+                  <span style={{ fontWeight: 600 }}>{item.level}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span className="text-small" style={{ color: 'var(--text-secondary)' }}>Matches:</span>
+                    <Controller
+                      name={`cricketHistory.${index}.matches`}
+                      control={control}
+                      render={({ field }) => (
+                        <input 
+                          type="number" 
+                          {...field} 
+                          className="form-input" 
+                          style={{ width: '80px', padding: '0.5rem', textAlign: 'center' }} 
+                          min="0"
+                        />
+                      )}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
