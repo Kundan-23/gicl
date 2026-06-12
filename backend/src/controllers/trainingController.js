@@ -21,7 +21,7 @@ exports.getTrainingData = asyncHandler(async (req, res) => {
   if (player?.has_unlocked_advance_training) {
     const { data: vids } = await supabase
       .from('coach_video_uploads')
-      .select('id, title, url, duration, status, coach_id')
+      .select('id, title, url, status, coach_id')
       .eq('status', 'approved');
     advance_videos = vids || [];
   }
