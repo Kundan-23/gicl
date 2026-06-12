@@ -703,15 +703,20 @@ exports.uploadPlayerIdCard = asyncHandler(async (req, res) => {
   
   if (uploadError) throw new Error(uploadError.message);
   
-  const { data: { publicUrl } } = sb.storage.from('documents').getPublicUrl(path);
+  // Documents is a private bucket, so getPublicUrl doesn't work. We must use a long-lived signed URL.
+  const { data: { signedUrl }, error: signError } = await sb.storage
+    .from('documents')
+    .createSignedUrl(path, 60 * 60 * 24 * 365 * 10); // 10 years
+    
+  if (signError) throw new Error(signError.message);
   
   // Update the player record
   const { error: updateError } = await sb
     .from('players')
-    .update({ manual_id_card_url: publicUrl })
+    .update({ manual_id_card_url: signedUrl })
     .eq('id', id);
     
   if (updateError) throw new Error(updateError.message);
   
-  res.json({ success: true, url: publicUrl });
+  res.json({ success: true, url: signedUrl });
 });
