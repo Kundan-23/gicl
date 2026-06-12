@@ -696,14 +696,14 @@ exports.uploadPlayerIdCard = asyncHandler(async (req, res) => {
   const ext = req.file.mimetype.split('/')[1] || 'pdf';
   const path = `player_${id}_${Date.now()}.${ext}`;
   
-  const { error: uploadError } = await sb.storage.from('id-cards').upload(path, req.file.buffer, { 
+  const { error: uploadError } = await sb.storage.from('documents').upload(path, req.file.buffer, { 
     contentType: req.file.mimetype, 
     upsert: true 
   });
   
   if (uploadError) throw new Error(uploadError.message);
   
-  const { data: { publicUrl } } = sb.storage.from('id-cards').getPublicUrl(path);
+  const { data: { publicUrl } } = sb.storage.from('documents').getPublicUrl(path);
   
   // Update the player record
   const { error: updateError } = await sb
