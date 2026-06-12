@@ -265,10 +265,6 @@ const PlayerDashboard = () => {
               <span className="text-small text-secondary">Jersey Size</span>
               <span style={{ fontWeight: 500 }}>{basicInfo.jerseySize || 'N/A'}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem' }}>
-              <span className="text-small text-secondary">Lower Size</span>
-              <span style={{ fontWeight: 500 }}>{basicInfo.lowerSize || 'N/A'}</span>
-            </div>
           </div>
         </div>
 

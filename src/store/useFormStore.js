@@ -73,10 +73,7 @@ export const useFormStore = create(
         referralBalance: 0, // INR balance
         myReferralCode: 'GICL-' + Math.floor(1000 + Math.random() * 9000),
         referrals: [], // { name, status, amountEarned }
-        upcomingMatches: [
-          { id: 1, date: '2026-06-01T10:00:00Z', opponent: 'Mumbai Strikers', location: 'Oval Maidan', type: 'League Match' },
-          { id: 2, date: '2026-06-15T14:30:00Z', opponent: 'Pune Royals', location: 'DY Patil Stadium', type: 'Quarter Final' }
-        ]
+        upcomingMatches: []
       },
       updateDashboard: (data) => set((state) => ({ dashboardState: { ...state.dashboardState, ...data } })),
       unlockDashboard: () => set((state) => ({ dashboardState: { ...state.dashboardState, isDashboardUnlocked: true } })),
@@ -135,7 +132,7 @@ export const useFormStore = create(
     }),
     {
       name: 'gicl-registration-storage',
-      version: 5, // Incremented to clear old cached defaults
+      version: 6, // Incremented to clear old cached defaults
     }
   )
 );
