@@ -69,18 +69,22 @@ async function generateIdCardPDF(player, signatureUrl = null) {
     }
 
     .page {
-      width: 148mm;
-      height: 210mm; /* A5 Size Portrait */
+      width: 559px;
+      height: 794px; /* A5 Size Portrait at 96DPI */
       position: relative;
       overflow: hidden;
       page-break-after: always;
-      background-size: 100% 100%;
-      background-position: center;
-      background-repeat: no-repeat;
+    }
+    .page:last-of-type {
+      page-break-after: auto;
     }
 
-    .page.front { background-image: url('${frontBg}'); }
-    .page.back { background-image: url('${backBg}'); }
+    .bg-img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: -1;
+    }
 
     /* ====== PAGE 1: FRONT ====== */
     .photo-box {
@@ -114,19 +118,19 @@ async function generateIdCardPDF(player, signatureUrl = null) {
       color: #FFF;
     }
     .player-name {
-      font-size: 16pt;
+      font-size: 21px;
       font-weight: 900;
       color: #D4AF37;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
     .detail-row {
-      font-size: 11pt;
+      font-size: 15px;
       font-weight: 600;
     }
     .detail-label {
       color: #A0A0A0;
-      font-size: 9pt;
+      font-size: 12px;
       text-transform: uppercase;
       margin-right: 5px;
     }
@@ -151,7 +155,7 @@ async function generateIdCardPDF(player, signatureUrl = null) {
       width: 80%;
       text-align: center;
       color: #FFF;
-      font-size: 13pt;
+      font-size: 17px;
       font-weight: 600;
     }
     .emergency-name {
@@ -181,6 +185,7 @@ async function generateIdCardPDF(player, signatureUrl = null) {
 <body>
 
 <div class="page front">
+  <img class="bg-img" src="${frontBg}" alt="Front Background" />
   <div class="photo-box">
     ${photoUrl 
       ? `<img src="${photoUrl}" alt="Photo" />` 
@@ -199,9 +204,11 @@ async function generateIdCardPDF(player, signatureUrl = null) {
 </div>
 
 <div class="page back">
+  <img class="bg-img" src="${backBg}" alt="Back Background" />
   <div class="emergency-box">
+    In Emergency Please Contact<br/>
     <div class="emergency-name">${parentName}</div>
-    <div>${emergency}</div>
+    ${emergency}
   </div>
 
   <div class="signature-box">
