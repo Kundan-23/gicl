@@ -112,6 +112,10 @@ const PlayerDashboard = () => {
       const res = await playerAPI.downloadIdCard();
       const d = res.data.cardData;
 
+      if (!d || !d.frontBg) {
+        throw new Error('Server is still updating. Please wait 1-2 minutes and try again.');
+      }
+
       // A5 dimensions in mm
       const W = 148;
       const H = 210;
