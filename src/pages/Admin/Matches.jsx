@@ -142,7 +142,6 @@ const MatchModal = ({ match, onClose, onSave }) => {
                 }}
               />
             </div>
-          </div>
           {/* Age Category */}
           <div>
             <label style={labelStyle}>Age Category</label>
