@@ -355,15 +355,14 @@ const Step2_BasicRegistration = () => {
             render={({ field }) => (
               <div className="form-group">
                 <label className="form-label">WhatsApp Number *</label>
-                <div className="form-input" style={{ padding: '0.25rem 0.5rem' }}>
-                  <PhoneInput
-                    international
-                    defaultCountry="IN"
-                    value={field.value}
-                    onChange={field.onChange}
-                    style={{ '--PhoneInput-color--focus': 'transparent' }}
-                  />
-                </div>
+                <PhoneInput
+                  international
+                  defaultCountry="IN"
+                  value={field.value}
+                  onChange={field.onChange}
+                  className="form-input"
+                  style={{ '--PhoneInput-color--focus': 'transparent' }}
+                />
                 {errors.whatsapp && <span className="form-error">{errors.whatsapp.message}</span>}
               </div>
             )}
@@ -393,15 +392,14 @@ const Step2_BasicRegistration = () => {
               render={({ field }) => (
                 <div className="form-group">
                   <label className="form-label">Emergency Phone *</label>
-                  <div className="form-input" style={{ padding: '0.25rem 0.5rem' }}>
-                    <PhoneInput
-                      international
-                      defaultCountry="IN"
-                      value={field.value}
-                      onChange={field.onChange}
-                      style={{ '--PhoneInput-color--focus': 'transparent' }}
-                    />
-                  </div>
+                  <PhoneInput
+                    international
+                    defaultCountry="IN"
+                    value={field.value}
+                    onChange={field.onChange}
+                    className="form-input"
+                    style={{ '--PhoneInput-color--focus': 'transparent' }}
+                  />
                   {errors.emergencyContact && <span className="form-error">{errors.emergencyContact.message}</span>}
                 </div>
               )}

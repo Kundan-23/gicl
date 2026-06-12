@@ -176,9 +176,7 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
             <div style={{ ...grid2, marginBottom: '0.875rem' }}>
               <div style={fgrp}>
                 <label style={lbl}>WhatsApp</label>
-                <div style={{ ...inp, padding: '0.25rem 0.5rem' }}>
-                  <PhoneInput international defaultCountry="IN" value={form.whatsapp} onChange={v => set('whatsapp', v)} style={{ '--PhoneInput-color--focus': 'transparent' }} />
-                </div>
+                <PhoneInput international defaultCountry="IN" value={form.whatsapp} onChange={v => set('whatsapp', v)} style={{ ...inp, '--PhoneInput-color--focus': 'transparent' }} />
               </div>
               <div style={fgrp}><label style={lbl}>{coach ? 'New Password (blank = no change)' : 'Password *'}</label><input required={!coach} type="password" style={inp} value={form.password} onChange={e => set('password', e.target.value)} placeholder={coach ? 'Leave blank to keep' : 'Min 8 characters'} minLength={coach ? 0 : 8} /></div>
             </div>
@@ -208,12 +206,10 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
               <label style={lbl}>Emergency Contact Name</label>
               <input style={inp} value={form.emergency_contact_name} onChange={e => set('emergency_contact_name', e.target.value)} placeholder="Contact person's full name" />
             </div>
-            <div style={{ marginBottom: '0.875rem' }}>
-              <label style={lbl}>Emergency Contact Phone</label>
-              <div style={{ ...inp, padding: '0.25rem 0.5rem' }}>
-                <PhoneInput international defaultCountry="IN" value={form.emergency_contact} onChange={v => set('emergency_contact', v)} style={{ '--PhoneInput-color--focus': 'transparent' }} />
+              <div style={fgrp}>
+                <label style={lbl}>Emergency Contact *</label>
+                <PhoneInput international defaultCountry="IN" value={form.emergency_contact} onChange={v => set('emergency_contact', v)} style={{ ...inp, '--PhoneInput-color--focus': 'transparent' }} />
               </div>
-            </div>
           </div>
 
           {/* Section: Address */}
@@ -283,9 +279,7 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
               <div style={fgrp}><label style={lbl}>Instagram Link</label><input style={inp} value={form.instagram_link} onChange={e => set('instagram_link', e.target.value)} placeholder="@handle or URL" /></div>
               <div style={fgrp}>
                 <label style={lbl}>Referred By (Phone)</label>
-                <div style={{ ...inp, padding: '0.25rem 0.5rem' }}>
-                  <PhoneInput international defaultCountry="IN" value={form.referred_by_phone} onChange={v => set('referred_by_phone', v)} style={{ ...inp, '--PhoneInput-color--focus': 'transparent' }} />
-                </div>
+                <PhoneInput international defaultCountry="IN" value={form.referred_by_phone} onChange={v => set('referred_by_phone', v)} style={{ ...inp, '--PhoneInput-color--focus': 'transparent' }} />
               </div>
             </div>
           </div>
