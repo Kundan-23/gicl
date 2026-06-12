@@ -89,12 +89,12 @@ async function generateIdCardPDF(player, signatureUrl = null) {
     /* ====== PAGE 1: FRONT ====== */
     .photo-box {
       position: absolute;
-      top: 61.8%; 
-      left: 16.5%;
+      top: 62%; 
+      left: 17%;
       width: 25%;
-      height: 21.8%;
-      background: #eee;
-      border: 3px solid #D4AF37;
+      height: 20%;
+      background: #FFF;
+      border: 4px solid #D4AF37;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -108,59 +108,43 @@ async function generateIdCardPDF(player, signatureUrl = null) {
 
     .details-box {
       position: absolute;
-      top: 61.8%;
+      top: 62%;
       left: 45%;
       width: 50%;
-      height: 21.8%;
+      height: 20%;
       display: flex;
       flex-direction: column;
-      justify-content: space-evenly;
-      color: #FFF;
-    }
-    .player-name {
-      font-size: 21px;
-      font-weight: 900;
+      justify-content: space-between;
       color: #D4AF37;
-      text-transform: uppercase;
-      letter-spacing: 1px;
     }
-    .detail-row {
-      font-size: 15px;
-      font-weight: 600;
-    }
-    .detail-label {
-      color: #A0A0A0;
-      font-size: 12px;
-      text-transform: uppercase;
-      margin-right: 5px;
-    }
-
-    .qr-code {
-      position: absolute;
-      bottom: 11%;
-      right: 12%;
-      width: 16%;
-      height: auto;
-      border: 2px solid #D4AF37;
-      border-radius: 4px;
-      padding: 2px;
-      background: #FFF;
+    .detail-item {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
     }
 
     /* ====== PAGE 2: BACK ====== */
     .emergency-box {
       position: absolute;
-      top: 48%;
+      top: 45.5%;
       left: 10%;
       width: 80%;
       text-align: center;
       color: #FFF;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 600;
     }
-    .emergency-name {
+
+    .address-box {
+      position: absolute;
+      top: 60%;
+      left: 12%;
+      width: 76%;
+      text-align: center;
       color: #D4AF37;
-      margin-bottom: 5px;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.4;
     }
 
     .signature-box {
@@ -168,8 +152,8 @@ async function generateIdCardPDF(player, signatureUrl = null) {
       bottom: 12%;
       left: 50%;
       transform: translateX(-50%);
-      width: 40%;
-      height: 8%;
+      width: 35%;
+      height: 10%;
       display: flex;
       align-items: flex-end;
       justify-content: center;
@@ -189,28 +173,27 @@ async function generateIdCardPDF(player, signatureUrl = null) {
   <div class="photo-box">
     ${photoUrl 
       ? `<img src="${photoUrl}" alt="Photo" />` 
-      : `<span style="color:#888; font-size:10pt;">NO PHOTO</span>`
+      : `<span style="color:#888; font-size:10pt;"></span>`
     }
   </div>
   
   <div class="details-box">
-    <div class="player-name">${name}</div>
-    <div class="detail-row"><span class="detail-label">ID:</span> ${giclId}</div>
-    <div class="detail-row"><span class="detail-label">ROLE:</span> ${role}</div>
-    <div class="detail-row"><span class="detail-label">BLOOD/AGE:</span> <span style="color:#FF4B4B">${bloodGroup}</span> &nbsp;|&nbsp; ${age}</div>
+    <div class="detail-item">${giclId}</div>
+    <div class="detail-item">${name}</div>
+    <div class="detail-item">${bloodGroup}</div>
+    <div class="detail-item">${age}</div>
   </div>
-
-  <img class="qr-code" src="${qrDataUrl}" alt="QR Code" />
 </div>
 
 <div class="page back">
   <img class="bg-img" src="${backBg}" alt="Back Background" />
   <div class="emergency-box">
-    In Emergency Please Contact<br/>
-    <div class="emergency-name">${parentName}</div>
-    ${emergency}
+    ${parentName} - ${emergency}
   </div>
-
+  <div class="address-box">
+    <!-- Assuming player address is not stored yet, but if you do add it later, it goes here. For now it's dynamic to the player if available, else blank -->
+    ${player.address || ''}
+  </div>
   <div class="signature-box">
     ${signatureUrl ? `<img src="${signatureUrl}" alt="Signature" />` : ''}
   </div>
