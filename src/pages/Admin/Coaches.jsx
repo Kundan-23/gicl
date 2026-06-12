@@ -11,6 +11,9 @@ const BLOOD_GROUPS   = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 const JERSEY_SIZES   = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 const GENDERS        = ['Male', 'Female', 'Other'];
 
+const thStyle = { padding: '0.85rem 1.25rem', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap' };
+const tdStyle = { padding: '1rem 1.25rem', fontSize: '0.875rem', color: 'var(--text-primary)', whiteSpace: 'nowrap' };
+
 const EMPTY_FORM = {
   first_name: '', last_name: '', email: '', whatsapp: '', password: '',
   dob: '', gender: '', blood_group: '', emergency_contact: '', emergency_contact_name: '',
