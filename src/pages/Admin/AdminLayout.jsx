@@ -18,7 +18,7 @@ const navLinks = [
   { name: 'Allotment',    path: '/admin2/allotment',    icon: Users2 },
   { name: 'Video Review', path: '/admin2/scrutiny',     icon: Video },
   { name: 'Training Approvals', path: '/admin2/training', icon: ShieldCheck },
-  { name: 'Config',       path: '/admin2/config',       icon: Settings },
+  { name: 'Configuration',path: '/admin2/config',       icon: Settings },
 ];
 
 const AdminLayout = () => {
