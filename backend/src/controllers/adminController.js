@@ -190,7 +190,7 @@ exports.rejectCashout = asyncHandler(async (req, res) => {
 // ─── Coaches CRUD ─────────────────────────────────────────────────
 exports.getCoaches = asyncHandler(async (req, res) => {
   const { data } = await supabase.from('coaches')
-    .select('id, first_name, last_name, email, whatsapp, status, gicl_id, created_at, profile_photo_url, city, zip_code, batting_style, bowling_style, blood_group, dob, gender, cricket_history, coaching_history, teams, birth_cert_url, address_proof_url')
+    .select('id, first_name, last_name, email, whatsapp, status, gicl_id, created_at, profile_photo_url, city, zip_code, batting_style, bowling_style, blood_group, dob, gender, cricket_history, coaching_history, teams, birth_cert_url, address_proof_url, emergency_contact, emergency_contact_name, address_line1, address_line2, country, state_code, jersey_size, instagram_link, referred_by_phone')
     .order('created_at', { ascending: false });
   res.json({ success: true, coaches: data || [] });
 });
