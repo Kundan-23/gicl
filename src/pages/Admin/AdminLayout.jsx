@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate, Navigate } from 'react-router-dom';
+import { useConfig } from '../../context/ConfigContext';
 import {
   LayoutDashboard, Users, CreditCard, Share2, Wallet,
   UserCog, Calendar, Settings, LogOut, Menu, X, ShieldCheck,
@@ -22,6 +23,7 @@ const navLinks = [
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { appLogoUrl } = useConfig();
   const navigate = useNavigate();
 
   // Auth guard
@@ -73,20 +75,26 @@ const AdminLayout = () => {
       >
         {/* Logo */}
         <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: '10px',
-              background: 'linear-gradient(135deg, var(--brand-primary), #F0A500)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(249,203,26,0.35)',
-            }}>
-              <ShieldCheck size={20} color="#121A3F" />
+          {appLogoUrl ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+              <img src={appLogoUrl} alt="App Logo" style={{ maxWidth: '100%', maxHeight: '48px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
             </div>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)', lineHeight: 1 }}>GICL</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--brand-primary)', fontWeight: 600, letterSpacing: '0.1em' }}>ADMIN PANEL</div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: '10px',
+                background: 'linear-gradient(135deg, var(--brand-primary), #F0A500)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(249,203,26,0.35)',
+              }}>
+                <ShieldCheck size={20} color="#121A3F" />
+              </div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)', lineHeight: 1 }}>GICL</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--brand-primary)', fontWeight: 600, letterSpacing: '0.1em' }}>ADMIN PANEL</div>
+              </div>
             </div>
-          </div>
+          )}
           {/* Mobile close */}
           <button
             onClick={() => setSidebarOpen(false)}
