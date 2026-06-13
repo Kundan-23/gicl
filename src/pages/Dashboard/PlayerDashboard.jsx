@@ -5,10 +5,12 @@ import { jsPDF } from 'jspdf';
 import { useFormStore } from '../../store/useFormStore';
 import { playerAPI } from '../../services/api';
 import Swal from 'sweetalert2';
-import { User, Award, Activity, Star, Info, Shirt, Users, Video } from 'lucide-react';
+import { User, Award, Activity, Star, Info, Shirt, Users, Video, X } from 'lucide-react';
 
 const PlayerDashboard = () => {
   const { basicInfo, playerProfile, media, dashboardState, updateDashboard, updateBasicInfo, updatePlayerProfile } = useFormStore();
+  const [loadingPoints, setLoadingPoints] = useState(false);
+  const [showCoachModal, setShowCoachModal] = useState(false);
   const fileInputRef = useRef(null);
 
   // Track whether we've loaded from API yet — prevents flash redirect
@@ -73,6 +75,7 @@ const PlayerDashboard = () => {
           isDashboardUnlocked: !!p.is_dashboard_unlocked,
           profilePhotoUrl:     p.profile_photo_url || dashboardState.profilePhotoUrl,
           referralPoints:      p.referral_balance  ?? dashboardState.referralPoints,
+          allocatedCoach:      p.coach || null
         });
       })
       .catch(() => { /* silent — show local store data as fallback */ })
@@ -225,6 +228,29 @@ const PlayerDashboard = () => {
           <p style={{ fontSize: '0.875rem', marginTop: '0.5rem', opacity: 0.8 }}>Keep referring to earn more!</p>
         </div>
 
+        </div>
+
+        {/* Coach Card */}
+        {dashboardState.allocatedCoach && (
+          <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--brand-primary)', position: 'relative', overflow: 'hidden' }}>
+            <p style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Your Allocated Coach</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'var(--bg-surface-elevated)', overflow: 'hidden', flexShrink: 0, border: '2px solid var(--brand-primary)' }}>
+                {dashboardState.allocatedCoach.profile_photo_url ? (
+                  <img src={dashboardState.allocatedCoach.profile_photo_url} alt="Coach Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <User size={30} color="var(--text-secondary)" style={{ margin: '15px' }} />
+                )}
+              </div>
+              <div>
+                <h3 className="heading-3" style={{ margin: 0, fontSize: '1.25rem' }}>{dashboardState.allocatedCoach.first_name} {dashboardState.allocatedCoach.last_name}</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{dashboardState.allocatedCoach.city || 'GICL'} • {dashboardState.allocatedCoach.experience || 'Pro'} Coach</p>
+                <button onClick={() => setShowCoachModal(true)} style={{ background: 'none', border: 'none', padding: 0, marginTop: '0.5rem', color: 'var(--brand-primary)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>View Details</button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* Details Grid */}
@@ -336,6 +362,52 @@ const PlayerDashboard = () => {
       </div>
 
     </motion.div>
+
+    {showCoachModal && dashboardState.allocatedCoach && (
+      <div className="modal-overlay" onClick={() => setShowCoachModal(false)}>
+        <motion.div className="modal-content" initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={e => e.stopPropagation()} style={{ maxWidth: 450, width: '100%', padding: '2rem' }}>
+          <button onClick={() => setShowCoachModal(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', color: 'var(--text-secondary)' }}><X size={24} /></button>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{ width: '100px', height: '100px', borderRadius: '50%', backgroundColor: 'var(--bg-surface-elevated)', overflow: 'hidden', border: '3px solid var(--brand-primary)', marginBottom: '1rem' }}>
+              {dashboardState.allocatedCoach.profile_photo_url ? (
+                <img src={dashboardState.allocatedCoach.profile_photo_url} alt="Coach Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <User size={50} color="var(--text-secondary)" style={{ margin: '25px' }} />
+              )}
+            </div>
+            <h2 className="heading-2" style={{ marginBottom: '0.25rem' }}>Coach {dashboardState.allocatedCoach.first_name} {dashboardState.allocatedCoach.last_name}</h2>
+            <span style={{ backgroundColor: 'rgba(249,203,26,0.1)', color: 'var(--brand-primary)', padding: '0.25rem 0.75rem', borderRadius: 'var(--radius-full)', fontSize: '0.85rem', fontWeight: 600 }}>
+              GICL Official Coach
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+              <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Location</p>
+              <p style={{ fontWeight: 600 }}>{dashboardState.allocatedCoach.city || 'N/A'}{dashboardState.allocatedCoach.state ? `, ${dashboardState.allocatedCoach.state}` : ''}</p>
+            </div>
+            <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+              <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Experience</p>
+              <p style={{ fontWeight: 600 }}>{dashboardState.allocatedCoach.experience || 'Professional Coaching Experience'}</p>
+            </div>
+            {dashboardState.allocatedCoach.expertise && (
+              <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Expertise</p>
+                <p style={{ fontWeight: 600 }}>{dashboardState.allocatedCoach.expertise}</p>
+              </div>
+            )}
+            {dashboardState.allocatedCoach.bio && (
+              <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Bio</p>
+                <p style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>{dashboardState.allocatedCoach.bio}</p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    )}
+    </>
   );
 };
 
