@@ -528,9 +528,7 @@ exports.updateConfig = asyncHandler(async (req, res) => {
   ];
   const updateData = {};
   for (const key of allowed) {
-    if (key === 'app_logo_url' && req.body[key] !== undefined) {
-      updateData['id_card_signature_url'] = req.body[key];
-    } else if (req.body[key] !== undefined) {
+    if (req.body[key] !== undefined) {
       updateData[key] = req.body[key];
     }
   }
