@@ -38,7 +38,11 @@ export const ConfigProvider = ({ children }) => {
       const base = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
       const res = await axios.get(`${base}/config`);
       if (res.data?.success && res.data?.config) {
-        setConfig({ ...DEFAULTS, ...res.data.config });
+        const configData = res.data.config;
+        if (configData.app_logo_url) {
+          configData.appLogoUrl = configData.app_logo_url;
+        }
+        setConfig({ ...DEFAULTS, ...configData });
         setLastFetched(Date.now());
       }
     } catch (err) {
