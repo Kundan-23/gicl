@@ -38,14 +38,15 @@ const AdminDashboard = () => {
   const [recentPlayers, setRecentPlayers] = useState([]);
   const [extraLoading, setExtraLoading] = useState(true);
   const navigate = useNavigate();
-  const { config } = useConfig();
+  const { plans } = useConfig();
 
   const getPlanName = (planId) => {
     if (!planId) return '—';
-    if (planId === 'p1') return 'Basic';
-    if (planId === 'p2') return 'Elite';
-    const plan = config?.plans?.find(p => p.id === planId);
-    return plan ? plan.name : planId;
+    const id = planId.trim();
+    if (id === 'p1') return 'Basic';
+    if (id === 'p2') return 'Elite';
+    const plan = plans?.find(p => p.id === id);
+    return plan ? plan.name : id;
   };
 
   useEffect(() => {
