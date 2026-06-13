@@ -129,6 +129,7 @@ const TabBtn = ({ label, active, onClick }) => (
 
 // ─── Main Config component ───────────────────────────────────────────────────
 const Config = () => {
+  const { config, refreshConfig } = useConfig();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('referral');
   const [savingSection, setSavingSection] = useState(null);
@@ -347,6 +348,7 @@ const Config = () => {
       setAppLogo(url);
       
       await adminAPI.updateConfig({ app_logo_url: url });
+      if (refreshConfig) refreshConfig(true);
       
       Swal.fire({ icon: 'success', title: 'Uploaded!', text: 'App Logo updated.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     } catch (err) {
@@ -357,6 +359,7 @@ const Config = () => {
   const handleRemoveLogo = async () => {
     setAppLogo('');
     await adminAPI.updateConfig({ app_logo_url: '' });
+    if (refreshConfig) refreshConfig(true);
   };
 
   // ─── Dashboard banner upload ──────────────────────────────────────────────
