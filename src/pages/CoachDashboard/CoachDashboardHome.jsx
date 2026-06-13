@@ -26,7 +26,11 @@ const CoachDashboardHome = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         {/* Squad Status */}
-        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)' }}>
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          onClick={() => navigate('/coach-dashboard/squad')}
+          style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)', cursor: 'pointer' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
             <div style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', padding: '0.75rem', borderRadius: '50%' }}>
               <Users size={24} color="#3b82f6" />
@@ -35,10 +39,14 @@ const CoachDashboardHome = () => {
           </div>
           <p style={{ fontSize: '2rem', fontWeight: 800 }}>{squadSize} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>/ {maxSquadSize}</span></p>
           {squadSize >= maxSquadSize && <p className="text-small" style={{ color: 'var(--brand-primary)', marginTop: '0.5rem' }}>Squad Full</p>}
-        </div>
+        </motion.div>
 
         {/* Matches Status */}
-        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)' }}>
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          onClick={() => navigate('/coach-dashboard/matches')}
+          style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)', cursor: 'pointer' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
             <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '0.75rem', borderRadius: '50%' }}>
               <Calendar size={24} color="#10b981" />
@@ -46,10 +54,14 @@ const CoachDashboardHome = () => {
             <h3 className="text-small text-secondary">Upcoming Matches</h3>
           </div>
           <p style={{ fontSize: '2rem', fontWeight: 800 }}>{upcomingMatchesCount}</p>
-        </div>
+        </motion.div>
 
         {/* Video Scrutiny Status */}
-        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)' }}>
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          onClick={() => navigate('/coach-dashboard/videos')}
+          style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)', cursor: 'pointer' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
             <div style={{ backgroundColor: 'rgba(255, 199, 44, 0.1)', padding: '0.75rem', borderRadius: '50%' }}>
               <Video size={24} color="var(--brand-primary)" />
@@ -57,7 +69,7 @@ const CoachDashboardHome = () => {
             <h3 className="text-small text-secondary">Pending Player Videos</h3>
           </div>
           <p style={{ fontSize: '2rem', fontWeight: 800 }}>{pendingVideos}</p>
-        </div>
+        </motion.div>
 
       </div>
 

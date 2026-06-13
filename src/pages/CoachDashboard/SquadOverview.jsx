@@ -45,20 +45,35 @@ const SquadOverview = () => {
     };
   });
 
-  // Unique top-level categories present in this squad
-  const categories = ['All', ...new Set(players.map(p => p.category))];
+  // Unique top-level categories from config + players
+  const configCategories = ageGroups.map(ag => ag.cat);
+  const playerCategories = players.map(p => p.category);
+  const uniqueCats = [...new Set([...configCategories, ...playerCategories])].filter(Boolean);
+  
+  // Custom sort to keep Open/Masters at the end if desired, or just alphabetical
+  const categories = ['All', ...uniqueCats];
 
   const displayed = activeFilter === 'All'
     ? players
     : players.filter(p => p.category === activeFilter);
 
+  // Pre-fill sub-categories from config so they always appear when a filter is clicked
+  const grouped = {};
+  if (activeFilter !== 'All') {
+    const activeConfigs = ageGroups.filter(ag => ag.cat === activeFilter);
+    activeConfigs.forEach(ag => {
+      if (ag.sub) {
+        grouped[ag.sub] = { color: ag.color || 'var(--brand-accent)', players: [] };
+      }
+    });
+  }
+
   // Group by sub-category for sorted display
-  const grouped = displayed.reduce((acc, p) => {
+  displayed.forEach(p => {
     const key = p.subCategory || 'Other';
-    if (!acc[key]) acc[key] = { color: p.color, players: [] };
-    acc[key].players.push(p);
-    return acc;
-  }, {});
+    if (!grouped[key]) grouped[key] = { color: p.color || 'var(--brand-accent)', players: [] };
+    grouped[key].players.push(p);
+  });
 
   const avatarUrl = (p) =>
     p.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.fullName || 'P')}&background=0f172a&color=ffc72c`;
@@ -100,9 +115,9 @@ const SquadOverview = () => {
       </div>
 
       {/* Players grouped by sub-category */}
-      {displayed.length === 0 ? (
+      {Object.keys(grouped).length === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
-          No players allocated to you yet. Contact the admin.
+          No players allocated in this category.
         </div>
       ) : (
         Object.entries(grouped).map(([subCat, { color, players: grpPlayers }]) => (
@@ -112,7 +127,13 @@ const SquadOverview = () => {
               <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{subCat}</h3>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>({grpPlayers.length} player{grpPlayers.length !== 1 ? 's' : ''})</span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+            
+            {grpPlayers.length === 0 ? (
+              <div style={{ backgroundColor: 'var(--bg-surface)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--bg-surface-elevated)', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                No players allocated to {subCat} yet.
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
               {grpPlayers.map(player => (
                 <div
                   key={player.id}
@@ -146,7 +167,8 @@ const SquadOverview = () => {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         ))
       )}
