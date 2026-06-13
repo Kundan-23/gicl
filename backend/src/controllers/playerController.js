@@ -6,7 +6,7 @@ const { lookupPincodeState } = require('../utils/pincodeState');
 exports.getProfile = asyncHandler(async (req, res) => {
   const { data: player, error } = await supabase
     .from('players')
-    .select('*, coach:allocated_coach_id(id, first_name, last_name, email, gicl_id, phone, whatsapp, profile_photo_url, city, state, experience, expertise, bio)')
+    .select('*, coach:coaches(id, first_name, last_name, email, gicl_id, phone, whatsapp, profile_photo_url, city, state, experience, expertise, bio)')
     .eq('id', req.user.id)
     .single();
 
