@@ -7,8 +7,8 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 async function test() {
   const { data, error } = await supabase
     .from('players')
-    .select('id, allocated_coach_id, gicl_id, coach:coaches(id, first_name)')
-    .eq('gicl_id', 'GICL00011062026MH')
+    .select('id, coach:coaches(id, first_name, last_name, email, gicl_id, phone, whatsapp, profile_photo_url, city, state, experience, expertise, bio)')
+    .eq('first_name', 'Kundan')
     .limit(1);
 
   console.log('Data:', JSON.stringify(data, null, 2));

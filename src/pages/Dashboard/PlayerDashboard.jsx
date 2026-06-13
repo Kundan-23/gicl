@@ -243,7 +243,7 @@ const PlayerDashboard = () => {
               </div>
               <div>
                 <h3 className="heading-3" style={{ margin: 0, fontSize: '1.25rem' }}>{dashboardState.allocatedCoach.first_name} {dashboardState.allocatedCoach.last_name}</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{dashboardState.allocatedCoach.city || 'GICL'} • {dashboardState.allocatedCoach.experience || 'Pro'} Coach</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{dashboardState.allocatedCoach.city || 'GICL'} • {dashboardState.allocatedCoach.coaching_history ? 'Pro' : 'Official'} Coach</p>
                 <button onClick={() => setShowCoachModal(true)} style={{ background: 'none', border: 'none', padding: 0, marginTop: '0.5rem', color: 'var(--brand-primary)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>View Details</button>
               </div>
             </div>
@@ -381,28 +381,22 @@ const PlayerDashboard = () => {
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-              <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Location</p>
-              <p style={{ fontWeight: 600 }}>{dashboardState.allocatedCoach.city || 'N/A'}{dashboardState.allocatedCoach.state ? `, ${dashboardState.allocatedCoach.state}` : ''}</p>
-            </div>
-            <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-              <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Experience</p>
-              <p style={{ fontWeight: 600 }}>{dashboardState.allocatedCoach.experience || 'Professional Coaching Experience'}</p>
-            </div>
-            {dashboardState.allocatedCoach.expertise && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Expertise</p>
-                <p style={{ fontWeight: 600 }}>{dashboardState.allocatedCoach.expertise}</p>
+                <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Location</p>
+                <p style={{ fontWeight: 600 }}>{dashboardState.allocatedCoach.city || 'N/A'}{dashboardState.allocatedCoach.state_code ? `, ${dashboardState.allocatedCoach.state_code}` : ''}</p>
               </div>
-            )}
-            {dashboardState.allocatedCoach.bio && (
               <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Bio</p>
-                <p style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>{dashboardState.allocatedCoach.bio}</p>
+                <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Coaching History</p>
+                <p style={{ fontWeight: 600 }}>{dashboardState.allocatedCoach.coaching_history || 'Professional Coaching Experience'}</p>
               </div>
-            )}
-          </div>
+              {dashboardState.allocatedCoach.cricket_history && (
+                <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                  <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Cricket History</p>
+                  <p style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>{dashboardState.allocatedCoach.cricket_history}</p>
+                </div>
+              )}
+            </div>
         </motion.div>
       </div>
     )}
