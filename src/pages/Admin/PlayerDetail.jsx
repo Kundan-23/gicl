@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { adminAPI } from '../../services/adminAPI';
-import { ArrowLeft, User, Mail, Phone, FileText, CreditCard, Users, DollarSign, CheckCircle, XCircle, UserCheck, Pencil, X } from 'lucide-react';
+import { ChevronLeft, Save, Trash2, Video, Key, Search, Phone, Calendar, X, ArrowLeft, User, Mail, FileText, CreditCard, Users, DollarSign, CheckCircle, XCircle, UserCheck, Pencil } from 'lucide-react';
 import Swal from 'sweetalert2';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
+import { useConfig } from '../../context/ConfigContext';
 
 const Section = ({ title, icon: Icon, children }) => (
   <div style={{ backgroundColor: 'var(--bg-surface)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-subtle)', marginBottom: '1.5rem', overflow: 'hidden' }}>
@@ -99,6 +100,16 @@ const EditPlayerModal = ({ player, onClose, onSave }) => {
 const PlayerDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { config } = useConfig();
+  
+  const getPlanName = (planId) => {
+    if (!planId) return '—';
+    if (planId === 'p1') return 'Basic';
+    if (planId === 'p2') return 'Elite';
+    const plan = config?.plans?.find(p => p.id === planId);
+    return plan ? plan.name : planId;
+  };
+
   const [player, setPlayer] = useState(null);
   const [coaches, setCoaches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -382,7 +393,7 @@ const PlayerDetail = () => {
 
         {/* Payment */}
         <Section title="Payment Info" icon={CreditCard}>
-          <InfoRow label="Plan" value={player.plan_name || player.plan} />
+          <InfoRow label="Plan" value={player.plan_name || getPlanName(player.plan)} />
           <InfoRow label="Payment Status" value={player.payment_status} />
           <InfoRow label="Payment Date" value={player.payment_date ? new Date(player.payment_date).toLocaleDateString('en-IN') : null} />
           <InfoRow label="Transaction ID" value={player.transaction_id} />

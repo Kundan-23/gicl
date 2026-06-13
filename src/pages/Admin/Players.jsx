@@ -4,6 +4,7 @@ import { adminAPI } from '../../services/adminAPI';
 import { Search, Eye, ChevronLeft, ChevronRight, Download, FileUp } from 'lucide-react';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
+import { useConfig } from '../../context/ConfigContext';
 
 const PAGE_SIZE = 50;
 
@@ -32,6 +33,15 @@ const Players = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
+  const { config } = useConfig();
+
+  const getPlanName = (planId) => {
+    if (!planId) return '—';
+    if (planId === 'p1') return 'Basic';
+    if (planId === 'p2') return 'Elite';
+    const plan = config?.plans?.find(p => p.id === planId);
+    return plan ? plan.name : planId;
+  };
 
   // Hidden file input ref
   const fileInputRef = React.useRef(null);
@@ -222,7 +232,7 @@ const Players = () => {
                     <td style={{ ...tdStyle, fontFamily: 'monospace', color: 'var(--brand-primary)', fontWeight: 700 }}>{p.gicl_id || p.id}</td>
                     <td style={{ ...tdStyle, fontWeight: 600 }}>{p.first_name} {p.last_name}</td>
                     <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>{p.email}</td>
-                    <td style={tdStyle}>{p.plan_name || p.plan || '—'}</td>
+                    <td style={tdStyle}>{p.plan_name || getPlanName(p.plan) || '—'}</td>
                     <td style={tdStyle}><PayBadge status={p.payment_status} /></td>
                     <td style={{ ...tdStyle, color: 'var(--text-secondary)' }}>
                       {p.created_at ? new Date(p.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
