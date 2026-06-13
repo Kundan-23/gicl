@@ -115,7 +115,7 @@ const PlayerDetail = () => {
       ]);
       const p = pRes.data?.player || pRes.data;
       setPlayer(p);
-      setSelectedCoach(p.coach_id || '');
+      setSelectedCoach(p.allocated_coach_id || '');
       setCoaches(cRes.data?.coaches || cRes.data || []);
     } catch (err) {
       Swal.fire({
@@ -429,9 +429,11 @@ const PlayerDetail = () => {
               {saving ? 'Saving…' : 'Save'}
             </button>
           </div>
-          {player.coach_name && (
+          {player.allocated_coach_id && coaches.find(c => c.id === player.allocated_coach_id) && (
             <p style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              Current coach: <strong style={{ color: 'var(--text-primary)' }}>{player.coach_name}</strong>
+              Current coach: <strong style={{ color: 'var(--text-primary)' }}>
+                {coaches.find(c => c.id === player.allocated_coach_id)?.first_name} {coaches.find(c => c.id === player.allocated_coach_id)?.last_name}
+              </strong>
             </p>
           )}
         </Section>
