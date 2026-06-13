@@ -238,20 +238,35 @@ exports.uploadBirthCert = asyncHandler(async (req, res) => {
 
 // ─── GET /api/player/matches ────────────────────────────────
 exports.getMatches = asyncHandler(async (req, res) => {
-  const { data: matchIds } = await supabase
+  const playerId = req.user.id;
+
+  // 1. Get assigned matches
+  const { data: assigned } = await supabase
     .from('match_players')
     .select('match_id')
-    .eq('player_id', req.user.id);
+    .eq('player_id', playerId);
 
-  if (!matchIds || matchIds.length === 0) {
+  // 2. Get booked matches
+  const { data: booked } = await supabase
+    .from('match_bookings')
+    .select('match_id')
+    .eq('player_id', playerId)
+    .eq('status', 'confirmed');
+
+  const assignedIds = assigned ? assigned.map(m => m.match_id) : [];
+  const bookedIds = booked ? booked.map(m => m.match_id) : [];
+  
+  // Combine and deduplicate
+  const allMatchIds = [...new Set([...assignedIds, ...bookedIds])];
+
+  if (allMatchIds.length === 0) {
     return res.json({ success: true, matches: [] });
   }
 
-  const ids = matchIds.map((m) => m.match_id);
   const { data: matches, error } = await supabase
     .from('matches')
     .select('*')
-    .in('id', ids)
+    .in('id', allMatchIds)
     .order('date', { ascending: true });
 
   if (error) throw new Error(error.message);

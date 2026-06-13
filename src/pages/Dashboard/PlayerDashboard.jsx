@@ -77,6 +77,25 @@ const PlayerDashboard = () => {
       })
       .catch(() => { /* silent — show local store data as fallback */ })
       .finally(() => setProfileLoaded(true)); // always mark as loaded
+
+    // Fetch upcoming matches
+    playerAPI.getMatches()
+      .then(res => {
+        if (res.data?.success && res.data.matches) {
+          const now = new Date();
+          const upcoming = res.data.matches
+            .filter(m => new Date(m.date) >= now)
+            .sort((a, b) => new Date(a.date) - new Date(b.date))
+            .map(m => ({
+              ...m,
+              opponent: m.title || 'TBA',
+              location: m.venue || m.location || 'TBA',
+              type: m.match_type || m.type || 'Match'
+            }));
+          updateDashboard({ upcomingMatches: upcoming });
+        }
+      })
+      .catch(() => { /* silent */ });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
