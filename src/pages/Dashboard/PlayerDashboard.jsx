@@ -150,6 +150,7 @@ const PlayerDashboard = () => {
   }
 
   return (
+    <>
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
       <h1 className="heading-1" style={{ marginBottom: '1.5rem' }}>Dashboard</h1>
 
@@ -226,8 +227,6 @@ const PlayerDashboard = () => {
             <span style={{ fontWeight: 600 }}>Pts</span>
           </div>
           <p style={{ fontSize: '0.875rem', marginTop: '0.5rem', opacity: 0.8 }}>Keep referring to earn more!</p>
-        </div>
-
         </div>
 
         {/* Coach Card */}
