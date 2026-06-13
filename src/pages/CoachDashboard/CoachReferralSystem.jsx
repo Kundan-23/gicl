@@ -183,7 +183,7 @@ const CoachReferralSystem = () => {
       {/* My Network Table */}
       <div style={{ backgroundColor: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-xl)', border: '1px solid var(--bg-surface-elevated)', marginBottom: '2rem' }}>
         <h3 className="heading-3" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          <Users size={20} color="var(--brand-primary)" /> My Network
+          <Users size={20} color="var(--brand-primary)" /> My Indoor Cricket Community
           <span style={{ marginLeft: 'auto', fontSize: '0.8rem', fontWeight: 400, color: 'var(--text-secondary)' }}>
             {directRefs.length} player{directRefs.length !== 1 ? 's' : ''} referred
           </span>
