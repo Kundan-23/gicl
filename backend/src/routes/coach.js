@@ -16,7 +16,9 @@ router.get('/referrals',         coachController.getReferrals);
 
 // Coach Slots
 const coachSlotController = require('../controllers/coachSlotController');
+const matchBookingController = require('../controllers/matchBookingController');
 router.get('/practice-matches',  coachSlotController.getPracticeMatches);
+router.get('/available-matches', matchBookingController.getAvailableMatches);
 router.post('/squad-matches',    coachSlotController.submitMatchSquad);
 router.post('/training-slots',   coachSlotController.submitTrainingSlot);
 router.get('/training-slots',    coachSlotController.getTrainingSlots);

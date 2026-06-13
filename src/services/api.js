@@ -73,6 +73,7 @@ export const coachAPI = {
   addUpload:    (data)       => API.post('/coach/uploads', data),
   getMyUploads: ()           => API.get('/coach/uploads'),
   getMatches:   ()           => API.get('/coach/matches'),
+  getAvailableMatches: ()      => API.get('/coach/available-matches'),
   getReferrals: ()           => API.get('/coach/referrals'),
   // Slots & Scheduling
   getPracticeMatches: ()         => API.get('/coach/practice-matches'),
