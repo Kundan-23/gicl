@@ -496,39 +496,6 @@ const Step2_BasicRegistration = () => {
           />
 
           <Controller
-            name="city"
-            control={control}
-            rules={{ required: 'Required' }}
-            render={({ field }) => (
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label">City *</label>
-                <input {...field} className="form-input" placeholder="London" />
-                {errors.city && <span className="form-error">{errors.city.message}</span>}
-              </div>
-            )}
-          />
-
-          <Controller
-            name="country"
-            control={control}
-            rules={{ required: 'Required' }}
-            render={({ field }) => (
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label className="form-label">Country *</label>
-                <select {...field} className="form-input">
-                  <option value="">Select Country</option>
-                  <option value="United Kingdom">United Kingdom</option>
-                  <option value="India">India</option>
-                  <option value="United States">United States</option>
-                  <option value="Australia">Australia</option>
-                  <option value="Canada">Canada</option>
-                </select>
-                {errors.country && <span className="form-error">{errors.country.message}</span>}
-              </div>
-            )}
-          />
-
-          <Controller
             name="zipCode"
             control={control}
             rules={{
@@ -562,6 +529,39 @@ const Step2_BasicRegistration = () => {
                   </span>
                 )}
                 {errors.zipCode && <span className="form-error">{errors.zipCode.message}</span>}
+              </div>
+            )}
+          />
+
+          <Controller
+            name="city"
+            control={control}
+            rules={{ required: 'Required' }}
+            render={({ field }) => (
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">City *</label>
+                <input {...field} className="form-input" placeholder="London" />
+                {errors.city && <span className="form-error">{errors.city.message}</span>}
+              </div>
+            )}
+          />
+
+          <Controller
+            name="country"
+            control={control}
+            rules={{ required: 'Required' }}
+            render={({ field }) => (
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">Country *</label>
+                <select {...field} className="form-input">
+                  <option value="">Select Country</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                  <option value="India">India</option>
+                  <option value="United States">United States</option>
+                  <option value="Australia">Australia</option>
+                  <option value="Canada">Canada</option>
+                </select>
+                {errors.country && <span className="form-error">{errors.country.message}</span>}
               </div>
             )}
           />
