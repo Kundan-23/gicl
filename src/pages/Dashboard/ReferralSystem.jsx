@@ -100,24 +100,30 @@ const ReferralSystem = () => {
 
       {/* Bonus Level Banners */}
       <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{ minWidth: '180px', backgroundColor: 'var(--brand-primary)', color: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', textAlign: 'center', flexShrink: 0, opacity: configReferral?.level1Active ? 1 : 0.5 }}>
-          <h3 style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
-            {configReferral?.level1Name || '1st Referral'} {!configReferral?.level1Active && <span title="Locked" style={{ fontSize: '1rem' }}>🔒</span>}
-          </h3>
-          <span style={{ fontSize: '2rem', fontWeight: 800 }}>₹{bonusLevels.level1}</span>
-        </div>
-        <div style={{ minWidth: '180px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--brand-primary)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', textAlign: 'center', flexShrink: 0, opacity: configReferral?.level2Active ? 1 : 0.5 }}>
-          <h3 style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem', color: 'var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
-            {configReferral?.level2Name || '2nd Referral'} {!configReferral?.level2Active && <span title="Locked" style={{ fontSize: '1rem' }}>🔒</span>}
-          </h3>
-          <span style={{ fontSize: '2rem', fontWeight: 800 }}>₹{bonusLevels.level2}</span>
-        </div>
-        <div style={{ minWidth: '180px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--bg-surface-elevated)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', textAlign: 'center', flexShrink: 0, opacity: configReferral?.level3Active ? 1 : 0.5 }}>
-          <h3 style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
-            {configReferral?.level3Name || '3rd Onwards'} {!configReferral?.level3Active && <span title="Locked" style={{ fontSize: '1rem' }}>🔒</span>}
-          </h3>
-          <span style={{ fontSize: '2rem', fontWeight: 800 }}>₹{bonusLevels.level3plus} <span style={{ fontSize: '1rem', fontWeight: 500 }}>each</span></span>
-        </div>
+        {configReferral?.level1Active !== false && (
+          <div style={{ minWidth: '180px', backgroundColor: 'var(--brand-primary)', color: 'var(--bg-surface)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', textAlign: 'center', flexShrink: 0 }}>
+            <h3 style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
+              {configReferral?.level1Name || '1st Referral'}
+            </h3>
+            <span style={{ fontSize: '2rem', fontWeight: 800 }}>₹{bonusLevels.level1}</span>
+          </div>
+        )}
+        {configReferral?.level2Active !== false && (
+          <div style={{ minWidth: '180px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--brand-primary)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', textAlign: 'center', flexShrink: 0 }}>
+            <h3 style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem', color: 'var(--brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
+              {configReferral?.level2Name || '2nd Referral'}
+            </h3>
+            <span style={{ fontSize: '2rem', fontWeight: 800 }}>₹{bonusLevels.level2}</span>
+          </div>
+        )}
+        {configReferral?.level3Active !== false && (
+          <div style={{ minWidth: '180px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--bg-surface-elevated)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', textAlign: 'center', flexShrink: 0 }}>
+            <h3 style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' }}>
+              {configReferral?.level3Name || '3rd Onwards'}
+            </h3>
+            <span style={{ fontSize: '2rem', fontWeight: 800 }}>₹{bonusLevels.level3plus} <span style={{ fontSize: '1rem', fontWeight: 500 }}>each</span></span>
+          </div>
+        )}
       </div>
 
       {/* Code + Wallet row */}
