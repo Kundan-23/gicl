@@ -315,7 +315,14 @@ const PlayerDetail = () => {
           <InfoRow label="GICL ID" value={player.gicl_id} />
           <InfoRow label="Phone / WhatsApp" value={player.whatsapp || player.phone} />
           <InfoRow label="Gender" value={player.gender} />
-          <InfoRow label="Date of Birth" value={player.dob ? new Date(player.dob).toLocaleDateString('en-IN') : null} />
+          <InfoRow 
+            label="Date of Birth" 
+            value={
+              player.dob 
+                ? `${new Date(player.dob).toLocaleDateString('en-IN')} (Age: ${Math.floor((Date.now() - new Date(player.dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))} Yrs)` 
+                : null
+            } 
+          />
           <InfoRow label="Blood Group" value={player.blood_group} />
           <InfoRow label="Parent / Guardian" value={player.parent_name} />
         </Section>

@@ -12,7 +12,7 @@ exports.getProfile = asyncHandler(async (req, res) => {
 exports.getPlayers = asyncHandler(async (req, res) => {
   const { data: players, error } = await supabase
     .from('players')
-    .select('id, gicl_id, first_name, last_name, email, whatsapp, city, plan, payment_status, docs_approved, batting_style, bowling_style, profile_photo_url, training_attempt_url')
+    .select('id, gicl_id, first_name, last_name, dob, email, whatsapp, city, plan, payment_status, docs_approved, batting_style, bowling_style, profile_photo_url, training_attempt_url')
     .eq('allocated_coach_id', req.user.id)
     .order('first_name', { ascending: true });
   if (error) throw new Error(error.message);
