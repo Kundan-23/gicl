@@ -1,13 +1,37 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
-import { Calendar, MapPin, IndianRupee, ShieldCheck, Share2, CheckCircle2, Users, Tag, Zap } from 'lucide-react';
+import { Calendar, MapPin, IndianRupee, ShieldCheck, Share2, CheckCircle2, Users, Tag, Zap, ChevronDown } from 'lucide-react';
 import { playerAPI } from '../../services/api';
 
 const TYPE_COLORS = {
   league:     { bg: '#3b82f6', glow: 'rgba(59,130,246,0.15)' },
   friendly:   { bg: '#10b981', glow: 'rgba(16,185,129,0.15)' },
   tournament: { bg: '#f59e0b', glow: 'rgba(245,158,11,0.15)' },
+};
+
+const CollapsibleSection = ({ title, content }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  if (!content) return null;
+
+  return (
+    <div style={{ marginBottom: '0.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        style={{ padding: '0.6rem 0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
+      >
+        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: isOpen ? 'var(--brand-primary)' : 'rgba(255,255,255,0.7)' }}>{title}</span>
+        <span style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.4)', transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none', display: 'flex' }}>
+          <ChevronDown size={16} />
+        </span>
+      </div>
+      {isOpen && (
+        <div style={{ padding: '0 0.75rem 0.75rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+          {content}
+        </div>
+      )}
+    </div>
+  );
 };
 
 const MatchBookings = () => {
@@ -315,12 +339,11 @@ const MatchBookings = () => {
                     </div>
                   )}
 
-                  {/* Description */}
-                  {match.description && (
-                    <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1rem', padding: '0.6rem 0.75rem', background: 'rgba(255,255,255,0.04)', borderRadius: 10, lineHeight: 1.5 }}>
-                      {match.description}
-                    </p>
-                  )}
+                  {/* Description & Rules */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <CollapsibleSection title="About the Match" content={match.description} />
+                    <CollapsibleSection title="Terms & Conditions" content={match.rules} />
+                  </div>
 
                   {/* Divider */}
                   <div style={{ height: 1, background: 'rgba(255,255,255,0.07)', margin: '0 -0.25rem 1rem' }} />

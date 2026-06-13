@@ -323,7 +323,7 @@ exports.getMatches = asyncHandler(async (req, res) => {
 const googleCalendar = require('../services/googleCalendar');
 
 exports.createMatch = asyncHandler(async (req, res) => {
-  const { title, date, venue, description, match_type = 'Practice', age_category = 'Open (All Ages)', price_per_slot = 0, total_slots = 0 } = req.body;
+  const { title, date, venue, description, rules, match_type = 'Practice', age_category = 'Open (All Ages)', price_per_slot = 0, total_slots = 0 } = req.body;
 
   // Create Google Calendar event
   let google_event_id = null;
@@ -343,7 +343,7 @@ exports.createMatch = asyncHandler(async (req, res) => {
     .insert({
       title, date,
       venue, location: venue,
-      description,
+      description, rules,
       match_type, type: match_type,
       age_category,
       price_per_slot, total_slots, google_event_id
@@ -355,12 +355,13 @@ exports.createMatch = asyncHandler(async (req, res) => {
 });
 
 exports.updateMatch = asyncHandler(async (req, res) => {
-  const { title, date, venue, description, result, match_type, age_category, price_per_slot, total_slots } = req.body;
+  const { title, date, venue, description, rules, result, match_type, age_category, price_per_slot, total_slots } = req.body;
   const updateData = {};
   if (title !== undefined)        { updateData.title = title; }
   if (date !== undefined)         { updateData.date = date; }
   if (venue !== undefined)        { updateData.venue = venue; updateData.location = venue; }
   if (description !== undefined)  { updateData.description = description; }
+  if (rules !== undefined)        { updateData.rules = rules; }
   if (result !== undefined)       { updateData.result = result; }
   if (match_type !== undefined)   { updateData.match_type = match_type; updateData.type = match_type; }
   if (age_category !== undefined) { updateData.age_category = age_category; }

@@ -11,7 +11,7 @@ const labelStyle = { display: 'block', fontSize: '0.8rem', color: 'var(--text-se
 const MATCH_TYPES = ['League', 'Friendly', 'Tournament', 'Practice', 'Intro Match'];
 const MATCH_TYPE_COLORS = { League: '#3b82f6', Friendly: '#10b981', Tournament: '#f59e0b', Practice: '#a78bfa', 'Intro Match': '#f97316' };
 const AGE_CATEGORIES = ['U-13', 'U-15', 'U-17', 'U-19', 'U-22', 'Open', '35+', '40+', '45+', '50+', '55+', '60+', '65+'];
-const EMPTY = { title: '', date: '', venue: '', match_type: 'League', base_age: 'U-13', gender: 'Boys', description: '', price_per_slot: 0, total_slots: 0 };
+const EMPTY = { title: '', date: '', venue: '', match_type: 'League', base_age: 'U-13', gender: 'Boys', description: '', rules: '', price_per_slot: 0, total_slots: 0 };
 
 // Custom dark-themed dropdown
 const DarkSelect = ({ value, onChange, options }) => {
@@ -250,8 +250,12 @@ const MatchModal = ({ match, onClose, onSave }) => {
                 <input value={form.venue} onChange={e => set('venue', e.target.value)} style={inputStyle} placeholder="Ground / location" />
               </div>
               <div>
-                <label style={labelStyle}>Description</label>
+                <label style={labelStyle}>About the Match</label>
                 <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} placeholder="Optional notes…" />
+              </div>
+              <div>
+                <label style={labelStyle}>Terms & Conditions / Rules</label>
+                <textarea value={form.rules || ''} onChange={e => set('rules', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} placeholder="Optional rules or terms for this match…" />
               </div>
             </>
           )}
