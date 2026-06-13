@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { adminAPI } from '../../services/adminAPI';
+import { useConfig } from '../../context/ConfigContext';
 import { Save, Plus, Trash2, Image as ImageIcon, ChevronDown, ChevronUp, X } from 'lucide-react';
 import Swal from 'sweetalert2';
 
