@@ -77,7 +77,7 @@ const AdminLayout = () => {
         <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
           {appLogoUrl ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-              <img src={appLogoUrl} alt="App Logo" style={{ maxWidth: '100%', maxHeight: '48px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
+              <img src={appLogoUrl} alt="App Logo" style={{ maxWidth: '100%', maxHeight: '120px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
             </div>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

@@ -63,7 +63,7 @@ const AdminDashboardLayout = () => {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           {appLogoUrl ? (
-            <img src={appLogoUrl} alt="App Logo" style={{ maxWidth: '100%', maxHeight: '60px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
+            <img src={appLogoUrl} alt="App Logo" style={{ maxWidth: '100%', maxHeight: '120px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--brand-accent)' }}>
               <ShieldCheck size={28} />

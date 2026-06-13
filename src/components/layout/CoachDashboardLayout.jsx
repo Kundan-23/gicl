@@ -81,7 +81,7 @@ const CoachDashboardLayout = () => {
         className="sidebar-desktop"
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <img src={appLogoUrl || "/logo/logo.png"} alt="GICL Logo" style={{ maxWidth: '100%', maxHeight: '80px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
+          <img src={appLogoUrl || "/logo/logo.png"} alt="GICL Logo" style={{ maxWidth: '100%', maxHeight: '120px', width: 'auto', height: 'auto', objectFit: 'contain' }} />
           <button onClick={() => setIsSidebarOpen(false)} style={{ background: 'none', color: 'var(--text-secondary)' }} className="close-btn-mobile">
             <X size={24} />
           </button>
