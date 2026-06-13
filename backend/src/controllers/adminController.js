@@ -9,12 +9,18 @@ exports.getStats = asyncHandler(async (req, res) => {
     { count: pendingCashouts },
     { data: recentPlayers },
     { data: cashoutSum },
+    { count: pendingAllotment },
+    { count: pendingVideoReview },
+    { count: pendingTrainingApprovals }
   ] = await Promise.all([
     supabase.from('players').select('*', { count: 'exact', head: true }),
     supabase.from('players').select('*', { count: 'exact', head: true }).eq('payment_status', 'paid'),
     supabase.from('cashout_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('players').select('id, first_name, last_name, gicl_id, email, plan, payment_status, created_at').order('created_at', { ascending: false }).limit(10),
     supabase.from('cashout_requests').select('amount').eq('status', 'approved'),
+    supabase.from('players').select('*', { count: 'exact', head: true }).eq('payment_status', 'paid').is('allocated_coach_id', null),
+    supabase.from('coach_video_uploads').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('training_slots').select('*', { count: 'exact', head: true }).eq('status', 'pending')
   ]);
 
   const totalPaidOut = (cashoutSum || []).reduce((sum, c) => sum + (c.amount || 0), 0);
@@ -23,7 +29,16 @@ exports.getStats = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    stats: { totalPlayers, paidPlayers, pendingCashouts, todayRegistrations: todayCount, totalPaidOut },
+    stats: { 
+      totalPlayers, 
+      paidPlayers, 
+      pendingCashouts, 
+      todayRegistrations: todayCount, 
+      totalPaidOut,
+      pendingAllotment,
+      pendingVideoReview,
+      pendingTrainingApprovals
+    },
     recentPlayers: recentPlayers || [],
   });
 });

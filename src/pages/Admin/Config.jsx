@@ -176,7 +176,7 @@ const Config = () => {
   const ballFileRef = useRef();
   const [ageGroups, setAgeGroups] = useState([]); // array of { cat, sub, color }
   const [showAgeForm, setShowAgeForm] = useState(false);
-  const [newAge, setNewAge] = useState({ cat: '', sub: '', color: '#F9CB1A' });
+  const [newAge, setNewAge] = useState({ cat: '', sub: '', color: '#F9CB1A', min: '', max: '' });
   const [maxPlayersPerCoach, setMaxPlayersPerCoach] = useState(20);
 
   // Tab 5 — Registration T&C
@@ -460,9 +460,16 @@ const Config = () => {
   // ─── Age Groups ───────────────────────────────────────────────────────────
   const handleAddAgeGroup = async () => {
     if (!newAge.cat.trim() || !newAge.sub.trim()) return;
-    const updated = [...ageGroups, { ...newAge }];
+    const minVal = newAge.min ? parseInt(newAge.min) : 0;
+    const maxVal = newAge.max ? parseInt(newAge.max) : 99;
+    const updated = [...ageGroups, { 
+      cat: newAge.cat, 
+      sub: newAge.sub, 
+      color: newAge.color,
+      range: [minVal, maxVal]
+    }];
     setAgeGroups(updated);
-    setNewAge({ cat: '', sub: '', color: '#F9CB1A' });
+    setNewAge({ cat: '', sub: '', color: '#F9CB1A', min: '', max: '' });
     setShowAgeForm(false);
     await adminAPI.updateConfig({ age_groups: updated });
   };
@@ -895,6 +902,7 @@ const Config = () => {
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 0.9rem', backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                   <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 600 }}>{ag.cat}</span>
                   <span style={{ flex: 1, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{ag.sub}</span>
+                  <span style={{ flex: 1, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{ag.range ? `Age: ${ag.range[0]} - ${ag.range[1]} yrs` : 'Age: 0 - 99 yrs'}</span>
                   <input
                     type="color"
                     value={ag.color || '#F9CB1A'}
@@ -927,11 +935,19 @@ const Config = () => {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-end', padding: '1rem', backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                   <div>
                     <label style={labelStyle}>Category</label>
-                    <input value={newAge.cat} onChange={e => setNewAge(a => ({ ...a, cat: e.target.value }))} style={{ ...inputStyle, width: '140px' }} placeholder="e.g. Under" />
+                    <input value={newAge.cat} onChange={e => setNewAge(a => ({ ...a, cat: e.target.value }))} style={{ ...inputStyle, width: '120px' }} placeholder="e.g. Juniors" />
                   </div>
                   <div>
                     <label style={labelStyle}>Sub-group</label>
-                    <input value={newAge.sub} onChange={e => setNewAge(a => ({ ...a, sub: e.target.value }))} style={{ ...inputStyle, width: '120px' }} placeholder="e.g. U-13" />
+                    <input value={newAge.sub} onChange={e => setNewAge(a => ({ ...a, sub: e.target.value }))} style={{ ...inputStyle, width: '100px' }} placeholder="e.g. U-13" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Min Age</label>
+                    <input type="number" value={newAge.min} onChange={e => setNewAge(a => ({ ...a, min: e.target.value }))} style={{ ...inputStyle, width: '80px' }} placeholder="0" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Max Age</label>
+                    <input type="number" value={newAge.max} onChange={e => setNewAge(a => ({ ...a, max: e.target.value }))} style={{ ...inputStyle, width: '80px' }} placeholder="99" />
                   </div>
                   <div>
                     <label style={labelStyle}>Color</label>
@@ -944,7 +960,7 @@ const Config = () => {
                     <Plus size={14} /> Add
                   </button>
                   <button
-                    onClick={() => { setShowAgeForm(false); setNewAge({ cat: '', sub: '', color: '#F9CB1A' }); }}
+                    onClick={() => { setShowAgeForm(false); setNewAge({ cat: '', sub: '', color: '#F9CB1A', min: '', max: '' }); }}
                     style={{ background: 'none', color: 'var(--text-secondary)', border: 'none', cursor: 'pointer', fontSize: '0.8rem', textDecoration: 'underline' }}
                   >
                     Cancel
