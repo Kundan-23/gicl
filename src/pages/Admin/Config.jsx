@@ -348,7 +348,7 @@ const Config = () => {
       const url = await uploadFile(file, '/admin/config/app-logo/upload');
       setAppLogo(url);
       
-      await adminAPI.updateConfig({ app_logo_url: url, appLogoUrl: url });
+      await adminAPI.updateConfig({ app_logo_url: url });
       if (refetch) refetch();
       
       Swal.fire({ icon: 'success', title: 'Uploaded!', text: 'App Logo updated.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
@@ -359,7 +359,7 @@ const Config = () => {
 
   const handleRemoveLogo = async () => {
     setAppLogo('');
-    await adminAPI.updateConfig({ app_logo_url: '', appLogoUrl: '' });
+    await adminAPI.updateConfig({ app_logo_url: '' });
     if (refetch) refetch();
   };
 

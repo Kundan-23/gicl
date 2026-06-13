@@ -524,7 +524,7 @@ exports.updateConfig = asyncHandler(async (req, res) => {
     'referral_level1_active', 'referral_level2_active', 'referral_level3plus_active',
     'referral_min_cashout', 'max_squad_size', 'match_team_size',
     'banners', 'ad_banners', 'landing_bg_image', 'registration_terms',
-    'basic_training_videos', 'advance_training_fee', 'app_logo_url', 'appLogoUrl'
+    'basic_training_videos', 'advance_training_fee', 'app_logo_url'
   ];
   const updateData = {};
   for (const key of allowed) {
