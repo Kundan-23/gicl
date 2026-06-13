@@ -595,7 +595,7 @@ const Config = () => {
                 </button>
 
                 <p style={{ fontSize: '0.75rem', color: 'var(--brand-primary)', fontWeight: 700, marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.08em', paddingRight: '5rem' }}>
-                  Plan {(plan.id || `#${pi + 1}`)?.toString().toUpperCase()}
+                  Plan P{pi + 1}
                 </p>
 
                 <div style={{ marginBottom: '0.75rem' }}>
