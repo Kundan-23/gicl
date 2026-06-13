@@ -25,7 +25,26 @@ const EMPTY_FORM = {
 
 // ─── Comprehensive Coach Form ──────────────────────────────────────────────
 const CoachFormDrawer = ({ coach, onClose, onSave }) => {
-  const [form, setForm]       = useState(coach ? { ...EMPTY_FORM, ...coach, password: '' } : { ...EMPTY_FORM });
+  const [form, setForm]       = useState(coach ? { 
+    ...EMPTY_FORM, 
+    ...coach,
+    emergency_contact: coach.emergency_contact || coach.emergencyContact || '',
+    emergency_contact_name: coach.emergency_contact_name || coach.emergencyContactName || '',
+    address_line1: coach.address_line1 || coach.addressLine1 || '',
+    address_line2: coach.address_line2 || coach.addressLine2 || '',
+    city: coach.city || '',
+    country: coach.country || 'India',
+    zip_code: coach.zip_code || coach.zipCode || '',
+    batting_style: coach.batting_style || coach.battingStyle || '',
+    bowling_style: coach.bowling_style || coach.bowlingStyle || '',
+    jersey_size: coach.jersey_size || coach.jerseySize || '',
+    instagram_link: coach.instagram_link || coach.instagramLink || '',
+    cricket_history: coach.cricket_history || coach.cricketHistory || '',
+    coaching_history: coach.coaching_history || coach.coachingHistory || '',
+    referred_by_phone: coach.referred_by_phone || coach.referredByPhone || '',
+    profile_photo_url: coach.profile_photo_url || coach.profilePhotoUrl || '',
+    password: '' 
+  } : { ...EMPTY_FORM });
   const [saving, setSaving]   = useState(false);
   const [photoPreview, setPhotoPreview] = useState(coach?.profile_photo_url || null);
   const [pincodeState, setPincodeState] = useState({ loading: false, stateName: '', error: '' });
@@ -224,8 +243,6 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
               <input style={inp} value={form.address_line2} onChange={e => set('address_line2', e.target.value)} placeholder="Area, Landmark (optional)" />
             </div>
             <div style={{ ...grid3, marginBottom: '0.875rem' }}>
-              <div style={fgrp}><label style={lbl}>City</label><input style={inp} value={form.city} onChange={e => set('city', e.target.value)} placeholder="City" /></div>
-              <div style={fgrp}><label style={lbl}>Country</label><input style={inp} value={form.country} onChange={e => set('country', e.target.value)} placeholder="India" /></div>
               <div style={fgrp}>
                 <label style={lbl}>Pincode</label>
                 <input type="tel" style={inp} value={form.zip_code} onChange={e => set('zip_code', e.target.value)} placeholder="400001" maxLength={6} />
@@ -233,6 +250,8 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
                 {pincodeState.stateName && !pincodeState.loading && <span style={{ fontSize: '0.78rem', color: 'var(--success)', display: 'block', marginTop: '0.25rem', fontWeight: 600 }}>📍 {pincodeState.stateName}</span>}
                 {pincodeState.error && <span style={{ fontSize: '0.78rem', color: 'var(--error)', display: 'block', marginTop: '0.25rem' }}>⚠️ {pincodeState.error}</span>}
               </div>
+              <div style={fgrp}><label style={lbl}>City</label><input style={inp} value={form.city} onChange={e => set('city', e.target.value)} placeholder="City" /></div>
+              <div style={fgrp}><label style={lbl}>Country</label><input style={inp} value={form.country} onChange={e => set('country', e.target.value)} placeholder="India" /></div>
             </div>
           </div>
 
