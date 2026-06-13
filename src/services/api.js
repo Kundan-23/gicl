@@ -136,7 +136,7 @@ export const trainingAPI = {
 // ─── Public ────────────────────────────────────────────────
 export const publicAPI = {
   getConfig:       ()     => API.get('/config'),
-  validateReferral:(code) => API.get(`/referral/validate/${code}`),
+  validateReferral:(code) => API.post('/referral/validate-code', { code }),
 };
 
 // ─── Referral ──────────────────────────────────────────────

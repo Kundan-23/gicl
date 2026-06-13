@@ -48,22 +48,26 @@ const Step2_BasicRegistration = () => {
     if (!referralCode || referralCode.length < 9) {
       setValue('referralFirstName', '');
       setValue('referralLastName', '');
+      setValue('referralPhone', '');
       return;
     }
     const timer = setTimeout(async () => {
       try {
         const res = await publicAPI.validateReferral(referralCode.toUpperCase());
-        if (res.data.valid) {
-          const parts = (res.data.referrerName || '').split(' ');
+        if (res.data?.success) {
+          const parts = (res.data.referrer?.name || '').split(' ');
           setValue('referralFirstName', parts[0] || '');
           setValue('referralLastName', parts.slice(1).join(' ') || '');
+          setValue('referralPhone', res.data.referrer?.phone || '');
         } else {
           setValue('referralFirstName', '');
           setValue('referralLastName', '');
+          setValue('referralPhone', '');
         }
       } catch {
         setValue('referralFirstName', '');
         setValue('referralLastName', '');
+        setValue('referralPhone', '');
       }
     }, 600);
     return () => clearTimeout(timer);
@@ -232,7 +236,7 @@ const Step2_BasicRegistration = () => {
           />
 
           {referralCode && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
               <Controller
                 name="referralFirstName"
                 control={control}
@@ -249,6 +253,16 @@ const Step2_BasicRegistration = () => {
                 render={({ field }) => (
                   <div className="form-group">
                     <label className="form-label">Referrer Last Name</label>
+                    <input {...field} className="form-input" readOnly style={{ opacity: 0.7 }} />
+                  </div>
+                )}
+              />
+              <Controller
+                name="referralPhone"
+                control={control}
+                render={({ field }) => (
+                  <div className="form-group">
+                    <label className="form-label">Referrer Phone</label>
                     <input {...field} className="form-input" readOnly style={{ opacity: 0.7 }} />
                   </div>
                 )}

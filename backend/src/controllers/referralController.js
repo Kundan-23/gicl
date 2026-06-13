@@ -201,14 +201,14 @@ exports.validateCode = asyncHandler(async (req, res) => {
   let referrerType = 'player';
   let { data: referrer } = await supabase
     .from('players')
-    .select('id, first_name, last_name, gicl_id')
+    .select('id, first_name, last_name, gicl_id, whatsapp')
     .eq('referral_code', code.toUpperCase().trim())
     .maybeSingle();
 
   if (!referrer) {
     const { data: coachRef } = await supabase
       .from('coaches')
-      .select('id, first_name, last_name, gicl_id')
+      .select('id, first_name, last_name, gicl_id, whatsapp')
       .eq('referral_code', code.toUpperCase().trim())
       .maybeSingle();
       
@@ -225,6 +225,6 @@ exports.validateCode = asyncHandler(async (req, res) => {
   res.json({
     success:  true,
     message:  `Valid! Referred by ${(referrer.first_name || '') + ' ' + (referrer.last_name || '')} (${referrer.gicl_id || 'GICL Coach'})`,
-    referrer: { id: referrer.id, type: referrerType, name: `${referrer.first_name || ''} ${referrer.last_name || ''}`.trim() },
+    referrer: { id: referrer.id, type: referrerType, name: `${referrer.first_name || ''} ${referrer.last_name || ''}`.trim(), phone: referrer.whatsapp || '' },
   });
 });
