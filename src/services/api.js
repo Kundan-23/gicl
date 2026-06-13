@@ -75,6 +75,7 @@ export const coachAPI = {
   getMatches:   ()           => API.get('/coach/matches'),
   getAvailableMatches: ()      => API.get('/coach/available-matches'),
   getReferrals: ()           => API.get('/coach/referrals'),
+  requestCashout: (data)     => API.post('/coach/referrals/cashout', data),
   // Slots & Scheduling
   getPracticeMatches: ()         => API.get('/coach/practice-matches'),
   submitMatchSquad:   (data)     => API.post('/coach/squad-matches', data),

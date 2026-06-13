@@ -13,6 +13,7 @@ router.post('/uploads',          coachController.addUpload);
 router.get('/uploads',           coachController.getMyUploads);
 router.get('/matches',           coachController.getMatches);
 router.get('/referrals',         coachController.getReferrals);
+router.post('/referrals/cashout', coachController.requestCashout);
 
 // Coach Slots
 const coachSlotController = require('../controllers/coachSlotController');

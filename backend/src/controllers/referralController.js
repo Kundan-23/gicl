@@ -41,15 +41,29 @@ async function creditReferralChain(newPlayerId) {
     // If the level is locked (inactive), the bonus is 0 but the chain still progresses
     if (!isActive) bonus = 0;
 
-    const { data: referrer } = await supabase
+    const { data: referrerPlayer } = await supabase
       .from('players')
       .select('referral_balance')
       .eq('id', referrerId)
-      .single();
+      .maybeSingle();
 
-    const newBalance = (referrer?.referral_balance || 0) + bonus;
-
-    await supabase.from('players').update({ referral_balance: newBalance }).eq('id', referrerId);
+    if (referrerPlayer) {
+      const newBalance = (referrerPlayer.referral_balance || 0) + bonus;
+      await supabase.from('players').update({ referral_balance: newBalance }).eq('id', referrerId);
+    } else {
+      const { data: referrerCoach } = await supabase
+        .from('coaches')
+        .select('referral_points')
+        .eq('id', referrerId)
+        .maybeSingle();
+      
+      if (referrerCoach) {
+        const newBalance = (referrerCoach.referral_points || 0) + bonus;
+        await supabase.from('coaches').update({ referral_points: newBalance }).eq('id', referrerId);
+      } else {
+        break; // Referrer not found anywhere, break the chain
+      }
+    }
 
     await supabase.from('referrals').insert({
       referrer_id:   referrerId,
@@ -184,11 +198,25 @@ exports.validateCode = asyncHandler(async (req, res) => {
   const { code } = req.body;
   if (!code) return res.status(400).json({ success: false, message: 'Referral code required.' });
 
-  const { data: referrer } = await supabase
+  let referrerType = 'player';
+  let { data: referrer } = await supabase
     .from('players')
     .select('id, first_name, last_name, gicl_id')
     .eq('referral_code', code.toUpperCase().trim())
     .maybeSingle();
+
+  if (!referrer) {
+    const { data: coachRef } = await supabase
+      .from('coaches')
+      .select('id, first_name, last_name, gicl_id')
+      .eq('referral_code', code.toUpperCase().trim())
+      .maybeSingle();
+      
+    if (coachRef) {
+      referrer = coachRef;
+      referrerType = 'coach';
+    }
+  }
 
   if (!referrer) {
     return res.status(404).json({ success: false, message: 'Invalid referral code.' });
@@ -196,7 +224,7 @@ exports.validateCode = asyncHandler(async (req, res) => {
 
   res.json({
     success:  true,
-    message:  `Valid! Referred by ${(referrer.first_name || '') + ' ' + (referrer.last_name || '')} (${referrer.gicl_id || 'GICL Member'})`,
-    referrer: { id: referrer.id, name: `${referrer.first_name || ''} ${referrer.last_name || ''}`.trim() },
+    message:  `Valid! Referred by ${(referrer.first_name || '') + ' ' + (referrer.last_name || '')} (${referrer.gicl_id || 'GICL Coach'})`,
+    referrer: { id: referrer.id, type: referrerType, name: `${referrer.first_name || ''} ${referrer.last_name || ''}`.trim() },
   });
 });

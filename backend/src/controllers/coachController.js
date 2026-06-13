@@ -112,6 +112,103 @@ exports.getMatches = asyncHandler(async (req, res) => {
 });
 
 exports.getReferrals = asyncHandler(async (req, res) => {
-  const { data: coach } = await supabase.from('coaches').select('referral_code, referral_points').eq('id', req.user.id).single();
-  res.json({ success: true, referralCode: coach?.referral_code, referralPoints: coach?.referral_points || 0 });
+  const coachId = req.user.id;
+
+  const { data: coach } = await supabase
+    .from('coaches')
+    .select('referral_code, referral_points')
+    .eq('id', coachId)
+    .single();
+
+  const { data: directReferrals } = await supabase
+    .from('players')
+    .select('id, first_name, last_name, gicl_id, payment_status, created_at')
+    .eq('referred_by_id', coachId)
+    .order('created_at', { ascending: false });
+
+  const { data: ledger } = await supabase
+    .from('referrals')
+    .select('*, referred_id(first_name, last_name, gicl_id, created_at)')
+    .eq('referrer_id', coachId)
+    .order('created_at', { ascending: false });
+
+  const { data: cfg } = await supabase
+    .from('app_config')
+    .select('referral_min_cashout, referral_level1, referral_level2, referral_level3plus')
+    .eq('id', 1)
+    .single();
+
+  res.json({
+    success: true,
+    referralCode:    coach?.referral_code,
+    balance:         coach?.referral_points || 0,
+    minCashout:      cfg?.referral_min_cashout || 500,
+    bonusLevels:     { level1: cfg?.referral_level1 ?? 50, level2: cfg?.referral_level2 ?? 20, level3plus: cfg?.referral_level3plus ?? 10 },
+    directReferrals: directReferrals || [],
+    ledger:          ledger || [],
+  });
+});
+
+exports.requestCashout = asyncHandler(async (req, res) => {
+  const { amount, method, upiId, bankName, accountNo, ifscCode } = req.body;
+  const coachId = req.user.id;
+
+  const { data: coach } = await supabase
+    .from('coaches')
+    .select('referral_points')
+    .eq('id', coachId)
+    .single();
+
+  const balance = coach?.referral_points || 0;
+
+  const { data: cfg } = await supabase
+    .from('app_config')
+    .select('referral_min_cashout')
+    .eq('id', 1)
+    .single();
+
+  const minCashout = cfg?.referral_min_cashout || 500;
+
+  if (amount < minCashout) {
+    return res.status(400).json({ success: false, message: `Minimum cashout is ₹${minCashout}.` });
+  }
+  if (amount > balance) {
+    return res.status(400).json({ success: false, message: `Insufficient balance. Available: ₹${balance}.` });
+  }
+
+  const { data: pending } = await supabase
+    .from('cashout_requests')
+    .select('id')
+    .eq('player_id', coachId)
+    .eq('status', 'pending')
+    .maybeSingle();
+
+  if (pending) {
+    return res.status(409).json({ success: false, message: 'You already have a pending cashout request.' });
+  }
+
+  if (method === 'upi' && !upiId) {
+    return res.status(400).json({ success: false, message: 'UPI ID is required.' });
+  }
+  if (method === 'bank' && (!bankName || !accountNo || !ifscCode)) {
+    return res.status(400).json({ success: false, message: 'Bank name, account number, and IFSC are required.' });
+  }
+
+  const { data: cashout, error } = await supabase
+    .from('cashout_requests')
+    .insert({ player_id: coachId, amount, method, upi_id: upiId || null, bank_name: bankName || null, account_no: accountNo || null, ifsc_code: ifscCode || null })
+    .select()
+    .single();
+
+  if (error) throw new Error('Failed to submit cashout: ' + error.message);
+
+  // Deduct from balance
+  await supabase.from('coaches').update({ referral_points: balance - amount }).eq('id', coachId);
+
+  res.status(201).json({
+    success: true,
+    message: `Cashout of ₹${amount} submitted. Admin will process within 3-5 business days.`,
+    cashout,
+    newBalance: balance - amount,
+  });
 });
