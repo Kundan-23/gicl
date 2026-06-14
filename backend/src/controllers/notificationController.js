@@ -26,11 +26,18 @@ exports.createNotification = async (userId, userType, title, message, type, link
  */
 exports.notifyAdmins = async (title, message, type, link = null) => {
   try {
-    const { data: admins } = await supabase.from('admins').select('id');
-    if (!admins || admins.length === 0) return;
+    const [ { data: adminsTable }, { data: playerAdmins } ] = await Promise.all([
+      supabase.from('admins').select('id'),
+      supabase.from('players').select('id').eq('role', 'admin')
+    ]);
     
-    const payloads = admins.map(admin => ({
-      user_id: admin.id,
+    const allAdmins = [...(adminsTable || []), ...(playerAdmins || [])];
+    if (allAdmins.length === 0) return;
+    
+    const uniqueIds = [...new Set(allAdmins.map(a => a.id))];
+
+    const payloads = uniqueIds.map(id => ({
+      user_id: id,
       user_type: 'admin',
       title,
       message,
@@ -38,7 +45,8 @@ exports.notifyAdmins = async (title, message, type, link = null) => {
       link
     }));
     
-    await supabase.from('notifications').insert(payloads);
+    const { error } = await supabase.from('notifications').insert(payloads);
+    if (error) console.error('[Notification Error] notifyAdmins insert failed:', error.message);
   } catch (err) {
     console.error('[Notification Error] notifyAdmins exception:', err.message);
   }
@@ -50,21 +58,12 @@ exports.notifyAdmins = async (title, message, type, link = null) => {
  */
 exports.getNotifications = async (req, res) => {
   try {
-    // req.user might be player or admin, req.coach might be coach.
-    // the auth middleware sets req.user or req.coach depending on the route.
-    let userId, userType;
-    if (req.user && req.user.role === 'admin') {
-      userId = req.user.id;
-      userType = 'admin';
-    } else if (req.coach) {
-      userId = req.coach.id;
-      userType = 'coach';
-    } else if (req.user) {
-      userId = req.user.id;
-      userType = 'player';
-    } else {
+    if (!req.user) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
+
+    const userId = req.user.id;
+    const userType = req.user.role || 'player';
 
     const { data, error } = await supabase
       .from('notifications')
@@ -109,19 +108,12 @@ exports.markAsRead = async (req, res) => {
  */
 exports.markAllAsRead = async (req, res) => {
   try {
-    let userId, userType;
-    if (req.user && req.user.role === 'admin') {
-      userId = req.user.id;
-      userType = 'admin';
-    } else if (req.coach) {
-      userId = req.coach.id;
-      userType = 'coach';
-    } else if (req.user) {
-      userId = req.user.id;
-      userType = 'player';
-    } else {
+    if (!req.user) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
+
+    const userId = req.user.id;
+    const userType = req.user.role || 'player';
 
     const { error } = await supabase
       .from('notifications')
