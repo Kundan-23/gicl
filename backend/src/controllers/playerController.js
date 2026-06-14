@@ -95,12 +95,24 @@ exports.updateProfile = asyncHandler(async (req, res) => {
         updateData.referred_by_id = referrer.id;
         console.log(`[Referral] Linked player ${req.user.id} -> referrer ${referrer.id} (code: ${body.referralCodeUsed})`);
       } else {
-        // Code was provided but not found — warn the caller so user knows
-        console.warn(`[Referral] Code not found: ${body.referralCodeUsed} for player ${req.user.id}`);
-        return res.status(400).json({
-          success: false,
-          message: `Referral code "${body.referralCodeUsed}" is invalid or does not exist. Please check and try again, or leave it blank.`,
-        });
+        // Fallback: Check if it's a coach's referral code
+        const { data: coachReferrer } = await supabase
+          .from('coaches')
+          .select('id')
+          .eq('referral_code', body.referralCodeUsed.toUpperCase().trim())
+          .maybeSingle();
+
+        if (coachReferrer) {
+          updateData.referred_by_id = coachReferrer.id;
+          console.log(`[Referral] Linked player ${req.user.id} -> coach referrer ${coachReferrer.id} (code: ${body.referralCodeUsed})`);
+        } else {
+          // Code was provided but not found anywhere — warn the caller so user knows
+          console.warn(`[Referral] Code not found: ${body.referralCodeUsed} for player ${req.user.id}`);
+          return res.status(400).json({
+            success: false,
+            message: `Referral code "${body.referralCodeUsed}" is invalid or does not exist. Please check and try again, or leave it blank.`,
+          });
+        }
       }
     }
   }
