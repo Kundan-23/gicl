@@ -4,8 +4,10 @@ import { useConfig } from '../../context/ConfigContext';
 import {
   LayoutDashboard, Users, CreditCard, Share2, Wallet,
   UserCog, Calendar, Settings, LogOut, Menu, X, ShieldCheck,
-  ChevronRight, Video, Users2,
+  ChevronRight, Video, Users2, Bell
 } from 'lucide-react';
+import { useNotificationStore } from '../../store/useNotificationStore';
+import NotificationDropdown from '../../components/layout/NotificationDropdown';
 
 const SIDEBAR_WIDTH = 240;
 
@@ -23,8 +25,10 @@ const navLinks = [
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { appLogoUrl } = useConfig();
   const navigate = useNavigate();
+  const { unreadCount } = useNotificationStore();
 
   // Auth guard
   const raw = localStorage.getItem('gicl_user');
@@ -140,18 +144,36 @@ const AdminLayout = () => {
         </nav>
 
         {/* Admin Info + Logout */}
-        <div style={{ padding: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', padding: '0.75rem', backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 'var(--radius-md)' }}>
-            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, #60a5fa, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.9rem', color: '#fff', flexShrink: 0 }}>
-              {(user.name || user.email || 'A').charAt(0).toUpperCase()}
+        <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600 }}>
+                {user.name ? user.name[0].toUpperCase() : 'A'}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user.name || 'Admin'}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user.email}
+                </div>
+              </div>
             </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {user.name || 'Admin'}
-              </div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {user.email}
-              </div>
+
+            {/* Notification Bell */}
+            <div style={{ position: 'relative' }} className="notif-trigger">
+              <button 
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Bell size={22} />
+                {unreadCount > 0 && (
+                  <span style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: 'var(--error)', color: '#fff', fontSize: '10px', fontWeight: 'bold', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} roleId={user?.id} roleType="admin" />
             </div>
           </div>
           <button
