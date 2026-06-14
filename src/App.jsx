@@ -54,8 +54,9 @@ import AdminPlayerAllotment from './pages/Admin/PlayerAllotment';
 import AdminTrainingSlots from './pages/Admin/AdminTrainingSlots';
 
 // ── Route Guard: redirect to /login if not authenticated ──
+// For players, also checks onboarding completion and redirects to the right step.
 function ProtectedRoute({ children, requiredRole }) {
-  const { isAuthenticated, role, loading } = useAuth();
+  const { isAuthenticated, role, loading, user } = useAuth();
   if (loading) return <div style={{ display:'flex', justifyContent:'center', alignItems:'center', height:'100vh', color:'var(--text-primary)' }}>Loading…</div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   // Wrong role: send admin to admin2, others back to landing
@@ -63,6 +64,21 @@ function ProtectedRoute({ children, requiredRole }) {
     if (role === 'admin') return <Navigate to="/admin2" replace />;
     return <Navigate to="/" replace />;
   }
+
+  // ── Player onboarding guard ─────────────────────────────
+  // If a player hasn't completed onboarding, send them to the correct step.
+  // This prevents half-registered players from seeing the locked dashboard.
+  if (requiredRole === 'player' && user) {
+    const paymentDone = user.payment_status === 'paid' || user.is_dashboard_unlocked || user.isDashboardUnlocked;
+    if (!paymentDone) {
+      return <Navigate to="/onboarding/payment" replace />;
+    }
+    const hasProfile = user.batting_style || user.bowling_style || user.height || user.weight;
+    if (!hasProfile) {
+      return <Navigate to="/onboarding/step4" replace />;
+    }
+  }
+
   return children;
 }
 

@@ -16,7 +16,23 @@ const Login = () => {
     if (isAuthenticated) {
       if (role === 'admin')        navigate('/admin2',          { replace: true });
       else if (role === 'coach')   navigate('/coach-dashboard', { replace: true });
-      else                         navigate('/dashboard',       { replace: true });
+      else {
+        // For players, check onboarding completion via stored user data
+        const stored = localStorage.getItem('gicl_user');
+        let u = null;
+        try { u = stored ? JSON.parse(stored) : null; } catch { u = null; }
+        const paymentDone = u?.payment_status === 'paid' || u?.is_dashboard_unlocked || u?.isDashboardUnlocked;
+        if (!paymentDone) {
+          navigate('/onboarding/payment', { replace: true });
+        } else {
+          const hasProfile = u?.batting_style || u?.bowling_style || u?.height || u?.weight;
+          if (!hasProfile) {
+            navigate('/onboarding/step4', { replace: true });
+          } else {
+            navigate('/dashboard', { replace: true });
+          }
+        }
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // run once on mount only
