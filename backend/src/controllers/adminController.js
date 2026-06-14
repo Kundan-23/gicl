@@ -1,5 +1,6 @@
 const supabase     = require('../config/supabase');
 const asyncHandler = require('../utils/asyncHandler');
+const { createNotification } = require('./notificationController');
 
 // ─── GET /api/admin/stats ─────────────────────────────────────────
 exports.getStats = asyncHandler(async (req, res) => {
@@ -132,8 +133,31 @@ exports.approveDocs = asyncHandler(async (req, res) => {
 // ─── PUT /api/admin/players/:id/assign-coach ─────────────────────
 exports.assignCoach = asyncHandler(async (req, res) => {
   const { coachId } = req.body;
-  const { error } = await supabase.from('players').update({ allocated_coach_id: coachId || null }).eq('id', req.params.id);
+  const playerId = req.params.id;
+
+  const { error, data: player } = await supabase
+    .from('players')
+    .update({ allocated_coach_id: coachId || null })
+    .eq('id', playerId)
+    .select('first_name, last_name, gicl_id')
+    .single();
+
   if (error) throw new Error(error.message);
+
+  if (coachId) {
+    const playerName = `${player?.first_name || ''} ${player?.last_name || ''}`.trim();
+    
+    // Notify Coach
+    await createNotification(coachId, 'coach', 'Player Allotted', `Player ${playerName} (${player?.gicl_id}) has been assigned to you.`);
+    
+    // Fetch coach name and Notify Player
+    const { data: coach } = await supabase.from('coaches').select('first_name, last_name').eq('id', coachId).single();
+    if (coach) {
+      const coachName = `${coach.first_name || ''} ${coach.last_name || ''}`.trim();
+      await createNotification(playerId, 'player', 'Coach Assigned', `Coach ${coachName} has been allotted to you.`);
+    }
+  }
+
   res.json({ success: true, message: 'Coach assigned.' });
 });
 
