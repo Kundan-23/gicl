@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, NavLink, useNavigate, Navigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { useConfig } from '../../context/ConfigContext';
 import {
   LayoutDashboard, Users, CreditCard, Share2, Wallet,
@@ -28,6 +28,7 @@ const AdminLayout = () => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const { appLogoUrl } = useConfig();
   const navigate = useNavigate();
+  const location = useLocation();
   const { unreadCount } = useNotificationStore();
 
   // Auth guard
@@ -189,33 +190,35 @@ const AdminLayout = () => {
           </div>
         </header>
 
-        {/* Global Floating Notification Bell */}
-        <div style={{ position: 'absolute', top: '2rem', right: '2rem', zIndex: 50 }} className="notif-trigger">
-          <button 
-            onClick={() => setIsNotifOpen(!isNotifOpen)}
-            style={{ 
-              background: 'var(--bg-surface-elevated)', 
-              border: '1px solid var(--border-subtle)', 
-              color: 'var(--text-primary)', 
-              cursor: 'pointer', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              width: '42px',
-              height: '42px',
-              borderRadius: '50%',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-            }}
-          >
-            <Bell size={20} />
-            {unreadCount > 0 && (
-              <span style={{ position: 'absolute', top: '-2px', right: '-2px', backgroundColor: 'var(--error)', color: '#fff', fontSize: '11px', fontWeight: 'bold', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
-          <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} roleId={user?.id} roleType="admin" />
-        </div>
+        {/* Global Floating Notification Bell - ONLY ON DASHBOARD */}
+        {(location.pathname === '/admin2' || location.pathname === '/admin2/') && (
+          <div style={{ position: 'absolute', top: '2rem', right: '2rem', zIndex: 50 }} className="notif-trigger">
+            <button 
+              onClick={() => setIsNotifOpen(!isNotifOpen)}
+              style={{ 
+                background: 'var(--bg-surface-elevated)', 
+                border: '1px solid var(--border-subtle)', 
+                color: 'var(--text-primary)', 
+                cursor: 'pointer', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                width: '42px',
+                height: '42px',
+                borderRadius: '50%',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+              }}
+            >
+              <Bell size={20} />
+              {unreadCount > 0 && (
+                <span style={{ position: 'absolute', top: '-2px', right: '-2px', backgroundColor: 'var(--error)', color: '#fff', fontSize: '11px', fontWeight: 'bold', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+            <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} roleId={user?.id} roleType="admin" />
+          </div>
+        )}
 
         <div style={{ flex: 1, padding: '2rem', overflowY: 'auto', minHeight: 0 }}>
           <Outlet />
