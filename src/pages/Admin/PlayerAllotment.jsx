@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { adminAPI } from '../../services/adminAPI';
 import { useConfig } from '../../context/ConfigContext';
-import { Users, Search, UserCog, RefreshCw, Shuffle, CheckCircle } from 'lucide-react';
+import { Users, Search, UserCog, RefreshCw, CheckCircle } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const PlayerAllotment = () => {
@@ -59,45 +59,7 @@ const PlayerAllotment = () => {
     }
   };
 
-  const handleAutoDistribute = async () => {
-    if (unassigned.length === 0) {
-      Swal.fire({ icon: 'info', title: 'All players assigned!', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
-      return;
-    }
-    if (coaches.length === 0) {
-      Swal.fire({ icon: 'warning', title: 'No coaches available.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
-      return;
-    }
-    const { isConfirmed } = await Swal.fire({
-      title: `Auto-distribute ${unassigned.length} players?`,
-      text: `Players will be evenly distributed across ${coaches.length} coach(es) using round-robin.`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: 'var(--brand-primary)',
-      confirmButtonText: 'Distribute',
-      background: 'var(--bg-surface)',
-      color: 'var(--text-primary)',
-    });
-    if (!isConfirmed) return;
 
-    const updatedPlayers = [...allPlayers];
-    const assignments = [];
-    unassigned.forEach((player, idx) => {
-      const coach = coaches[idx % coaches.length];
-      assignments.push({ playerId: player.id, coachId: coach.id });
-    });
-
-    try {
-      await Promise.all(assignments.map(({ playerId, coachId }) => adminAPI.assignCoach(playerId, coachId)));
-      const assignMap = Object.fromEntries(assignments.map(a => [a.playerId, a.coachId]));
-      setAllPlayers(prev => prev.map(p => assignMap[p.id] ? { ...p, allocated_coach_id: assignMap[p.id] } : p));
-      setUnassigned([]);
-      Swal.fire({ icon: 'success', title: 'Done!', text: `${assignments.length} players distributed.`, timer: 2000, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
-    } catch {
-      Swal.fire({ icon: 'error', title: 'Partial failure', text: 'Some assignments may have failed. Refreshing...', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
-      load();
-    }
-  };
 
   const filtered = unassigned.filter(p => {
     const q = search.toLowerCase();
@@ -137,13 +99,7 @@ const PlayerAllotment = () => {
           >
             <RefreshCw size={14} /> Refresh
           </button>
-          <button
-            onClick={handleAutoDistribute}
-            disabled={loading || unassigned.length === 0}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-md)', background: 'linear-gradient(135deg, var(--brand-primary), #F0A500)', color: '#121A3F', fontSize: '0.85rem', fontWeight: 700, cursor: unassigned.length === 0 ? 'not-allowed' : 'pointer', border: 'none', opacity: unassigned.length === 0 ? 0.5 : 1 }}
-          >
-            <Shuffle size={15} /> Auto-Distribute ({unassigned.length})
-          </button>
+
         </div>
       </div>
 
