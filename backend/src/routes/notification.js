@@ -16,5 +16,6 @@ router.use(authenticate);
 router.get('/', ctrl.getNotifications);
 router.put('/read-all', ctrl.markAllAsRead);
 router.put('/:id/read', ctrl.markAsRead);
+router.delete('/:id', ctrl.deleteNotification);
 
 module.exports = router;

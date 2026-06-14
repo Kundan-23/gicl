@@ -123,9 +123,38 @@ exports.markAllAsRead = async (req, res) => {
       .eq('is_read', false);
 
     if (error) throw error;
+
     res.json({ success: true });
   } catch (err) {
     console.error('[markAllAsRead]', err);
     res.status(500).json({ success: false, message: 'Failed to mark all as read' });
+  }
+};
+
+/**
+ * DELETE /api/notifications/:id
+ * Delete a specific notification
+ */
+exports.deleteNotification = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    const userId = req.user.id;
+    const userType = req.user.role || 'player';
+
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', req.params.id)
+      .eq('user_id', userId)
+      .eq('user_type', userType);
+
+    if (error) throw error;
+    res.json({ success: true, message: 'Notification deleted' });
+  } catch (err) {
+    console.error('[deleteNotification]', err);
+    res.status(500).json({ success: false, message: 'Failed to delete notification' });
   }
 };

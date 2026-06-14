@@ -56,6 +56,23 @@ export const useNotificationStore = create((set, get) => ({
     }
   },
 
+  deleteNotification: async (id) => {
+    try {
+      const res = await notificationAPI.delete(id);
+      if (res.data.success) {
+        set((state) => {
+          const notif = state.notifications.find(n => n.id === id);
+          return {
+            notifications: state.notifications.filter((n) => n.id !== id),
+            unreadCount: (notif && !notif.is_read) ? Math.max(0, state.unreadCount - 1) : state.unreadCount,
+          };
+        });
+      }
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  },
+
   subscribeToRealtime: (userId, userType) => {
     // Unsubscribe from existing if any
     const existing = get().realtimeSubscription;

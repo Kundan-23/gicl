@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Check, Trash2, Calendar, IndianRupee, Video, Users, CheckCircle, Info } from 'lucide-react';
+import { Bell, Check, Trash2, Calendar, IndianRupee, Video, Users, CheckCircle, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useNotificationStore } from '../../store/useNotificationStore';
 
@@ -14,6 +14,7 @@ const NotificationDropdown = ({ isOpen, onClose, roleId, roleType }) => {
     fetchNotifications, 
     markAsRead, 
     markAllAsRead,
+    deleteNotification,
     subscribeToRealtime,
     unsubscribeRealtime
   } = useNotificationStore();
@@ -139,9 +140,18 @@ const NotificationDropdown = ({ isOpen, onClose, roleId, roleType }) => {
                       <h4 style={{ margin: '0 0 4px', fontSize: '14px', fontWeight: n.is_read ? '500' : '600', color: n.is_read ? '#ccc' : '#fff' }}>
                         {n.title}
                       </h4>
-                      {!n.is_read && (
-                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--primary-color)', marginTop: '4px' }} />
-                      )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {!n.is_read && (
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--primary-color)', marginTop: '4px' }} />
+                        )}
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
+                          style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', padding: '2px' }}
+                          title="Clear notification"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
                     </div>
                     <p style={{ margin: '0 0 6px', fontSize: '12px', color: '#888', lineHeight: '1.4' }}>
                       {n.message}
