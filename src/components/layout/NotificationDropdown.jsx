@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Check, Trash2, Calendar, IndianRupee, Video, Users, CheckCircle, Info, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useNotificationStore } from '../../store/useNotificationStore';
 
 const NotificationDropdown = ({ isOpen, onClose, roleId, roleType }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dropdownRef = useRef(null);
   
   const { 
@@ -21,11 +22,26 @@ const NotificationDropdown = ({ isOpen, onClose, roleId, roleType }) => {
 
   useEffect(() => {
     if (roleId && roleType) {
+      // Initial fetch and subscription
       fetchNotifications();
       subscribeToRealtime(roleId, roleType);
     }
     return () => unsubscribeRealtime();
   }, [roleId, roleType]);
+
+  // Refetch every time the dropdown is opened, as a fallback for Realtime
+  useEffect(() => {
+    if (isOpen && roleId && roleType) {
+      fetchNotifications();
+    }
+  }, [isOpen, roleId, roleType]);
+
+  // Refetch on route change as a fallback for Realtime
+  useEffect(() => {
+    if (roleId && roleType) {
+      fetchNotifications();
+    }
+  }, [location.pathname, roleId, roleType]);
 
   // Click outside to close
   useEffect(() => {
