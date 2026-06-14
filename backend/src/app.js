@@ -10,6 +10,7 @@ const coachRoutes    = require('./routes/coach');
 const paymentRoutes  = require('./routes/payment');
 const referralRoutes = require('./routes/referral');
 const configRoutes   = require('./routes/config');
+const notificationRoutes = require('./routes/notification');
 const errorHandler   = require('./middlewares/errorHandler');
 
 const app = express();
@@ -91,6 +92,7 @@ app.use('/api/coach',    coachRoutes);
 app.use('/api/payment',  paymentRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/config',   configRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // ─── 404 Handler ──────────────────────────────────────────
 app.use((req, res) => {

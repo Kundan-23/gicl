@@ -77,18 +77,29 @@ exports.addUpload = asyncHandler(async (req, res) => {
   const { title, url } = req.body;
   if (!title || !url) return res.status(400).json({ success: false, message: 'Title and URL are required.' });
 
-  const { error } = await supabase
+  const { data: video, error } = await supabase
     .from('coach_video_uploads')
     .insert({
       coach_id: req.user.id,
       title,
       url,
       status: 'pending'
-    });
+    })
+    .select()
+    .single();
 
   if (error) throw new Error(error.message);
 
-  res.json({ success: true, message: 'Upload submitted for admin review.' });
+  // Notify Admins
+  const { notifyAdmins } = require('./notificationController');
+  notifyAdmins(
+    'New Video Submission',
+    `A coach has submitted a new video: "${title}".`,
+    'video_upload',
+    '/admin-dashboard/videos'
+  );
+
+  res.status(201).json({ success: true, message: 'Video uploaded successfully', data: video });
 });
 
 exports.getMyUploads = asyncHandler(async (req, res) => {
@@ -204,6 +215,15 @@ exports.requestCashout = asyncHandler(async (req, res) => {
 
   // Deduct from balance
   await supabase.from('coaches').update({ referral_points: balance - amount }).eq('id', coachId);
+
+  // Notify Admins
+  const { notifyAdmins } = require('./notificationController');
+  notifyAdmins(
+    'New Coach Cashout Request',
+    `A coach requested a cashout of ₹${amount}.`,
+    'cashout',
+    '/admin-dashboard/cashouts'
+  );
 
   res.status(201).json({
     success: true,

@@ -1,13 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, LayoutDashboard, Settings, Users, LogOut, ShieldCheck, UserPlus, Video, Calendar } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Settings, Users, LogOut, ShieldCheck, UserPlus, Video, Calendar, User, Bell } from 'lucide-react';
 import { useConfig } from '../../context/ConfigContext';
+import { useNotificationStore } from '../../store/useNotificationStore';
+import NotificationDropdown from './NotificationDropdown';
 
 const AdminDashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const { unreadCount } = useNotificationStore();
   const navigate = useNavigate();
   const { appLogoUrl } = useConfig();
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('gicl_token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUser(payload);
+      }
+    } catch (e) { console.error('Failed to parse token', e); }
+  }, []);
 
   const handleLogout = () => {
     navigate('/admin-login');
@@ -121,6 +136,29 @@ const AdminDashboardLayout = () => {
               <Menu size={24} />
             </button>
             <h2 className="heading-3" style={{ margin: 0 }}>System Configuration</h2>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+            <div style={{ position: 'relative' }} className="notif-trigger">
+              <button 
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Bell size={24} />
+                {unreadCount > 0 && (
+                  <span style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: 'var(--error)', color: '#fff', fontSize: '10px', fontWeight: 'bold', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} roleId={user?.id} roleType="admin" />
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: 'var(--brand-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <User size={18} color="#fff" />
+              </div>
+              <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Admin</span>
+            </div>
           </div>
         </header>
 

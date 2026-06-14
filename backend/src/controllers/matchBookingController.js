@@ -192,6 +192,25 @@ exports.verifyBookingPayment = asyncHandler(async (req, res) => {
     .update({ booked_slots: (match.booked_slots || 0) + 1 })
     .eq('id', matchId);
 
+  // Notify Player
+  const { createNotification, notifyAdmins } = require('./notificationController');
+  createNotification(
+    playerId,
+    'player',
+    'Booking Confirmed',
+    'Your spot for the match has been successfully confirmed. Get ready to play!',
+    'match_update',
+    '/dashboard/matches'
+  );
+
+  // Notify Admins
+  notifyAdmins(
+    'New Match Booking',
+    `A new booking was placed for Match ID: ${matchId}.`,
+    'match_booking',
+    '/admin-dashboard/matches'
+  );
+
   res.json({ success: true, message: 'Payment verified! Your slot is confirmed. 🎉' });
 });
 

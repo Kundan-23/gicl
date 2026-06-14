@@ -105,6 +105,15 @@ exports.setPassword = asyncHandler(async (req, res) => {
 
   if (error) throw new Error('Failed to create account: ' + error.message);
 
+  // Notify Admins
+  const { notifyAdmins } = require('./notificationController');
+  notifyAdmins(
+    'New Player Registered',
+    `A new player (${email}) has joined GICL Sports.`,
+    'registration',
+    '/admin-dashboard/users'
+  );
+
   const tokenPayload = { id: player.id, email: player.email, role: player.role };
   const token        = signAccessToken(tokenPayload);
   const refreshToken = signRefreshToken(tokenPayload);

@@ -147,4 +147,11 @@ export const referralAPI = {
   validateCode:   (code) => API.post('/referral/validate-code', { code }),
 };
 
+// ─── Notifications ─────────────────────────────────────────
+export const notificationAPI = {
+  getAll:        ()  => API.get('/notifications'),
+  markAsRead:    (id) => API.put(`/notifications/${id}/read`),
+  markAllAsRead: ()  => API.put('/notifications/read-all'),
+};
+
 export default API;

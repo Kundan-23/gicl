@@ -50,6 +50,11 @@ async function creditReferralChain(newPlayerId) {
     if (referrerPlayer) {
       const newBalance = (referrerPlayer.referral_balance || 0) + bonus;
       await supabase.from('players').update({ referral_balance: newBalance }).eq('id', referrerId);
+      
+      if (bonus > 0) {
+        const { createNotification } = require('./notificationController');
+        createNotification(referrerId, 'player', 'Referral Bonus', `Congratulations! You earned ₹${bonus} from a referral.`, 'referral', '/dashboard/referrals');
+      }
     } else {
       const { data: referrerCoach } = await supabase
         .from('coaches')
@@ -60,6 +65,11 @@ async function creditReferralChain(newPlayerId) {
       if (referrerCoach) {
         const newBalance = (referrerCoach.referral_points || 0) + bonus;
         await supabase.from('coaches').update({ referral_points: newBalance }).eq('id', referrerId);
+        
+        if (bonus > 0) {
+          const { createNotification } = require('./notificationController');
+          createNotification(referrerId, 'coach', 'Referral Bonus', `Congratulations! You earned ₹${bonus} from a referral.`, 'referral', '/coach-dashboard/referral');
+        }
       } else {
         break; // Referrer not found anywhere, break the chain
       }
@@ -184,6 +194,15 @@ exports.requestCashout = asyncHandler(async (req, res) => {
 
   // Deduct from balance (held until admin approves)
   await supabase.from('players').update({ referral_balance: balance - amount }).eq('id', playerId);
+
+  // Notify Admins
+  const { notifyAdmins } = require('./notificationController');
+  notifyAdmins(
+    'New Cashout Request',
+    `A player requested a cashout of ₹${amount}.`,
+    'cashout',
+    '/admin-dashboard/cashouts'
+  );
 
   res.status(201).json({
     success: true,

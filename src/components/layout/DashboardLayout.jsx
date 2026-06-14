@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Home, Calendar, CalendarDays, Users, User, LogOut, Video, PlaySquare } from 'lucide-react';
+import { Menu, X, Home, Calendar, CalendarDays, Users, User, LogOut, Video, PlaySquare, Bell } from 'lucide-react';
 import { useFormStore } from '../../store/useFormStore';
 import { useConfig } from '../../context/ConfigContext';
+import { useNotificationStore } from '../../store/useNotificationStore';
+import NotificationDropdown from './NotificationDropdown';
 
 const DashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [currentBanner, setCurrentBanner] = useState(0);
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const { unreadCount } = useNotificationStore();
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('gicl_token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUser(payload);
+      }
+    } catch (e) { console.error('Failed to parse token', e); }
+  }, []);
   const { resetForm, dashboardState, basicInfo } = useFormStore();
   const { isDashboardUnlocked } = dashboardState;
   const { banners, ad_banners: adBanners, appLogoUrl } = useConfig();
@@ -163,14 +178,31 @@ const DashboardLayout = () => {
             </button>
             <h2 className="heading-3" style={{ margin: 0 }}>Player Portal</h2>
           </div>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--bg-surface-elevated)', overflow: 'hidden', border: '2px solid var(--brand-primary)' }}>
-            {dashboardState.profilePhotoUrl ? (
-              <img src={dashboardState.profilePhotoUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <User size={20} color="var(--text-secondary)" />
-              </div>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+            <div style={{ position: 'relative' }} className="notif-trigger">
+              <button 
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Bell size={24} />
+                {unreadCount > 0 && (
+                  <span style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: 'var(--error)', color: '#fff', fontSize: '10px', fontWeight: 'bold', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} roleId={user?.id} roleType="player" />
+            </div>
+            
+            <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--bg-surface-elevated)', overflow: 'hidden', border: '2px solid var(--brand-primary)' }}>
+              {dashboardState.profilePhotoUrl ? (
+                <img src={dashboardState.profilePhotoUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <User size={20} color="var(--text-secondary)" />
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

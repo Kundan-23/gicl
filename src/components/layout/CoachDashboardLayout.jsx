@@ -4,9 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Users, Video, ShieldPlus, CalendarDays, LogOut, Bell, PlaySquare } from 'lucide-react';
 import { useCoachStore } from '../../store/useCoachStore';
 import { useConfig } from '../../context/ConfigContext';
+import { useNotificationStore } from '../../store/useNotificationStore';
+import NotificationDropdown from './NotificationDropdown';
 
 const CoachDashboardLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const { unreadCount } = useNotificationStore();
   const navigate = useNavigate();
   const { profile, fetchProfile, fetchPlayers, fetchVideos, fetchMatches, fetchReferrals, resetCoach } = useCoachStore();
   const { appLogoUrl } = useConfig();
@@ -38,9 +42,6 @@ const CoachDashboardLayout = () => {
 
   const handleNotifClick = () => {
     setIsNotifOpen(!isNotifOpen);
-    if (!isNotifOpen && unreadCount > 0) {
-      markNotificationsRead();
-    }
   };
 
   return (
@@ -138,14 +139,30 @@ const CoachDashboardLayout = () => {
             </h2>
           </div>
 
-          {/* Coach name pill */}
+          {/* Coach name pill & Notifications */}
           {profile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              {profile.profile_photo_url
-                ? <img src={profile.profile_photo_url} alt="coach" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--brand-primary)' }} />
-                : <div style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: 'rgba(249,203,26,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{profile.first_name?.[0]}{profile.last_name?.[0]}</div>
-              }
-              <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{profile.first_name} {profile.last_name}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+              <div style={{ position: 'relative' }} className="notif-trigger">
+                <button 
+                  onClick={handleNotifClick}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Bell size={24} />
+                  {unreadCount > 0 && (
+                    <span style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: 'var(--error)', color: '#fff', fontSize: '10px', fontWeight: 'bold', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+                <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} roleId={profile.id} roleType="coach" />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                {profile.profile_photo_url
+                  ? <img src={profile.profile_photo_url} alt="coach" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--brand-primary)' }} />
+                  : <div style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: 'rgba(249,203,26,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{profile.first_name?.[0]}{profile.last_name?.[0]}</div>
+                }
+                <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{profile.first_name} {profile.last_name}</span>
+              </div>
             </div>
           )}
         </header>
