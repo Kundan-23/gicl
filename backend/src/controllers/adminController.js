@@ -187,7 +187,7 @@ exports.getCashouts = asyncHandler(async (req, res) => {
   const { status } = req.query;
   let query = supabase
     .from('cashout_requests')
-    .select('*, player_id(id, first_name, last_name, gicl_id, email)')
+    .select('*, players(id, first_name, last_name, gicl_id, email)')
     .order('created_at', { ascending: false });
   if (status) query = query.eq('status', status);
   const { data, error } = await query;
