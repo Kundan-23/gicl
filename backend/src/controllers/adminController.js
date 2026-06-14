@@ -148,13 +148,13 @@ exports.assignCoach = asyncHandler(async (req, res) => {
     const playerName = `${player?.first_name || ''} ${player?.last_name || ''}`.trim();
     
     // Notify Coach
-    await createNotification(coachId, 'coach', 'Player Allotted', `Player ${playerName} (${player?.gicl_id}) has been assigned to you.`);
+    await createNotification(coachId, 'coach', 'Player Allotted', `Player ${playerName} (${player?.gicl_id}) has been assigned to you.`, 'assignment');
     
     // Fetch coach name and Notify Player
     const { data: coach } = await supabase.from('coaches').select('first_name, last_name').eq('id', coachId).single();
     if (coach) {
       const coachName = `${coach.first_name || ''} ${coach.last_name || ''}`.trim();
-      await createNotification(playerId, 'player', 'Coach Assigned', `Coach ${coachName} has been allotted to you.`);
+      await createNotification(playerId, 'player', 'Coach Assigned', `Coach ${coachName} has been allotted to you.`, 'assignment');
     }
   }
 
