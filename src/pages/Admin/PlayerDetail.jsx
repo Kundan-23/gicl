@@ -67,15 +67,14 @@ const EditPlayerModal = ({ player, onClose, onSave }) => {
           <div><label style={labelStyle}>Player Tier</label><select value={form.player_tier || ''} onChange={e => setForm({...form, player_tier: e.target.value})} style={inputStyle}><option value="">Select</option><option value="U-13">U-13</option><option value="U-17">U-17</option><option value="U-22">U-22</option><option value="Open">Open</option></select></div>
           <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Flat no, Wing name, Build name, Sector</label><input value={form.address_line1 || ''} onChange={e => setForm({...form, address_line1: e.target.value})} style={inputStyle} /></div>
           <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Area and Address</label><input value={form.address_line2 || ''} onChange={e => setForm({...form, address_line2: e.target.value})} style={inputStyle} /></div>
-          <div><label style={labelStyle}>City</label><input value={form.city || ''} onChange={e => setForm({...form, city: e.target.value})} style={inputStyle} /></div>
-          <div><label style={labelStyle}>District</label><input value={form.district || ''} onChange={e => setForm({...form, district: e.target.value})} style={inputStyle} /></div>
-          <div><label style={labelStyle}>State</label><input value={form.state || ''} onChange={e => setForm({...form, state: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>City / District</label><input value={form.city || ''} onChange={e => setForm({...form, city: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>State Code</label><input value={form.state_code || ''} onChange={e => setForm({...form, state_code: e.target.value})} style={inputStyle} /></div>
           <div><label style={labelStyle}>Country</label><input value={form.country || ''} onChange={e => setForm({...form, country: e.target.value})} style={inputStyle} /></div>
           <div><label style={labelStyle}>ZIP Code</label><input value={form.zip_code || ''} onChange={e => setForm({...form, zip_code: e.target.value})} style={inputStyle} /></div>
           
           <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem' }}><h4 style={{ color: 'var(--brand-primary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Personal Info</h4></div>
           <div><label style={labelStyle}>Blood Group</label><input value={form.blood_group || ''} onChange={e => setForm({...form, blood_group: e.target.value})} style={inputStyle} /></div>
-          <div><label style={labelStyle}>Parent / Guardian</label><input value={form.parent_name || ''} onChange={e => setForm({...form, parent_name: e.target.value})} style={inputStyle} /></div>
+          <div><label style={labelStyle}>Emergency Contact Name</label><input value={form.emergency_contact_name || ''} onChange={e => setForm({...form, emergency_contact_name: e.target.value})} style={inputStyle} /></div>
           <div><label style={labelStyle}>Height (cm)</label><input type="number" value={form.height || ''} onChange={e => setForm({...form, height: e.target.value})} style={inputStyle} /></div>
           <div><label style={labelStyle}>Weight (kg)</label><input type="number" value={form.weight || ''} onChange={e => setForm({...form, weight: e.target.value})} style={inputStyle} /></div>
           
@@ -83,7 +82,7 @@ const EditPlayerModal = ({ player, onClose, onSave }) => {
           <div><label style={labelStyle}>Batting Style</label><input value={form.batting_style || ''} onChange={e => setForm({...form, batting_style: e.target.value})} style={inputStyle} /></div>
           <div><label style={labelStyle}>Bowling Style</label><input value={form.bowling_style || ''} onChange={e => setForm({...form, bowling_style: e.target.value})} style={inputStyle} /></div>
           <div><label style={labelStyle}>Jersey Size</label><input value={form.jersey_size || ''} onChange={e => setForm({...form, jersey_size: e.target.value})} style={inputStyle} /></div>
-          <div><label style={labelStyle}>Jersey Name</label><input value={form.jersey_name || ''} onChange={e => setForm({...form, jersey_name: e.target.value})} style={inputStyle} /></div>
+
           <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Ball Types (comma separated)</label><input value={Array.isArray(form.balls_selected) ? form.balls_selected.join(', ') : form.balls_selected || ''} onChange={e => setForm({...form, balls_selected: e.target.value})} style={inputStyle} /></div>
           <div style={{ gridColumn: '1 / -1' }}><label style={labelStyle}>Field Positions (comma separated)</label><input value={Array.isArray(form.field_positions) ? form.field_positions.join(', ') : form.field_positions || ''} onChange={e => setForm({...form, field_positions: e.target.value})} style={inputStyle} /></div>
           
@@ -113,8 +112,9 @@ const PlayerDetail = () => {
 
   const [player, setPlayer] = useState(null);
   const [coaches, setCoaches] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedCoach, setSelectedCoach] = useState('');
+  const [referrerDetail, setReferrerDetail] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -128,6 +128,7 @@ const PlayerDetail = () => {
       const p = pRes.data?.player || pRes.data;
       setPlayer(p);
       setSelectedCoach(p.allocated_coach_id || '');
+      setReferrerDetail(pRes.data.referrerDetail);
       setCoaches(cRes.data?.coaches || cRes.data || []);
     } catch (err) {
       Swal.fire({
@@ -159,12 +160,10 @@ const PlayerDetail = () => {
     }
   };
 
-  // ── Status toggle with disable-reason prompt ─────────────────────
   const handleToggleStatus = async () => {
     const isActive = player.status !== 'Disabled';
 
     if (isActive) {
-      // Disabling — ask for reason
       const { value: reason, isConfirmed } = await Swal.fire({
         title: 'Disable Player',
         input: 'textarea',
@@ -186,7 +185,6 @@ const PlayerDetail = () => {
         Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.message || 'Failed to update status.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
       }
     } else {
-      // Enabling
       const { isConfirmed } = await Swal.fire({
         title: 'Enable Player?',
         icon: 'question',
@@ -238,7 +236,6 @@ const PlayerDetail = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Must be PDF or Image
     if (!['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) {
       return Swal.fire({ icon: 'error', title: 'Invalid File', text: 'Please upload a PDF, JPG, or PNG.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     }
@@ -247,7 +244,7 @@ const PlayerDetail = () => {
     try {
       await adminAPI.uploadPlayerIdCard(id, file);
       Swal.fire({ icon: 'success', title: 'Uploaded!', text: 'ID Card has been saved.', timer: 1500, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
-      load(); // Reload player data to get the new manual_id_card_url
+      load();
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'Upload Failed', text: err.response?.data?.message || 'Failed to upload ID card.', background: 'var(--bg-surface)', color: 'var(--text-primary)', confirmButtonColor: 'var(--brand-primary)' });
     } finally {
@@ -268,7 +265,6 @@ const PlayerDetail = () => {
 
   return (
     <div>
-      {/* Back + header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
         <button onClick={() => navigate('/admin2/players')} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', borderRadius: 'var(--radius-md)', padding: '0.5rem', cursor: 'pointer', display: 'flex' }}>
           <ArrowLeft size={20} />
@@ -307,7 +303,6 @@ const PlayerDetail = () => {
       {isEditing && <EditPlayerModal player={player} onClose={() => setIsEditing(false)} onSave={handleSaveEdit} />}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-        {/* Profile card */}
         <Section title="Profile" icon={User}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.5rem' }}>
             <div style={{ width: 70, height: 70, borderRadius: '50%', backgroundColor: 'var(--bg-color)', border: '2px solid var(--brand-primary)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -336,32 +331,28 @@ const PlayerDetail = () => {
             } 
           />
           <InfoRow label="Blood Group" value={player.blood_group} />
-          <InfoRow label="Parent / Guardian" value={player.parent_name} />
+          <InfoRow label="Emergency Contact Name" value={player.emergency_contact_name} />
         </Section>
 
-        {/* Address */}
         <Section title="Address" icon={Mail}>
           <InfoRow label="Address" value={player.address_line1} />
-          <InfoRow label="City" value={player.city} />
-          <InfoRow label="District" value={player.district} />
-          <InfoRow label="State" value={player.state} />
+          <InfoRow label="District / City" value={player.city} />
+          <InfoRow label="State" value={player.state_code} />
           <InfoRow label="Country" value={player.country} />
           <InfoRow label="ZIP Code" value={player.zip_code} />
         </Section>
 
-        {/* Cricket profile */}
         <Section title="Cricket Profile" icon={UserCheck}>
           <InfoRow label="Batting Style" value={player.batting_style} />
           <InfoRow label="Bowling Style" value={player.bowling_style} />
           <InfoRow label="Height" value={player.height ? `${player.height} cm` : null} />
           <InfoRow label="Weight" value={player.weight ? `${player.weight} kg` : null} />
           <InfoRow label="Jersey Size" value={player.jersey_size} />
-          <InfoRow label="Jersey Name" value={player.jersey_name} />
+
           <InfoRow label="Ball Types" value={Array.isArray(player.balls_selected) ? player.balls_selected.join(', ') : player.balls_selected} />
           <InfoRow label="Field Positions" value={Array.isArray(player.field_positions) ? player.field_positions.join(', ') : player.field_positions} />
         </Section>
 
-        {/* Documents */}
         <Section title="Documents" icon={FileText}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {player.address_proof_url && (
@@ -392,23 +383,24 @@ const PlayerDetail = () => {
           </div>
         </Section>
 
-        {/* Payment */}
         <Section title="Payment Info" icon={CreditCard}>
           <InfoRow label="Plan" value={player.plan_name || getPlanName(player.plan)} />
           <InfoRow label="Payment Status" value={player.payment_status} />
-          <InfoRow label="Payment Date" value={player.payment_date ? new Date(player.payment_date).toLocaleDateString('en-IN') : null} />
-          <InfoRow label="Transaction ID" value={player.transaction_id} />
+          <InfoRow label="Payment Date" value={player.payment_date ? new Date(player.payment_date).toLocaleDateString('en-IN') : (player.created_at ? new Date(player.created_at).toLocaleDateString('en-IN') : null)} />
+          <InfoRow label="Transaction ID" value={player.payment_order_id || player.payment_id} />
         </Section>
 
-        {/* Referrals */}
         <Section title="Referral Stats" icon={Users}>
           <InfoRow label="Referral Code" value={player.referral_code} />
-          <InfoRow label="Referral Balance" value={player.referral_balance != null ? `₹${player.referral_balance}` : null} />
-          <InfoRow label="Referred By" value={player.referred_by_code} />
+          <InfoRow label="Referred By" value={
+            referrerDetail 
+              ? `${referrerDetail.first_name} ${referrerDetail.last_name} (${referrerDetail.type === 'coach' ? 'Coach' : 'Player'} - ${referrerDetail.gicl_id})` 
+              : (player.referred_by_code || 'None')
+          } />
+          <InfoRow label="Referral Balance" value={player.referral_balance != null ? `₹${player.referral_balance}` : '₹0'} />
           <InfoRow label="Total Referrals Made" value={player.total_referrals} />
         </Section>
 
-        {/* Cashout history */}
         {player.cashouts && player.cashouts.length > 0 && (
           <Section title="Cashout History" icon={DollarSign}>
             {player.cashouts.map((c, i) => (

@@ -77,10 +77,20 @@ exports.getPlayerDetail = asyncHandler(async (req, res) => {
   if (error || !player) return res.status(404).json({ success: false, message: 'Player not found.' });
   delete player.password_hash;
 
+  let referrerDetail = null;
+  if (player.referred_by_id) {
+    const { data: rPlayer } = await supabase.from('players').select('id, first_name, last_name, gicl_id').eq('id', player.referred_by_id).maybeSingle();
+    if (rPlayer) referrerDetail = { type: 'player', ...rPlayer };
+    else {
+      const { data: rCoach } = await supabase.from('coaches').select('id, first_name, last_name, gicl_id').eq('id', player.referred_by_id).maybeSingle();
+      if (rCoach) referrerDetail = { type: 'coach', ...rCoach };
+    }
+  }
+
   const { data: referrals } = await supabase.from('referrals').select('*').eq('referrer_id', req.params.id).order('created_at', { ascending: false });
   const { data: cashouts }  = await supabase.from('cashout_requests').select('*').eq('player_id', req.params.id).order('created_at', { ascending: false });
 
-  res.json({ success: true, player, referrals: referrals || [], cashouts: cashouts || [] });
+  res.json({ success: true, player, referrerDetail, referrals: referrals || [], cashouts: cashouts || [] });
 });
 
 // ─── PUT /api/admin/players/:id/status ───────────────────────────
