@@ -21,6 +21,7 @@ const fieldPositionsList = [
 ];
 
 const Step4_PlayerProfile = () => {
+  const { user, setUser } = useAuth();
   const navigate = useNavigate();
   const { basicInfo, playerProfile, updatePlayerProfile } = useFormStore();
   const { batting_styles: battingStyles, bowling_styles: bowlingStyles, clubs: mockClubs, ball_types: ballTypes } = useConfig();
@@ -131,6 +132,18 @@ const Step4_PlayerProfile = () => {
       });
       if (addressProofFile) await playerAPI.uploadAddressProof(addressProofFile);
       if (birthCertFile)    await playerAPI.uploadBirthCert(birthCertFile);
+      
+      // Update local context so App.jsx guard knows the profile exists
+      const updatedUser = { 
+        ...user, 
+        batting_style: data.battingStyle, 
+        bowling_style: data.bowlingStyle, 
+        height: data.height, 
+        weight: data.weight 
+      };
+      setUser(updatedUser);
+      localStorage.setItem('gicl_user', JSON.stringify(updatedUser));
+
       navigate('/onboarding/step5');
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'Error',

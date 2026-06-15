@@ -15,6 +15,7 @@ const categories = [
 ];
 
 const Step5_MyGameplay = () => {
+  const { setUser } = useAuth();
   const navigate = useNavigate();
   const { basicInfo, media, updateMedia, updateBasicInfo } = useFormStore();
   const [submitting, setSubmitting] = useState(false);
@@ -70,9 +71,14 @@ const Step5_MyGameplay = () => {
       await playerAPI.updateProfile({ gameplayLinks: links });
       // Get updated profile to retrieve server-generated GICL ID
       const profileRes = await playerAPI.getProfile();
-      if (profileRes.data?.giclId) {
-        updateBasicInfo({ giclId: profileRes.data.giclId });
+      const freshPlayer = profileRes.data?.player || profileRes.data;
+      if (freshPlayer?.gicl_id) {
+        updateBasicInfo({ giclId: freshPlayer.gicl_id });
       }
+
+      // Sync Auth Context to clear any stale guards (like paymentDone or hasProfile)
+      setUser(freshPlayer);
+      localStorage.setItem('gicl_user', JSON.stringify(freshPlayer));
       Swal.fire({ icon: 'success', title: 'Registration Complete! 🎉',
         text: 'Welcome to GICL Sports! Redirecting to your dashboard...',
         background: 'var(--bg-surface)', color: 'var(--text-primary)',

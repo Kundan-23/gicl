@@ -11,7 +11,7 @@ import { useFormStore } from '../../store/useFormStore';
 
 const Step3_Payment = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const { plans } = useConfig();
   const { basicInfo } = useFormStore();
   const referralCodeUsed = basicInfo?.referralCodeUsed || '';
@@ -90,6 +90,12 @@ const Step3_Payment = () => {
               planId: selectedPack,
               referralCodeUsed: referralCodeUsed || undefined,
             });
+            
+            // Update Auth Context & Local Storage to unblock navigation
+            const updatedUser = { ...user, payment_status: 'paid', plan: selectedPack };
+            setUser(updatedUser);
+            localStorage.setItem('gicl_user', JSON.stringify(updatedUser));
+
             Swal.fire({ icon: 'success', title: 'Payment Successful! 🎉',
               text: `Welcome to GICL ${plan.title}!`,
               background: 'var(--bg-surface)', color: 'var(--text-primary)',
