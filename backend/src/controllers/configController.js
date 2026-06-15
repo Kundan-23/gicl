@@ -29,6 +29,8 @@ exports.getPublicConfig = asyncHandler(async (req, res) => {
     registration_terms: raw.registration_terms || '',
     app_logo_url:       raw.app_logo_url       || '',
     jersey_measure_url: raw.jersey_measure_url || '',
+    kids_jersey_measure_urls: raw.kids_jersey_measure_urls || [],
+    adults_jersey_measure_urls: raw.adults_jersey_measure_urls || [],
     referral: {
       level1:     raw.referral_level1     ?? 50,
       level2:     raw.referral_level2     ?? 20,

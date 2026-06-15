@@ -152,16 +152,16 @@ const Config = () => {
   const [banners, setBanners] = useState([]);
   const [adBanners, setAdBanners] = useState([]);
   const [uploadingLanding, setUploadingLanding] = useState(false);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [uploadingBanner, setUploadingBanner] = useState(false);
-  const [uploadingAdBanner, setUploadingAdBanner] = useState(false);
-  const [jerseyMeasureUrl, setJerseyMeasureUrl] = useState('');
-  const [uploadingJerseyMeasure, setUploadingJerseyMeasure] = useState(false);
+  const [kidsJerseyUrls, setKidsJerseyUrls] = useState([]);
+  const [adultsJerseyUrls, setAdultsJerseyUrls] = useState([]);
+  const [uploadingKidsJersey, setUploadingKidsJersey] = useState(false);
+  const [uploadingAdultsJersey, setUploadingAdultsJersey] = useState(false);
   const landingFileRef = useRef();
   const appLogoRef = useRef();
   const bannerFileRef = useRef();
   const adBannerFileRef = useRef();
-  const jerseyMeasureRef = useRef();
+  const kidsJerseyRef = useRef();
+  const adultsJerseyRef = useRef();
   const sponsor1FileRef = useRef();
   const sponsor2FileRef = useRef();
   const [uploadingSponsor, setUploadingSponsor] = useState({ 1: false, 2: false });
@@ -229,7 +229,8 @@ const Config = () => {
         if (cfg.app_logo_url || cfg.appLogoUrl) setAppLogo(cfg.app_logo_url || cfg.appLogoUrl);
         if (Array.isArray(cfg.banners)) setBanners(cfg.banners);
         if (Array.isArray(cfg.ad_banners)) setAdBanners(cfg.ad_banners);
-        if (cfg.jersey_measure_url) setJerseyMeasureUrl(cfg.jersey_measure_url);
+        if (Array.isArray(cfg.kids_jersey_measure_urls)) setKidsJerseyUrls(cfg.kids_jersey_measure_urls);
+        if (Array.isArray(cfg.adults_jersey_measure_urls)) setAdultsJerseyUrls(cfg.adults_jersey_measure_urls);
 
         // Tab 4
         if (cfg.jersey_sizes || cfg.jerseySizes) setJerseySizes(cfg.jersey_sizes || cfg.jerseySizes);
@@ -367,29 +368,59 @@ const Config = () => {
     if (refetch) refetch();
   };
 
-  // ─── Jersey Measure Image upload ──────────────────────────────────────────────
-  const handleJerseyMeasureUpload = async (e) => {
+  // ─── Kids Jersey Measure Image upload ──────────────────────────────────────────────
+  const handleKidsJerseyUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) return Swal.fire('Error', 'Image must be under 5MB', 'error');
+    if (kidsJerseyUrls.length >= 4) return Swal.fire('Error', 'Maximum 4 images allowed', 'error');
 
-    setUploadingJerseyMeasure(true);
+    setUploadingKidsJersey(true);
     try {
       const url = await uploadFile(file, '/admin/config/jersey-measure/upload');
-      setJerseyMeasureUrl(url);
-      
-      await adminAPI.updateConfig({ jersey_measure_url: url });
+      if (!url) return;
+      const updated = [...kidsJerseyUrls, url];
+      setKidsJerseyUrls(updated);
+      await adminAPI.updateConfig({ kids_jersey_measure_urls: updated });
       if (refetch) refetch();
-      
-      Swal.fire({ icon: 'success', title: 'Uploaded!', text: 'Jersey measure image updated.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+      Swal.fire({ icon: 'success', title: 'Added!', timer: 1200, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'Failed', text: err.response?.data?.message || 'Could not upload image' });
-    } finally { setUploadingJerseyMeasure(false); if (jerseyMeasureRef.current) jerseyMeasureRef.current.value = ''; }
+    } finally { setUploadingKidsJersey(false); if (kidsJerseyRef.current) kidsJerseyRef.current.value = ''; }
   };
 
-  const handleRemoveJerseyMeasure = async () => {
-    setJerseyMeasureUrl('');
-    await adminAPI.updateConfig({ jersey_measure_url: '' });
+  const handleRemoveKidsJersey = async (idx) => {
+    const updated = kidsJerseyUrls.filter((_, i) => i !== idx);
+    setKidsJerseyUrls(updated);
+    await adminAPI.updateConfig({ kids_jersey_measure_urls: updated });
+    if (refetch) refetch();
+  };
+
+  // ─── Adults Jersey Measure Image upload ──────────────────────────────────────────────
+  const handleAdultsJerseyUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return Swal.fire('Error', 'Image must be under 5MB', 'error');
+    if (adultsJerseyUrls.length >= 4) return Swal.fire('Error', 'Maximum 4 images allowed', 'error');
+
+    setUploadingAdultsJersey(true);
+    try {
+      const url = await uploadFile(file, '/admin/config/jersey-measure/upload');
+      if (!url) return;
+      const updated = [...adultsJerseyUrls, url];
+      setAdultsJerseyUrls(updated);
+      await adminAPI.updateConfig({ adults_jersey_measure_urls: updated });
+      if (refetch) refetch();
+      Swal.fire({ icon: 'success', title: 'Added!', timer: 1200, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Failed', text: err.response?.data?.message || 'Could not upload image' });
+    } finally { setUploadingAdultsJersey(false); if (adultsJerseyRef.current) adultsJerseyRef.current.value = ''; }
+  };
+
+  const handleRemoveAdultsJersey = async (idx) => {
+    const updated = adultsJerseyUrls.filter((_, i) => i !== idx);
+    setAdultsJerseyUrls(updated);
+    await adminAPI.updateConfig({ adults_jersey_measure_urls: updated });
     if (refetch) refetch();
   };
 
@@ -762,34 +793,64 @@ const Config = () => {
             </div>
           </Section>
 
-          {/* C. Jersey Measure Image */}
-          <Section title="Jersey Measure Image" description="Upload the 'How to measure' image shown to players during onboarding. (Max 5MB)">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {jerseyMeasureUrl && (
-                <div style={{ position: 'relative', width: '100%', maxWidth: '320px', backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                  <img src={jerseyMeasureUrl} alt="Jersey Measure Preview" style={{ width: '100%', height: 'auto', maxHeight: '150px', objectFit: 'contain' }} />
-                </div>
-              )}
-              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <input ref={jerseyMeasureRef} type="file" accept="image/png, image/jpeg, image/webp" style={{ display: 'none' }} onChange={handleJerseyMeasureUpload} />
-                <button
-                  onClick={() => jerseyMeasureRef.current?.click()}
-                  disabled={uploadingJerseyMeasure}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-md)', background: 'var(--brand-primary)', color: '#121A3F', fontWeight: 700, fontSize: '0.85rem', cursor: uploadingJerseyMeasure ? 'wait' : 'pointer', border: 'none' }}
-                >
-                  <ImageIcon size={15} /> {uploadingJerseyMeasure ? 'Uploading…' : 'Upload Measure Image'}
-                </button>
-                {jerseyMeasureUrl && (
+          {/* C. Kids Jersey Measure Image */}
+          <Section title="Kids Jersey Measure Images" description="Upload up to 4 images for the 'Kids Tshirt Measurement Guide'.">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+              {kidsJerseyUrls.map((url, idx) => (
+                <div key={idx} style={{ position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+                  <img src={url} alt={`Kids Measure ${idx + 1}`} style={{ width: '120px', height: '80px', objectFit: 'cover' }} />
                   <button
-                    onClick={handleRemoveJerseyMeasure}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-md)', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                    onClick={() => handleRemoveKidsJersey(idx)}
+                    style={{ position: 'absolute', top: '0.25rem', right: '0.25rem', background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', padding: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
-                    <X size={14} /> Clear
+                    <X size={12} />
                   </button>
-                )}
-              </div>
-              {!jerseyMeasureUrl && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>No measure image set.</p>}
+                </div>
+              ))}
+              {kidsJerseyUrls.length === 0 && <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No kids measure images yet.</p>}
             </div>
+            {kidsJerseyUrls.length < 4 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <input ref={kidsJerseyRef} type="file" accept="image/png, image/jpeg, image/webp" style={{ display: 'none' }} onChange={handleKidsJerseyUpload} />
+                <button
+                  onClick={() => kidsJerseyRef.current?.click()}
+                  disabled={uploadingKidsJersey}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', background: 'var(--brand-primary)', color: '#121A3F', fontWeight: 600, fontSize: '0.85rem', cursor: uploadingKidsJersey ? 'wait' : 'pointer', border: 'none' }}
+                >
+                  <ImageIcon size={15} /> {uploadingKidsJersey ? 'Uploading…' : 'Upload Kids Image'}
+                </button>
+              </div>
+            )}
+          </Section>
+
+          {/* D. Adults Jersey Measure Image */}
+          <Section title="Adults Jersey Measure Images" description="Upload up to 4 images for the 'Adults Tshirt Measurement Guide'.">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+              {adultsJerseyUrls.map((url, idx) => (
+                <div key={idx} style={{ position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-subtle)' }}>
+                  <img src={url} alt={`Adults Measure ${idx + 1}`} style={{ width: '120px', height: '80px', objectFit: 'cover' }} />
+                  <button
+                    onClick={() => handleRemoveAdultsJersey(idx)}
+                    style={{ position: 'absolute', top: '0.25rem', right: '0.25rem', background: 'rgba(239,68,68,0.9)', color: '#fff', border: 'none', borderRadius: '50%', padding: '0.25rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+              {adultsJerseyUrls.length === 0 && <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No adults measure images yet.</p>}
+            </div>
+            {adultsJerseyUrls.length < 4 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <input ref={adultsJerseyRef} type="file" accept="image/png, image/jpeg, image/webp" style={{ display: 'none' }} onChange={handleAdultsJerseyUpload} />
+                <button
+                  onClick={() => adultsJerseyRef.current?.click()}
+                  disabled={uploadingAdultsJersey}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', borderRadius: 'var(--radius-md)', background: 'var(--brand-primary)', color: '#121A3F', fontWeight: 600, fontSize: '0.85rem', cursor: uploadingAdultsJersey ? 'wait' : 'pointer', border: 'none' }}
+                >
+                  <ImageIcon size={15} /> {uploadingAdultsJersey ? 'Uploading…' : 'Upload Adults Image'}
+                </button>
+              </div>
+            )}
           </Section>
 
           {/* D. Banners */}

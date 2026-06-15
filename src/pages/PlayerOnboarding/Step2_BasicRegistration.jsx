@@ -14,8 +14,9 @@ const Step2_BasicRegistration = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { basicInfo, updateBasicInfo, playerProfile, updatePlayerProfile } = useFormStore();
-  const { jersey_sizes: jerseySizes, jersey_measure_url } = useConfig();
+  const { jersey_sizes: jerseySizes, kids_jersey_measure_urls, adults_jersey_measure_urls } = useConfig();
   const [showMeasureModal, setShowMeasureModal] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [photoFile, setPhotoFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [pincodeState, setPincodeState] = useState({ loading: false, stateName: '', stateCode: '', error: '' });
@@ -455,8 +456,8 @@ const Step2_BasicRegistration = () => {
                     {currentAge > 0 && isKidSize ? "SELECT SIZE (Age Group) *" : "Jersey / T-Shirt Size *"}
                   </label>
                   {currentAge > 0 && isKidSize && (
-                    <button type="button" onClick={() => setShowMeasureModal(true)} style={{ background: 'none', color: 'var(--brand-accent)', fontSize: '0.875rem', fontWeight: 600 }}>
-                      Size Chart
+                    <button type="button" onClick={() => { setShowMeasureModal(true); setCurrentImageIndex(0); }} style={{ background: 'none', color: 'var(--brand-accent)', fontSize: '0.875rem', fontWeight: 600 }}>
+                      Kids tshirt measurment guide
                     </button>
                   )}
                 </div>
@@ -474,8 +475,8 @@ const Step2_BasicRegistration = () => {
                 </select>
                 {errors.jerseySize && <span className="form-error">{errors.jerseySize.message}</span>}
                 {(!currentAge || !isKidSize) && (
-                  <button type="button" onClick={() => setShowMeasureModal(true)} style={{ background: 'none', color: 'var(--brand-accent)', textAlign: 'left', fontSize: '0.875rem', marginTop: '0.25rem', textDecoration: 'underline' }}>
-                    How to measure yourself?
+                  <button type="button" onClick={() => { setShowMeasureModal(true); setCurrentImageIndex(0); }} style={{ background: 'none', color: 'var(--brand-accent)', textAlign: 'left', fontSize: '0.875rem', marginTop: '0.25rem', textDecoration: 'underline' }}>
+                    Adults tshirt measurment guide
                   </button>
                 )}
               </div>
@@ -603,20 +604,44 @@ const Step2_BasicRegistration = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               className="modal-content"
-              style={{ maxWidth: jersey_measure_url ? '600px' : (isKidSize ? '600px' : '400px'), padding: '0', overflow: 'hidden' }}
+              style={{ maxWidth: (isKidSize ? (kids_jersey_measure_urls?.length > 0) : (adults_jersey_measure_urls?.length > 0)) ? '600px' : (isKidSize ? '600px' : '400px'), padding: '0', overflow: 'hidden' }}
               onClick={e => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-surface)' }}>
-                <h2 className="heading-3">{isKidSize ? "Size Chart" : "How to Measure"}</h2>
-                <button onClick={() => setShowMeasureModal(false)} style={{ background: 'none', color: 'var(--text-secondary)', fontSize: '1.25rem', cursor: 'pointer' }}>✕</button>
-              </div>
-              
-              <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-color)' }}>
-                {jersey_measure_url ? (
-                  <div style={{ textAlign: 'center' }}>
-                    <img src={jersey_measure_url} alt="How to Measure" style={{ maxWidth: '100%', height: 'auto', borderRadius: 'var(--radius-md)' }} />
-                  </div>
-                ) : isKidSize ? (
+              {(() => {
+                const activeUrls = isKidSize ? (kids_jersey_measure_urls || []) : (adults_jersey_measure_urls || []);
+                const hasImages = activeUrls.length > 0;
+                return (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-surface)' }}>
+                      <h2 className="heading-3">{isKidSize ? "Kids Measurement Guide" : "Adults Measurement Guide"}</h2>
+                      <button onClick={() => setShowMeasureModal(false)} style={{ background: 'none', color: 'var(--text-secondary)', fontSize: '1.25rem', cursor: 'pointer' }}>✕</button>
+                    </div>
+                    
+                    <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-color)' }}>
+                      {hasImages ? (
+                        <div style={{ textAlign: 'center' }}>
+                          <img src={activeUrls[currentImageIndex]} alt="Measurement Guide" style={{ maxWidth: '100%', height: 'auto', borderRadius: 'var(--radius-md)' }} />
+                          {activeUrls.length > 1 && (
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '1rem' }}>
+                              <button 
+                                onClick={() => setCurrentImageIndex(prev => (prev === 0 ? activeUrls.length - 1 : prev - 1))}
+                                style={{ padding: '0.5rem 1rem', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--bg-surface)', color: 'var(--text-primary)', cursor: 'pointer' }}
+                              >
+                                Prev
+                              </button>
+                              <span style={{ display: 'flex', alignItems: 'center', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                {currentImageIndex + 1} / {activeUrls.length}
+                              </span>
+                              <button 
+                                onClick={() => setCurrentImageIndex(prev => (prev === activeUrls.length - 1 ? 0 : prev + 1))}
+                                style={{ padding: '0.5rem 1rem', borderRadius: 'var(--radius-sm)', border: 'none', background: 'var(--bg-surface)', color: 'var(--text-primary)', cursor: 'pointer' }}
+                              >
+                                Next
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : isKidSize ? (
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '0.875rem' }}>
                       <thead>
@@ -647,8 +672,11 @@ const Step2_BasicRegistration = () => {
                   </div>
                 )}
               </div>
-            </motion.div>
-          </motion.div>
+            </>
+          );
+        })()}
+      </motion.div>
+    </motion.div>
         )}
       </AnimatePresence>
 

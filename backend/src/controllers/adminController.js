@@ -587,7 +587,7 @@ exports.updateConfig = asyncHandler(async (req, res) => {
     'referral_min_cashout', 'max_squad_size', 'match_team_size',
     'banners', 'ad_banners', 'landing_bg_image', 'registration_terms',
     'basic_training_videos', 'advance_training_fee', 'app_logo_url',
-    'jersey_measure_url'
+    'jersey_measure_url', 'kids_jersey_measure_urls', 'adults_jersey_measure_urls'
   ];
   const updateData = {};
   for (const key of allowed) {
@@ -604,9 +604,11 @@ exports.updateConfig = asyncHandler(async (req, res) => {
     if (error.message?.includes('column') && error.message?.includes('schema cache')) {
       const colMatch = error.message.match(/'([^']+)' column/);
       const colName = colMatch ? colMatch[1] : 'unknown';
+      let sqlType = "text DEFAULT ''";
+      if (colName.endsWith('_urls')) sqlType = "jsonb DEFAULT '[]'::jsonb";
       return res.status(400).json({
         success: false,
-        message: `Database column '${colName}' is missing. Please run this SQL in Supabase → SQL Editor:\n\nALTER TABLE app_config ADD COLUMN IF NOT EXISTS ${colName} text DEFAULT '';`,
+        message: `Database column '${colName}' is missing. Please run this SQL in Supabase → SQL Editor:\n\nALTER TABLE app_config ADD COLUMN IF NOT EXISTS ${colName} ${sqlType};`,
       });
     }
     throw new Error(error.message);

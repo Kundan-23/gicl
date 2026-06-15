@@ -24,6 +24,8 @@ const DEFAULTS = {
   },
   maxSquadSize: 20,
   jersey_measure_url: '',
+  kids_jersey_measure_urls: [],
+  adults_jersey_measure_urls: [],
 };
 
 export const ConfigProvider = ({ children }) => {
