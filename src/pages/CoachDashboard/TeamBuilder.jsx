@@ -34,12 +34,24 @@ const getAgeGroup = (ageGroups, dob) => {
       maxDate.setFullYear(maxDate.getFullYear() - (ag.range[1] || 99));
     } else continue;
     
+    let minDate = new Date();
+    if (ag.minLimit) {
+      minDate.setFullYear(minDate.getFullYear() - (ag.minLimit.years || 0));
+      minDate.setMonth(minDate.getMonth() - (ag.minLimit.months || 0));
+      minDate.setDate(minDate.getDate() - (ag.minLimit.days || 0));
+    } else if (ag.range) {
+      minDate.setFullYear(minDate.getFullYear() - (ag.range[0] || 0));
+    }
+    
     // Reset time components to 00:00:00 to compare purely by date
     maxDate.setHours(0, 0, 0, 0);
+    minDate.setHours(0, 0, 0, 0);
     const dobCompare = new Date(playerDOB);
     dobCompare.setHours(0, 0, 0, 0);
 
-    if (dobCompare >= maxDate) return ag;
+    // dobCompare >= maxDate ensures player is not older than max age
+    // dobCompare <= minDate ensures player is not younger than min age
+    if (dobCompare >= maxDate && dobCompare <= minDate) return ag;
   }
   return null;
 };

@@ -182,7 +182,7 @@ const Config = () => {
   const ballFileRef = useRef();
   const [ageGroups, setAgeGroups] = useState([]); // array of { cat, sub, color }
   const [showAgeForm, setShowAgeForm] = useState(false);
-  const [newAge, setNewAge] = useState({ cat: '', sub: '', color: '#F9CB1A', maxYears: '', maxMonths: '', maxDays: '' });
+  const [newAge, setNewAge] = useState({ cat: '', sub: '', color: '#F9CB1A', maxYears: '', maxMonths: '', maxDays: '', minYears: '', minMonths: '', minDays: '' });
   const [maxPlayersPerCoach, setMaxPlayersPerCoach] = useState(20);
 
   // Tab 5 — Registration T&C
@@ -524,18 +524,22 @@ const Config = () => {
   // ─── Age Groups ───────────────────────────────────────────────────────────
   const handleAddAgeGroup = async () => {
     if (!newAge.cat.trim() || !newAge.sub.trim()) return;
-    const years = newAge.maxYears ? parseInt(newAge.maxYears) : 99;
-    const months = newAge.maxMonths ? parseInt(newAge.maxMonths) : 0;
-    const days = newAge.maxDays ? parseInt(newAge.maxDays) : 0;
+    const maxYears = newAge.maxYears ? parseInt(newAge.maxYears) : 99;
+    const maxMonths = newAge.maxMonths ? parseInt(newAge.maxMonths) : 0;
+    const maxDays = newAge.maxDays ? parseInt(newAge.maxDays) : 0;
+    const minYears = newAge.minYears ? parseInt(newAge.minYears) : 0;
+    const minMonths = newAge.minMonths ? parseInt(newAge.minMonths) : 0;
+    const minDays = newAge.minDays ? parseInt(newAge.minDays) : 0;
     
     const updated = [...ageGroups, { 
       cat: newAge.cat, 
       sub: newAge.sub, 
       color: newAge.color,
-      limit: { years, months, days }
+      limit: { years: maxYears, months: maxMonths, days: maxDays },
+      minLimit: { years: minYears, months: minMonths, days: minDays }
     }];
     setAgeGroups(updated);
-    setNewAge({ cat: '', sub: '', color: '#F9CB1A', maxYears: '', maxMonths: '', maxDays: '' });
+    setNewAge({ cat: '', sub: '', color: '#F9CB1A', maxYears: '', maxMonths: '', maxDays: '', minYears: '', minMonths: '', minDays: '' });
     setShowAgeForm(false);
     await adminAPI.updateConfig({ age_groups: updated });
   };
@@ -546,14 +550,16 @@ const Config = () => {
     await adminAPI.updateConfig({ age_groups: updated });
   };
 
-  const handleUpdateAgeLimit = async (idx, field, value) => {
+  const handleUpdateAgeLimit = async (idx, type, field, value) => {
     const updated = [...ageGroups];
     const ag = updated[idx];
-    if (!ag.limit) {
-      // Migrate from old range if missing
-      ag.limit = { years: ag.range?.[1] ?? 99, months: 0, days: 0 };
+    if (type === 'max') {
+      if (!ag.limit) ag.limit = { years: ag.range?.[1] ?? 99, months: 0, days: 0 };
+      ag.limit[field] = value ? parseInt(value) : 0;
+    } else {
+      if (!ag.minLimit) ag.minLimit = { years: ag.range?.[0] ?? 0, months: 0, days: 0 };
+      ag.minLimit[field] = value ? parseInt(value) : 0;
     }
-    ag.limit[field] = value ? parseInt(value) : 0;
     setAgeGroups(updated);
     await adminAPI.updateConfig({ age_groups: updated });
   };
@@ -1037,17 +1043,26 @@ const Config = () => {
           <Section title="Age Groups" description="Define age categories, sub-groups, and their representative colors.">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
               {ageGroups.map((ag, idx) => {
-                const limit = ag.limit || { years: ag.range?.[1] ?? 99, months: 0, days: 0 };
+                const maxLimit = ag.limit || { years: ag.range?.[1] ?? 99, months: 0, days: 0 };
+                const minLimit = ag.minLimit || { years: ag.range?.[0] ?? 0, months: 0, days: 0 };
                 return (
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 0.9rem', backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                   <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 600 }}>{ag.cat}</span>
                   <span style={{ flex: 1, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{ag.sub}</span>
                   
-                  <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Max:</span>
-                    <input type="number" min="0" placeholder="Y" value={limit.years} onChange={e => handleUpdateAgeLimit(idx, 'years', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> y
-                    <input type="number" min="0" max="11" placeholder="M" value={limit.months} onChange={e => handleUpdateAgeLimit(idx, 'months', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> m
-                    <input type="number" min="0" max="31" placeholder="D" value={limit.days} onChange={e => handleUpdateAgeLimit(idx, 'days', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> d
+                  <div style={{ flex: 3, display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span style={{ color: 'var(--text-secondary)', width: '30px' }}>Min:</span>
+                      <input type="number" min="0" placeholder="Y" value={minLimit.years} onChange={e => handleUpdateAgeLimit(idx, 'min', 'years', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> y
+                      <input type="number" min="0" max="11" placeholder="M" value={minLimit.months} onChange={e => handleUpdateAgeLimit(idx, 'min', 'months', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> m
+                      <input type="number" min="0" max="31" placeholder="D" value={minLimit.days} onChange={e => handleUpdateAgeLimit(idx, 'min', 'days', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> d
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span style={{ color: 'var(--text-secondary)', width: '30px' }}>Max:</span>
+                      <input type="number" min="0" placeholder="Y" value={maxLimit.years} onChange={e => handleUpdateAgeLimit(idx, 'max', 'years', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> y
+                      <input type="number" min="0" max="11" placeholder="M" value={maxLimit.months} onChange={e => handleUpdateAgeLimit(idx, 'max', 'months', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> m
+                      <input type="number" min="0" max="31" placeholder="D" value={maxLimit.days} onChange={e => handleUpdateAgeLimit(idx, 'max', 'days', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> d
+                    </div>
                   </div>
 
                   <input
@@ -1081,25 +1096,45 @@ const Config = () => {
               )
               : (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'flex-end', padding: '1rem', backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
-                  <div>
-                    <label style={labelStyle}>Category</label>
-                    <input value={newAge.cat} onChange={e => setNewAge(a => ({ ...a, cat: e.target.value }))} style={{ ...inputStyle, width: '120px' }} placeholder="e.g. Juniors" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Sub-group</label>
-                    <input value={newAge.sub} onChange={e => setNewAge(a => ({ ...a, sub: e.target.value }))} style={{ ...inputStyle, width: '100px' }} placeholder="e.g. U-13" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Max Yrs</label>
-                    <input type="number" value={newAge.maxYears} onChange={e => setNewAge(a => ({ ...a, maxYears: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="99" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Max Mos</label>
-                    <input type="number" min="0" max="11" value={newAge.maxMonths} onChange={e => setNewAge(a => ({ ...a, maxMonths: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="0" />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Max Days</label>
-                    <input type="number" min="0" max="31" value={newAge.maxDays} onChange={e => setNewAge(a => ({ ...a, maxDays: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="0" />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div>
+                        <label style={labelStyle}>Category</label>
+                        <input value={newAge.cat} onChange={e => setNewAge(a => ({ ...a, cat: e.target.value }))} style={{ ...inputStyle, width: '120px' }} placeholder="e.g. Juniors" />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Sub-group</label>
+                        <input value={newAge.sub} onChange={e => setNewAge(a => ({ ...a, sub: e.target.value }))} style={{ ...inputStyle, width: '100px' }} placeholder="e.g. U-13" />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div>
+                        <label style={labelStyle}>Min Yrs</label>
+                        <input type="number" value={newAge.minYears} onChange={e => setNewAge(a => ({ ...a, minYears: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="0" />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Min Mos</label>
+                        <input type="number" min="0" max="11" value={newAge.minMonths} onChange={e => setNewAge(a => ({ ...a, minMonths: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="0" />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Min Days</label>
+                        <input type="number" min="0" max="31" value={newAge.minDays} onChange={e => setNewAge(a => ({ ...a, minDays: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="0" />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div>
+                        <label style={labelStyle}>Max Yrs</label>
+                        <input type="number" value={newAge.maxYears} onChange={e => setNewAge(a => ({ ...a, maxYears: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="99" />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Max Mos</label>
+                        <input type="number" min="0" max="11" value={newAge.maxMonths} onChange={e => setNewAge(a => ({ ...a, maxMonths: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="0" />
+                      </div>
+                      <div>
+                        <label style={labelStyle}>Max Days</label>
+                        <input type="number" min="0" max="31" value={newAge.maxDays} onChange={e => setNewAge(a => ({ ...a, maxDays: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="0" />
+                      </div>
+                    </div>
                   </div>
                   <div>
                     <label style={labelStyle}>Color</label>
