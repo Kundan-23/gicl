@@ -182,7 +182,7 @@ const Config = () => {
   const ballFileRef = useRef();
   const [ageGroups, setAgeGroups] = useState([]); // array of { cat, sub, color }
   const [showAgeForm, setShowAgeForm] = useState(false);
-  const [newAge, setNewAge] = useState({ cat: '', sub: '', color: '#F9CB1A', min: '', max: '' });
+  const [newAge, setNewAge] = useState({ cat: '', sub: '', color: '#F9CB1A', maxYears: '', maxMonths: '', maxDays: '' });
   const [maxPlayersPerCoach, setMaxPlayersPerCoach] = useState(20);
 
   // Tab 5 — Registration T&C
@@ -524,22 +524,36 @@ const Config = () => {
   // ─── Age Groups ───────────────────────────────────────────────────────────
   const handleAddAgeGroup = async () => {
     if (!newAge.cat.trim() || !newAge.sub.trim()) return;
-    const minVal = newAge.min ? parseInt(newAge.min) : 0;
-    const maxVal = newAge.max ? parseInt(newAge.max) : 99;
+    const years = newAge.maxYears ? parseInt(newAge.maxYears) : 99;
+    const months = newAge.maxMonths ? parseInt(newAge.maxMonths) : 0;
+    const days = newAge.maxDays ? parseInt(newAge.maxDays) : 0;
+    
     const updated = [...ageGroups, { 
       cat: newAge.cat, 
       sub: newAge.sub, 
       color: newAge.color,
-      range: [minVal, maxVal]
+      limit: { years, months, days }
     }];
     setAgeGroups(updated);
-    setNewAge({ cat: '', sub: '', color: '#F9CB1A', min: '', max: '' });
+    setNewAge({ cat: '', sub: '', color: '#F9CB1A', maxYears: '', maxMonths: '', maxDays: '' });
     setShowAgeForm(false);
     await adminAPI.updateConfig({ age_groups: updated });
   };
 
   const handleRemoveAgeGroup = async (idx) => {
     const updated = ageGroups.filter((_, i) => i !== idx);
+    setAgeGroups(updated);
+    await adminAPI.updateConfig({ age_groups: updated });
+  };
+
+  const handleUpdateAgeLimit = async (idx, field, value) => {
+    const updated = [...ageGroups];
+    const ag = updated[idx];
+    if (!ag.limit) {
+      // Migrate from old range if missing
+      ag.limit = { years: ag.range?.[1] ?? 99, months: 0, days: 0 };
+    }
+    ag.limit[field] = value ? parseInt(value) : 0;
     setAgeGroups(updated);
     await adminAPI.updateConfig({ age_groups: updated });
   };
@@ -1022,11 +1036,20 @@ const Config = () => {
           {/* Age Groups */}
           <Section title="Age Groups" description="Define age categories, sub-groups, and their representative colors.">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
-              {ageGroups.map((ag, idx) => (
+              {ageGroups.map((ag, idx) => {
+                const limit = ag.limit || { years: ag.range?.[1] ?? 99, months: 0, days: 0 };
+                return (
                 <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.65rem 0.9rem', backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                   <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 600 }}>{ag.cat}</span>
                   <span style={{ flex: 1, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{ag.sub}</span>
-                  <span style={{ flex: 1, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{ag.range ? `Age: ${ag.range[0]} - ${ag.range[1]} yrs` : 'Age: 0 - 99 yrs'}</span>
+                  
+                  <div style={{ flex: 2, display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}>
+                    <span style={{ color: 'var(--text-secondary)' }}>Max:</span>
+                    <input type="number" min="0" placeholder="Y" value={limit.years} onChange={e => handleUpdateAgeLimit(idx, 'years', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> y
+                    <input type="number" min="0" max="11" placeholder="M" value={limit.months} onChange={e => handleUpdateAgeLimit(idx, 'months', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> m
+                    <input type="number" min="0" max="31" placeholder="D" value={limit.days} onChange={e => handleUpdateAgeLimit(idx, 'days', e.target.value)} style={{ width: '45px', ...inputStyle, padding: '0.3rem' }} /> d
+                  </div>
+
                   <input
                     type="color"
                     value={ag.color || '#F9CB1A'}
@@ -1042,7 +1065,8 @@ const Config = () => {
                     <Trash2 size={15} />
                   </button>
                 </div>
-              ))}
+                );
+              })}
               {ageGroups.length === 0 && <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>No age groups defined yet.</p>}
             </div>
 
@@ -1066,12 +1090,16 @@ const Config = () => {
                     <input value={newAge.sub} onChange={e => setNewAge(a => ({ ...a, sub: e.target.value }))} style={{ ...inputStyle, width: '100px' }} placeholder="e.g. U-13" />
                   </div>
                   <div>
-                    <label style={labelStyle}>Min Age</label>
-                    <input type="number" value={newAge.min} onChange={e => setNewAge(a => ({ ...a, min: e.target.value }))} style={{ ...inputStyle, width: '80px' }} placeholder="0" />
+                    <label style={labelStyle}>Max Yrs</label>
+                    <input type="number" value={newAge.maxYears} onChange={e => setNewAge(a => ({ ...a, maxYears: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="99" />
                   </div>
                   <div>
-                    <label style={labelStyle}>Max Age</label>
-                    <input type="number" value={newAge.max} onChange={e => setNewAge(a => ({ ...a, max: e.target.value }))} style={{ ...inputStyle, width: '80px' }} placeholder="99" />
+                    <label style={labelStyle}>Max Mos</label>
+                    <input type="number" min="0" max="11" value={newAge.maxMonths} onChange={e => setNewAge(a => ({ ...a, maxMonths: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="0" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Max Days</label>
+                    <input type="number" min="0" max="31" value={newAge.maxDays} onChange={e => setNewAge(a => ({ ...a, maxDays: e.target.value }))} style={{ ...inputStyle, width: '55px' }} placeholder="0" />
                   </div>
                   <div>
                     <label style={labelStyle}>Color</label>

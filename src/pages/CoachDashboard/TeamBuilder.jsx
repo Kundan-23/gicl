@@ -11,12 +11,35 @@ const calcAge = (dob) => {
   return Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000));
 };
 
-// Determine which age-group category a player belongs to
-const getAgeGroup = (ageGroups, age) => {
-  if (!age || !ageGroups?.length) return null;
-  for (const ag of ageGroups) {
-    const [min, max] = ag.range || [];
-    if (min !== undefined && max !== undefined && age >= min && age <= max) return ag;
+const getAgeGroupLimitDays = (ag) => {
+  if (ag.limit) return (ag.limit.years || 0) * 365 + (ag.limit.months || 0) * 30 + (ag.limit.days || 0);
+  if (ag.range) return (ag.range[1] || 99) * 365;
+  return 99 * 365;
+};
+
+// Find the age-group config entry for a given DOB
+const getAgeGroup = (ageGroups, dob) => {
+  if (!dob || !ageGroups?.length) return null;
+  const playerDOB = new Date(dob);
+  
+  const sortedGroups = [...ageGroups].sort((a, b) => getAgeGroupLimitDays(a) - getAgeGroupLimitDays(b));
+  
+  for (const ag of sortedGroups) {
+    let maxDate = new Date();
+    if (ag.limit) {
+      maxDate.setFullYear(maxDate.getFullYear() - (ag.limit.years || 0));
+      maxDate.setMonth(maxDate.getMonth() - (ag.limit.months || 0));
+      maxDate.setDate(maxDate.getDate() - (ag.limit.days || 0));
+    } else if (ag.range) {
+      maxDate.setFullYear(maxDate.getFullYear() - (ag.range[1] || 99));
+    } else continue;
+    
+    // Reset time components to 00:00:00 to compare purely by date
+    maxDate.setHours(0, 0, 0, 0);
+    const dobCompare = new Date(playerDOB);
+    dobCompare.setHours(0, 0, 0, 0);
+
+    if (dobCompare >= maxDate) return ag;
   }
   return null;
 };
@@ -32,7 +55,7 @@ const TeamBuilder = () => {
   // Normalise real API fields to display-friendly shape
   const players = allocatedPlayers.map(p => {
     const age = calcAge(p.dob);
-    const ag  = getAgeGroup(ageGroups, age);
+    const ag  = getAgeGroup(ageGroups, p.dob);
     return {
       ...p,
       fullName:     `${p.first_name || ''} ${p.last_name || ''}`.trim(),
