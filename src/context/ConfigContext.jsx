@@ -23,6 +23,7 @@ const DEFAULTS = {
     level1Active: true, level2Active: true, level3Active: true
   },
   maxSquadSize: 20,
+  jersey_measure_url: '',
 };
 
 export const ConfigProvider = ({ children }) => {

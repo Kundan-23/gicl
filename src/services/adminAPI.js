@@ -74,6 +74,7 @@ export const adminAPI = {
   uploadAdBanner:       (file)        => { const f = new FormData(); f.append('file', file); return API.post('/admin/config/ad-banner/upload', f, { headers: { 'Content-Type': 'multipart/form-data' } }); },
   uploadSponsorLogo:    (file, slot)  => { const f = new FormData(); f.append('file', file); return API.post(`/admin/config/sponsor-logo/upload/${slot}`, f, { headers: { 'Content-Type': 'multipart/form-data' } }); },
   uploadAppLogo:        (file)        => { const f = new FormData(); f.append('file', file); return API.post('/admin/config/app-logo/upload', f, { headers: { 'Content-Type': 'multipart/form-data' } }); },
+  uploadJerseyMeasure:  (file)        => { const f = new FormData(); f.append('file', file); return API.post('/admin/config/jersey-measure/upload', f, { headers: { 'Content-Type': 'multipart/form-data' } }); },
 
   // Coach Video Uploads
   getCoachUploads:      (status)      => API.get('/admin/coach-uploads', { params: { status } }),

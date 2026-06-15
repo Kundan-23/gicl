@@ -155,10 +155,13 @@ const Config = () => {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingAdBanner, setUploadingAdBanner] = useState(false);
+  const [jerseyMeasureUrl, setJerseyMeasureUrl] = useState('');
+  const [uploadingJerseyMeasure, setUploadingJerseyMeasure] = useState(false);
   const landingFileRef = useRef();
   const appLogoRef = useRef();
   const bannerFileRef = useRef();
   const adBannerFileRef = useRef();
+  const jerseyMeasureRef = useRef();
   const sponsor1FileRef = useRef();
   const sponsor2FileRef = useRef();
   const [uploadingSponsor, setUploadingSponsor] = useState({ 1: false, 2: false });
@@ -226,6 +229,7 @@ const Config = () => {
         if (cfg.app_logo_url || cfg.appLogoUrl) setAppLogo(cfg.app_logo_url || cfg.appLogoUrl);
         if (Array.isArray(cfg.banners)) setBanners(cfg.banners);
         if (Array.isArray(cfg.ad_banners)) setAdBanners(cfg.ad_banners);
+        if (cfg.jersey_measure_url) setJerseyMeasureUrl(cfg.jersey_measure_url);
 
         // Tab 4
         if (cfg.jersey_sizes || cfg.jerseySizes) setJerseySizes(cfg.jersey_sizes || cfg.jerseySizes);
@@ -360,6 +364,32 @@ const Config = () => {
   const handleRemoveLogo = async () => {
     setAppLogo('');
     await adminAPI.updateConfig({ app_logo_url: '' });
+    if (refetch) refetch();
+  };
+
+  // ─── Jersey Measure Image upload ──────────────────────────────────────────────
+  const handleJerseyMeasureUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return Swal.fire('Error', 'Image must be under 5MB', 'error');
+
+    setUploadingJerseyMeasure(true);
+    try {
+      const url = await uploadFile(file, '/admin/config/jersey-measure/upload');
+      setJerseyMeasureUrl(url);
+      
+      await adminAPI.updateConfig({ jersey_measure_url: url });
+      if (refetch) refetch();
+      
+      Swal.fire({ icon: 'success', title: 'Uploaded!', text: 'Jersey measure image updated.', background: 'var(--bg-surface)', color: 'var(--text-primary)' });
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Failed', text: err.response?.data?.message || 'Could not upload image' });
+    } finally { setUploadingJerseyMeasure(false); if (jerseyMeasureRef.current) jerseyMeasureRef.current.value = ''; }
+  };
+
+  const handleRemoveJerseyMeasure = async () => {
+    setJerseyMeasureUrl('');
+    await adminAPI.updateConfig({ jersey_measure_url: '' });
     if (refetch) refetch();
   };
 
@@ -728,11 +758,41 @@ const Config = () => {
                   </button>
                 )}
               </div>
-              {!appLogo && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>No logo image set. Defaults to internal logo.</p>}
+              {!appLogo && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>No logo set.</p>}
             </div>
           </Section>
 
-          {/* C. Dashboard Banners */}
+          {/* C. Jersey Measure Image */}
+          <Section title="Jersey Measure Image" description="Upload the 'How to measure' image shown to players during onboarding. (Max 5MB)">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {jerseyMeasureUrl && (
+                <div style={{ position: 'relative', width: '100%', maxWidth: '320px', backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
+                  <img src={jerseyMeasureUrl} alt="Jersey Measure Preview" style={{ width: '100%', height: 'auto', maxHeight: '150px', objectFit: 'contain' }} />
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <input ref={jerseyMeasureRef} type="file" accept="image/png, image/jpeg, image/webp" style={{ display: 'none' }} onChange={handleJerseyMeasureUpload} />
+                <button
+                  onClick={() => jerseyMeasureRef.current?.click()}
+                  disabled={uploadingJerseyMeasure}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-md)', background: 'var(--brand-primary)', color: '#121A3F', fontWeight: 700, fontSize: '0.85rem', cursor: uploadingJerseyMeasure ? 'wait' : 'pointer', border: 'none' }}
+                >
+                  <ImageIcon size={15} /> {uploadingJerseyMeasure ? 'Uploading…' : 'Upload Measure Image'}
+                </button>
+                {jerseyMeasureUrl && (
+                  <button
+                    onClick={handleRemoveJerseyMeasure}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', borderRadius: 'var(--radius-md)', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
+                  >
+                    <X size={14} /> Clear
+                  </button>
+                )}
+              </div>
+              {!jerseyMeasureUrl && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>No measure image set.</p>}
+            </div>
+          </Section>
+
+          {/* D. Banners */}
           <Section title="Dashboard Banners" description="Images shown in the player dashboard banner carousel.">
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
               {banners.map((url, idx) => (

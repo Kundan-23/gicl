@@ -14,7 +14,7 @@ const Step2_BasicRegistration = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { basicInfo, updateBasicInfo, playerProfile, updatePlayerProfile } = useFormStore();
-  const { jersey_sizes: jerseySizes } = useConfig();
+  const { jersey_sizes: jerseySizes, jersey_measure_url } = useConfig();
   const [showMeasureModal, setShowMeasureModal] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -603,7 +603,7 @@ const Step2_BasicRegistration = () => {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               className="modal-content"
-              style={{ maxWidth: isKidSize ? '600px' : '400px', padding: '0', overflow: 'hidden' }}
+              style={{ maxWidth: jersey_measure_url ? '600px' : (isKidSize ? '600px' : '400px'), padding: '0', overflow: 'hidden' }}
               onClick={e => e.stopPropagation()}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', backgroundColor: 'var(--bg-surface)' }}>
@@ -612,7 +612,11 @@ const Step2_BasicRegistration = () => {
               </div>
               
               <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-color)' }}>
-                {isKidSize ? (
+                {jersey_measure_url ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <img src={jersey_measure_url} alt="How to Measure" style={{ maxWidth: '100%', height: 'auto', borderRadius: 'var(--radius-md)' }} />
+                  </div>
+                ) : isKidSize ? (
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '0.875rem' }}>
                       <thead>

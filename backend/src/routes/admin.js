@@ -61,6 +61,7 @@ router.put('/config',                                   ctrl.updateConfig);
 router.post('/config/banner/upload',    upload.single('file'), ctrl.uploadBanner);
 router.post('/config/ad-banner/upload', upload.single('file'), ctrl.uploadAdBanner);
 router.post('/config/app-logo/upload', upload.single('file'), ctrl.uploadAppLogo);
+router.post('/config/jersey-measure/upload', upload.single('file'), ctrl.uploadJerseyMeasure);
 router.post('/config/sponsor-logo/upload/:slot', upload.single('file'), ctrl.uploadSponsorLogo);
 
 // Manual ID Card Upload
