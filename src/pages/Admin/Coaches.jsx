@@ -48,6 +48,8 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
   const [saving, setSaving]   = useState(false);
   const [photoPreview, setPhotoPreview] = useState(coach?.profile_photo_url || null);
   const [pincodeState, setPincodeState] = useState({ loading: false, stateName: '', error: '' });
+  const [birthCertFile, setBirthCertFile] = useState(null);
+  const [addressProofFile, setAddressProofFile] = useState(null);
   const photoRef = useRef();
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -132,7 +134,7 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
         profilePhotoUrl: form.profile_photo_url,
       };
       if (form.password) payload.password = form.password;
-      await onSave(payload);
+      await onSave(payload, birthCertFile, addressProofFile);
     } finally {
       setSaving(false);
     }
@@ -303,6 +305,23 @@ const CoachFormDrawer = ({ coach, onClose, onSave }) => {
             </div>
           </div>
 
+          {/* Section: Documents */}
+          <div style={sec}>
+            <p style={secTitle}>📄 Documents</p>
+            <div style={{ ...grid2 }}>
+              <div style={fgrp}>
+                <label style={lbl}>Birth Certificate (PDF/Image)</label>
+                <input type="file" accept="image/*,application/pdf" onChange={e => setBirthCertFile(e.target.files[0])} style={{ ...inp, padding: '0.4rem' }} />
+                {coach?.birth_cert_url && !birthCertFile && <span style={{ fontSize: '0.75rem', color: 'var(--success)', marginTop: '0.3rem' }}>✓ Uploaded</span>}
+              </div>
+              <div style={fgrp}>
+                <label style={lbl}>Address Proof (PDF/Image)</label>
+                <input type="file" accept="image/*,application/pdf" onChange={e => setAddressProofFile(e.target.files[0])} style={{ ...inp, padding: '0.4rem' }} />
+                {coach?.address_proof_url && !addressProofFile && <span style={{ fontSize: '0.75rem', color: 'var(--success)', marginTop: '0.3rem' }}>✓ Uploaded</span>}
+              </div>
+            </div>
+          </div>
+
           {/* Footer */}
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
             <button type="button" onClick={onClose} style={{ padding: '0.7rem 1.5rem', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.07)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
@@ -334,15 +353,26 @@ const Coaches = () => {
 
   useEffect(() => { load(); }, []);
 
-  const handleSave = async (data) => {
+  const handleSave = async (data, birthCertFile, addressProofFile) => {
     try {
+      let coachId;
       if (modal && modal !== 'add') {
         await adminAPI.updateCoach(modal.id, data);
+        coachId = modal.id;
         Swal.fire({ icon: 'success', title: 'Coach Updated!', timer: 1400, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
       } else {
-        await adminAPI.createCoach(data);
+        const res = await adminAPI.createCoach(data);
+        coachId = res.data.coach.id;
         Swal.fire({ icon: 'success', title: 'Coach Added!', timer: 1400, showConfirmButton: false, background: 'var(--bg-surface)', color: 'var(--text-primary)' });
       }
+
+      if (birthCertFile) {
+        await adminAPI.uploadCoachDocument(coachId, 'birth_cert', birthCertFile);
+      }
+      if (addressProofFile) {
+        await adminAPI.uploadCoachDocument(coachId, 'address_proof', addressProofFile);
+      }
+
       setModal(null);
       load();
     } catch (err) {

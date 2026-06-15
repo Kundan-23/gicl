@@ -772,3 +772,28 @@ exports.uploadPlayerIdCard = asyncHandler(async (req, res) => {
   
   res.json({ success: true, url: signedUrl });
 });
+
+exports.uploadCoachDocument = asyncHandler(async (req, res) => {
+  const { id, type } = req.params;
+  const { createClient } = require('@supabase/supabase-js');
+  const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded.' });
+  if (!['birth_cert', 'address_proof'].includes(type)) return res.status(400).json({ success: false, message: 'Invalid document type.' });
+
+  const path = `coaches/${id}/${type}_${Date.now()}`;
+  const { error: uploadError } = await sb.storage.from('documents').upload(path, req.file.buffer, { 
+    contentType: req.file.mimetype, upsert: true 
+  });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { data: publicUrlData } = sb.storage.from('documents').getPublicUrl(path);
+
+  const updateData = {};
+  if (type === 'birth_cert') updateData.birth_cert_url = publicUrlData.publicUrl;
+  if (type === 'address_proof') updateData.address_proof_url = publicUrlData.publicUrl;
+
+  const { error: updateError } = await sb.from('coaches').update(updateData).eq('id', id);
+  if (updateError) throw new Error(updateError.message);
+
+  res.json({ success: true, url: publicUrlData.publicUrl });
+});

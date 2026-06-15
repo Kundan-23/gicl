@@ -37,6 +37,7 @@ router.get('/coaches',                                  ctrl.getCoaches);
 router.post('/coaches',                                 ctrl.createCoach);
 router.put('/coaches/:id',                              ctrl.updateCoach);
 router.delete('/coaches/:id',                           ctrl.deleteCoach);
+router.post('/coaches/:id/upload/:type', upload.single('file'), ctrl.uploadCoachDocument);
 
 // Matches
 router.get('/matches',                                  ctrl.getMatches);
