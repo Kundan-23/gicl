@@ -152,6 +152,9 @@ const Config = () => {
   const [banners, setBanners] = useState([]);
   const [adBanners, setAdBanners] = useState([]);
   const [uploadingLanding, setUploadingLanding] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [uploadingAdBanner, setUploadingAdBanner] = useState(false);
   const [kidsJerseyUrls, setKidsJerseyUrls] = useState([]);
   const [adultsJerseyUrls, setAdultsJerseyUrls] = useState([]);
   const [uploadingKidsJersey, setUploadingKidsJersey] = useState(false);
