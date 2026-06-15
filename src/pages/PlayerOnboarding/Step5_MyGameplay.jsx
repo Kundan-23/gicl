@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
+import { useAuth } from '../../context/AuthContext';
 import { useFormStore } from '../../store/useFormStore';
 import { useConfig } from '../../context/ConfigContext'; // eslint-disable-line no-unused-vars
 import { playerAPI } from '../../services/api';

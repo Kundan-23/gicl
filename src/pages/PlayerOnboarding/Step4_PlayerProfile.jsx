@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm, Controller } from 'react-hook-form';
 import Swal from 'sweetalert2';
+import { useAuth } from '../../context/AuthContext';
 import { useFormStore } from '../../store/useFormStore';
 import { Camera, CheckCircle2, FileText, Upload } from 'lucide-react';
 import { useConfig } from '../../context/ConfigContext';
