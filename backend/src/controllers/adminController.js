@@ -33,7 +33,7 @@ exports.getStats = asyncHandler(async (req, res) => {
   // Calculate estimated revenue
   const configPlans = configData?.plans || [];
   const planPrices = {};
-  configPlans.forEach(p => planPrices[p.id] = p.price || 0);
+  configPlans.forEach(p => planPrices[p.id] = Number(p.price) || 0);
 
   const estimatedRevenue = (paidPlayersData || []).reduce((sum, player) => {
     return sum + (planPrices[player.plan] || 0);
