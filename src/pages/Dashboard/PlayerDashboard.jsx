@@ -364,7 +364,7 @@ const PlayerDashboard = () => {
 
     {showCoachModal && dashboardState.allocatedCoach && (
       <div className="modal-overlay" onClick={() => setShowCoachModal(false)}>
-        <motion.div className="modal-content" initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={e => e.stopPropagation()} style={{ maxWidth: 450, width: '100%', padding: '2rem' }}>
+        <motion.div className="modal-content" initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} onClick={e => e.stopPropagation()} style={{ maxWidth: 450, width: '100%', padding: '2rem', maxHeight: '90vh', overflowY: 'auto' }}>
           <button onClick={() => setShowCoachModal(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'none', color: 'var(--text-secondary)' }}><X size={24} /></button>
           
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '2rem' }}>
@@ -387,13 +387,13 @@ const PlayerDashboard = () => {
                 <p style={{ fontWeight: 600 }}>{dashboardState.allocatedCoach.city || 'N/A'}{dashboardState.allocatedCoach.state_code ? `, ${dashboardState.allocatedCoach.state_code}` : ''}</p>
               </div>
               <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Coaching History</p>
-                <p style={{ fontWeight: 600 }}>{dashboardState.allocatedCoach.coaching_history || 'Professional Coaching Experience'}</p>
+                <p className="text-small text-secondary" style={{ marginBottom: '0.5rem' }}>Coaching History</p>
+                <p style={{ fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{dashboardState.allocatedCoach.coaching_history || 'Professional Coaching Experience'}</p>
               </div>
               {dashboardState.allocatedCoach.cricket_history && (
                 <div style={{ backgroundColor: 'var(--bg-color)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
-                  <p className="text-small text-secondary" style={{ marginBottom: '0.25rem' }}>Cricket History</p>
-                  <p style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>{dashboardState.allocatedCoach.cricket_history}</p>
+                  <p className="text-small text-secondary" style={{ marginBottom: '0.5rem' }}>Cricket History</p>
+                  <p style={{ fontSize: '0.9rem', lineHeight: 1.6, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{dashboardState.allocatedCoach.cricket_history}</p>
                 </div>
               )}
             </div>
