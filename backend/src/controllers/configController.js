@@ -27,6 +27,8 @@ exports.getPublicConfig = asyncHandler(async (req, res) => {
     ad_banners: raw.ad_banners || [],
     landing_bg_image:   raw.landing_bg_image   || '',
     registration_terms: raw.registration_terms || '',
+    app_logo_url:       raw.app_logo_url       || '',
+    jersey_measure_url: raw.jersey_measure_url || '',
     referral: {
       level1:     raw.referral_level1     ?? 50,
       level2:     raw.referral_level2     ?? 20,
