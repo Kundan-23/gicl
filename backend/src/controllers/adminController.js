@@ -6,27 +6,38 @@ const { createNotification } = require('./notificationController');
 exports.getStats = asyncHandler(async (req, res) => {
   const [
     { count: totalPlayers },
-    { count: paidPlayers },
+    { data: paidPlayersData, count: paidPlayers },
     { count: pendingCashouts },
     { data: recentPlayers },
     { data: cashoutSum },
     { count: pendingAllotment },
     { count: pendingVideoReview },
-    { count: pendingTrainingApprovals }
+    { count: pendingTrainingApprovals },
+    { data: configData }
   ] = await Promise.all([
     supabase.from('players').select('*', { count: 'exact', head: true }),
-    supabase.from('players').select('*', { count: 'exact', head: true }).eq('payment_status', 'paid'),
+    supabase.from('players').select('plan', { count: 'exact' }).eq('payment_status', 'paid'),
     supabase.from('cashout_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('players').select('id, first_name, last_name, gicl_id, email, plan, payment_status, created_at').order('created_at', { ascending: false }).limit(10),
     supabase.from('cashout_requests').select('amount').eq('status', 'approved'),
     supabase.from('players').select('*', { count: 'exact', head: true }).eq('payment_status', 'paid').is('allocated_coach_id', null),
     supabase.from('coach_video_uploads').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-    supabase.from('training_slots').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+    supabase.from('training_slots').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('app_config').select('plans').eq('id', 1).single()
   ]);
 
   const totalPaidOut = (cashoutSum || []).reduce((sum, c) => sum + (c.amount || 0), 0);
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const { count: todayCount } = await supabase.from('players').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString());
+
+  // Calculate estimated revenue
+  const configPlans = configData?.plans || [];
+  const planPrices = {};
+  configPlans.forEach(p => planPrices[p.id] = p.price || 0);
+
+  const estimatedRevenue = (paidPlayersData || []).reduce((sum, player) => {
+    return sum + (planPrices[player.plan] || 0);
+  }, 0);
 
   res.json({
     success: true,
@@ -38,7 +49,8 @@ exports.getStats = asyncHandler(async (req, res) => {
       totalPaidOut,
       pendingAllotment,
       pendingVideoReview,
-      pendingTrainingApprovals
+      pendingTrainingApprovals,
+      estimatedRevenue
     },
     recentPlayers: recentPlayers || [],
   });

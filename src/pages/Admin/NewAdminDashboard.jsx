@@ -100,7 +100,7 @@ const AdminDashboard = () => {
     { title: "Today's Registrations", value: stats?.todayRegistrations,  icon: UserPlus,     color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
     { title: 'Total Paid Out',        value: stats?.totalPaidOut,        icon: TrendingUp,   color: '#10b981', bg: 'rgba(16,185,129,0.12)', prefix: '₹' },
     { title: 'Total Coaches',         value: extraLoading ? null : coaches.length, icon: UserCog, color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
-    { title: 'Est. Revenue',          value: extraLoading ? null : ((stats?.paidPlayers || 0) * 299).toLocaleString('en-IN'), icon: IndianRupee, color: '#10b981', bg: 'rgba(16,185,129,0.12)', prefix: '₹' },
+    { title: 'Est. Revenue',          value: stats?.estimatedRevenue != null ? stats.estimatedRevenue.toLocaleString('en-IN') : null, icon: IndianRupee, color: '#10b981', bg: 'rgba(16,185,129,0.12)', prefix: '₹' },
     { title: 'Pending Allotment',     value: stats?.pendingAllotment,    icon: Users,        color: '#f97316', bg: 'rgba(249,115,22,0.12)' },
     { title: 'Pending Video Review',  value: stats?.pendingVideoReview,  icon: Clock,        color: '#eab308', bg: 'rgba(234,179,8,0.12)' },
     { title: 'Pending Training Approvals', value: stats?.pendingTrainingApprovals, icon: CheckCircle, color: '#06b6d4', bg: 'rgba(6,182,212,0.12)' },
