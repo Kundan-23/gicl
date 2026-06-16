@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
 import { Calendar, MapPin, IndianRupee, ShieldCheck, Share2, CheckCircle2, Users, Tag, Zap, ChevronDown } from 'lucide-react';
 import { playerAPI } from '../../services/api';
+import FaqAccordionList from '../../components/FaqAccordionList';
 
 const TYPE_COLORS = {
   league:     { bg: '#3b82f6', glow: 'rgba(59,130,246,0.15)' },
@@ -346,14 +347,7 @@ const MatchBookings = () => {
                     {match.faqs && match.faqs.length > 0 && (
                       <div style={{ padding: '0.8rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '0.5rem' }}>
                         <p style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.6rem' }}>FAQs</p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                          {match.faqs.map((faq, idx) => (
-                            <div key={idx}>
-                              <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--brand-primary)', marginBottom: '0.2rem' }}>Q: {faq.q}</p>
-                              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0, whiteSpace: 'pre-line' }}>A: {faq.a}</p>
-                            </div>
-                          ))}
-                        </div>
+                        <FaqAccordionList faqs={match.faqs} />
                       </div>
                     )}
                     

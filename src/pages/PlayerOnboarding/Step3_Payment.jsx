@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, CheckCircle2, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import Swal from 'sweetalert2';
+import FaqAccordionList from '../../components/FaqAccordionList';
 import { useConfig } from '../../context/ConfigContext';
 import { paymentAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -201,14 +202,7 @@ const Step3_Payment = () => {
                       {pack.faqs && pack.faqs.length > 0 && (
                         <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--bg-surface-elevated)' }}>
                           <p className="text-small" style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>Frequently Asked Questions:</p>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {pack.faqs.map((faq, idx) => (
-                              <div key={idx}>
-                                <h5 style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--brand-primary)', marginBottom: '0.25rem' }}>{faq.q}</h5>
-                                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{faq.a}</p>
-                              </div>
-                            ))}
-                          </div>
+                          <FaqAccordionList faqs={pack.faqs} />
                         </div>
                       )}
                     </div>
