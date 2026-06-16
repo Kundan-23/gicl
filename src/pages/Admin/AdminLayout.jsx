@@ -144,21 +144,24 @@ const AdminLayout = () => {
           ))}
         </nav>
 
-        {/* Admin Info + Logout */}
-        <div style={{ padding: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600 }}>
-                {user.name ? user.name[0].toUpperCase() : 'A'}
+        {/* Sponsors + Logout */}
+        <div style={{ padding: '1rem', borderTop: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          
+          {/* Logo Placeholders (Sponsors) */}
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            {[1, 2].map(slot => (
+              <div key={slot} style={{ flex: 1, height: '60px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                <img 
+                  src={`https://qrgwmahlngkmebtwntha.supabase.co/storage/v1/object/public/banners/sponsor-${slot}.png`} 
+                  alt={`Sponsor ${slot}`} 
+                  style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+                  onLoad={(e) => { e.target.style.display = 'block'; if (e.target.nextSibling) e.target.nextSibling.style.display = 'none'; }}
+                />
+                <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', textAlign: 'center', display: 'none' }}>Sponsor {slot}</span>
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {user.name || 'Admin'}
-                </div>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {user.email}
-                </div>
-              </div>
-            </div>
+            ))}
+          </div>
           <button
             onClick={handleLogout}
             style={{
@@ -190,33 +193,48 @@ const AdminLayout = () => {
           </div>
         </header>
 
-        {/* Global Floating Notification Bell - ONLY ON DASHBOARD */}
+        {/* Global Floating Header (Profile & Notifs) - ONLY ON DASHBOARD */}
         {(location.pathname === '/admin2' || location.pathname === '/admin2/') && (
-          <div style={{ position: 'absolute', top: '2rem', right: '2rem', zIndex: 50 }} className="notif-trigger">
-            <button 
-              onClick={() => setIsNotifOpen(!isNotifOpen)}
-              style={{ 
-                background: 'var(--bg-surface-elevated)', 
-                border: '1px solid var(--border-subtle)', 
-                color: 'var(--text-primary)', 
-                cursor: 'pointer', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                width: '42px',
-                height: '42px',
-                borderRadius: '50%',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-              }}
-            >
-              <Bell size={20} />
-              {unreadCount > 0 && (
-                <span style={{ position: 'absolute', top: '-2px', right: '-2px', backgroundColor: 'var(--error)', color: '#fff', fontSize: '11px', fontWeight: 'bold', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-            <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} roleId={user?.id} roleType="admin" />
+          <div style={{ position: 'absolute', top: '1.5rem', right: '2rem', zIndex: 50, display: 'flex', alignItems: 'center', gap: '1rem' }} className="notif-trigger">
+            
+            {/* Admin Profile Info */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)', padding: '0.4rem 1rem 0.4rem 0.4rem', borderRadius: '50px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+              <div style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>
+                {user?.name ? user.name[0].toUpperCase() : 'A'}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#fff', lineHeight: 1.2 }}>{user?.name || 'Admin'}</span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.2 }}>{user?.email}</span>
+              </div>
+            </div>
+
+            {/* Notification Bell */}
+            <div style={{ position: 'relative' }}>
+              <button 
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                style={{ 
+                  background: 'var(--bg-surface-elevated)', 
+                  border: '1px solid var(--border-subtle)', 
+                  color: 'var(--text-primary)', 
+                  cursor: 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '50%',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                }}
+              >
+                <Bell size={20} />
+                {unreadCount > 0 && (
+                  <span style={{ position: 'absolute', top: '-2px', right: '-2px', backgroundColor: 'var(--error)', color: '#fff', fontSize: '11px', fontWeight: 'bold', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+              <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} roleId={user?.id} roleType="admin" />
+            </div>
           </div>
         )}
 
