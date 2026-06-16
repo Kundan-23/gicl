@@ -168,8 +168,9 @@ const MatchModal = ({ match, onClose, onSave }) => {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           
-          {activeTab === 'General' && (
-            <>
+          <div style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {activeTab === 'General' && (
+              <>
               <div>
                 <label style={labelStyle}>Title / Event Name *</label>
                 <input required value={form.title} onChange={e => set('title', e.target.value)} style={inputStyle} placeholder="e.g. Sunday Practice Slot" />
@@ -297,7 +298,9 @@ const MatchModal = ({ match, onClose, onSave }) => {
               <input required type="time" value={form.timeOnly} onChange={e => set('timeOnly', e.target.value)} style={{ ...inputStyle, fontSize: '1.2rem', padding: '1rem' }} />
             </div>
           )}
-          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid var(--border-subtle)' }}>
             <button type="button" onClick={onClose} style={{ padding: '0.65rem 1.25rem', borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.07)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
             <button type="submit" disabled={saving} style={{ padding: '0.65rem 1.5rem', borderRadius: 'var(--radius-md)', background: 'var(--brand-primary)', color: '#121A3F', fontWeight: 700, cursor: saving ? 'wait' : 'pointer', border: 'none' }}>
               {saving ? 'Saving…' : match ? 'Save Changes' : 'Schedule'}
