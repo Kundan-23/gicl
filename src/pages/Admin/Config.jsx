@@ -278,6 +278,10 @@ const Config = () => {
   const updatePlanFeature = (pi, fi, val) => setPlans(ps => ps.map((p, i) => i === pi ? { ...p, features: p.features.map((f, j) => j === fi ? val : f) } : p));
   const addPlanFeature = (pi) => setPlans(ps => ps.map((p, i) => i === pi ? { ...p, features: [...p.features, ''] } : p));
   const removePlanFeature = (pi, fi) => setPlans(ps => ps.map((p, i) => i === pi ? { ...p, features: p.features.filter((_, j) => j !== fi) } : p));
+
+  const updatePlanFaq = (pi, fi, field, val) => setPlans(ps => ps.map((p, i) => i === pi ? { ...p, faqs: (p.faqs||[]).map((f, j) => j === fi ? { ...f, [field]: val } : f) } : p));
+  const addPlanFaq = (pi) => setPlans(ps => ps.map((p, i) => i === pi ? { ...p, faqs: [...(p.faqs||[]), { q: '', a: '' }] } : p));
+  const removePlanFaq = (pi, fi) => setPlans(ps => ps.map((p, i) => i === pi ? { ...p, faqs: (p.faqs||[]).filter((_, j) => j !== fi) } : p));
   const toggleTnc = (pi) => setExpandedTnc(prev => ({ ...prev, [pi]: !prev[pi] }));
 
   const deletePlan = async (pi) => {
@@ -706,6 +710,27 @@ const Config = () => {
                   </div>
                   <button onClick={() => addPlanFeature(pi)} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem 0.85rem', borderRadius: 'var(--radius-md)', background: 'rgba(249,203,26,0.08)', color: 'var(--brand-primary)', border: '1px solid rgba(249,203,26,0.2)', fontWeight: 600, cursor: 'pointer', fontSize: '0.8rem' }}>
                     <Plus size={13} /> Add Feature
+                  </button>
+                </div>
+
+                {/* FAQs */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ ...labelStyle, marginBottom: '0.75rem' }}>FAQs</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                    {(plan.faqs || []).map((faq, fi) => (
+                      <div key={fi} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <input value={faq.q} onChange={e => updatePlanFaq(pi, fi, 'q', e.target.value)} style={{ ...inputStyle, flex: 1, fontWeight: 600 }} placeholder="Q: e.g. What is this?" />
+                          <button onClick={() => removePlanFaq(pi, fi)} style={{ padding: '0.65rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 'var(--radius-md)', color: '#ef4444', cursor: 'pointer', display: 'flex', flexShrink: 0 }}>
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                        <textarea value={faq.a} onChange={e => updatePlanFaq(pi, fi, 'a', e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical' }} placeholder="A: Answer..." />
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => addPlanFaq(pi)} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem 0.85rem', borderRadius: 'var(--radius-md)', background: 'rgba(249,203,26,0.08)', color: 'var(--brand-primary)', border: '1px solid rgba(249,203,26,0.2)', fontWeight: 600, cursor: 'pointer', fontSize: '0.8rem' }}>
+                    <Plus size={13} /> Add FAQ
                   </button>
                 </div>
 

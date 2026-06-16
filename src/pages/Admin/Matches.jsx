@@ -114,6 +114,9 @@ const MatchModal = ({ match, onClose, onSave }) => {
   const [activeTab, setActiveTab] = useState('General'); // 'General' | 'Date' | 'Time'
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const updateMatchFaq = (fi, field, val) => setForm(f => ({ ...f, faqs: (f.faqs||[]).map((faq, j) => j === fi ? { ...faq, [field]: val } : faq) }));
+  const addMatchFaq = () => setForm(f => ({ ...f, faqs: [...(f.faqs||[]), { q: '', a: '' }] }));
+  const removeMatchFaq = (fi) => setForm(f => ({ ...f, faqs: (f.faqs||[]).filter((_, j) => j !== fi) }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -252,6 +255,27 @@ const MatchModal = ({ match, onClose, onSave }) => {
               <div>
                 <label style={labelStyle}>About the Match</label>
                 <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} placeholder="Optional notes…" />
+              </div>
+              
+              {/* FAQs */}
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ ...labelStyle, marginBottom: '0.75rem' }}>FAQs</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                  {(form.faqs || []).map((faq, fi) => (
+                    <div key={fi} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', padding: '0.5rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <input value={faq.q} onChange={e => updateMatchFaq(fi, 'q', e.target.value)} style={{ ...inputStyle, flex: 1, fontWeight: 600 }} placeholder="Q: e.g. What to bring?" />
+                        <button type="button" onClick={() => removeMatchFaq(fi)} style={{ padding: '0.65rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 'var(--radius-md)', color: '#ef4444', cursor: 'pointer', display: 'flex', flexShrink: 0 }}>
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                      <textarea value={faq.a} onChange={e => updateMatchFaq(fi, 'a', e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical' }} placeholder="A: Answer..." />
+                    </div>
+                  ))}
+                </div>
+                <button type="button" onClick={addMatchFaq} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem 0.85rem', borderRadius: 'var(--radius-md)', background: 'rgba(249,203,26,0.08)', color: 'var(--brand-primary)', border: '1px solid rgba(249,203,26,0.2)', fontWeight: 600, cursor: 'pointer', fontSize: '0.8rem', border: 'none' }}>
+                  <Plus size={13} /> Add FAQ
+                </button>
               </div>
               <div>
                 <label style={labelStyle}>Terms & Conditions / Rules</label>
