@@ -147,7 +147,7 @@ const PlayerAllotment = () => {
                       {player.first_name} {player.last_name}
                     </p>
                     <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
-                      {player.gicl_id} · {player.plan || 'No plan'}
+                      {player.gicl_id} · {player.dob ? `${Math.floor((Date.now() - new Date(player.dob)) / (365.25 * 24 * 3600 * 1000))} Yrs` : 'Age N/A'}
                     </p>
                   </div>
                   <select
