@@ -159,28 +159,48 @@ const CoachDashboardLayout = () => {
 
           {/* Coach name pill & Notifications */}
           {profile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-              <div style={{ position: 'relative' }} className="notif-trigger">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              
+              {/* Profile Pill */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-surface-elevated)', border: '1px solid var(--border-subtle)', padding: '0.4rem 1rem 0.4rem 0.4rem', borderRadius: '50px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                {profile.profile_photo_url
+                  ? <img src={profile.profile_photo_url} alt="Profile" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--border-subtle)' }} />
+                  : <div style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>{profile.full_name?.[0]}</div>
+                }
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem', color: '#fff', lineHeight: 1.2 }}>{profile.full_name || 'Coach'}</span>
+                  {profile.email && <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', lineHeight: 1.2 }}>{profile.email}</span>}
+                </div>
+              </div>
+
+              {/* Notification Bell */}
+              <div style={{ position: 'relative' }}>
                 <button 
                   onClick={handleNotifClick}
-                  style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ 
+                    background: 'var(--bg-surface-elevated)', 
+                    border: '1px solid var(--border-subtle)', 
+                    color: 'var(--text-primary)', 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '50%',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                  }}
                 >
-                  <Bell size={24} />
+                  <Bell size={20} />
                   {unreadCount > 0 && (
-                    <span style={{ position: 'absolute', top: '-4px', right: '-4px', backgroundColor: 'var(--error)', color: '#fff', fontSize: '10px', fontWeight: 'bold', width: '16px', height: '16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ position: 'absolute', top: '-2px', right: '-2px', backgroundColor: 'var(--error)', color: '#fff', fontSize: '11px', fontWeight: 'bold', width: '18px', height: '18px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
                 </button>
                 <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} roleId={profile.id} roleType="coach" />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                {profile.profile_photo_url
-                  ? <img src={profile.profile_photo_url} alt="coach" style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--brand-primary)' }} />
-                  : <div style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: 'rgba(249,203,26,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700, color: 'var(--brand-primary)' }}>{profile.first_name?.[0]}{profile.last_name?.[0]}</div>
-                }
-                <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>{profile.first_name} {profile.last_name}</span>
-              </div>
+
             </div>
           )}
         </header>
