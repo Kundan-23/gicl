@@ -111,7 +111,7 @@ const AdminLayout = () => {
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', overflowY: 'auto' }}>
+        <nav style={{ flex: 1, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', overflowY: 'auto', minHeight: 0 }}>
           {navLinks.map(({ name, path, icon: Icon, end }) => (
             <NavLink
               key={path}

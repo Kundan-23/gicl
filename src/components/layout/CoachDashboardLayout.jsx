@@ -90,7 +90,7 @@ const CoachDashboardLayout = () => {
           </button>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, overflowY: 'auto', minHeight: 0, paddingRight: '0.25rem' }} className="custom-scrollbar">
           {navLinks.map((link) => (
             <NavLink
               key={link.name}

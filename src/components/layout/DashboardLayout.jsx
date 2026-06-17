@@ -111,7 +111,7 @@ const DashboardLayout = () => {
           </button>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, overflowY: 'auto', minHeight: 0, paddingRight: '0.25rem' }}>
           {navLinks.map((link) => (
             <NavLink
               key={link.name}
